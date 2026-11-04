@@ -1858,16 +1858,257 @@ function buildStaticArchitecture() {
     addBoxMesh(0.038, 0.012, 3.80, cx, -7.15, -0.244, matLedBorderOpening, archRoot, false);
   });
 
-  const fountainGroup = new THREE.Group();
-  addBoxMesh(1.25, 0.34, 1.25, 4.95, -7.85, -0.08, wallMaterials.courtyard, fountainGroup);
-  addBoxMesh(1.05, 0.28, 1.05, 4.95, -7.85, -0.09, new THREE.MeshStandardMaterial({ color: 0x1d687a, roughness: 0.05, metalness: 0.2 }), fountainGroup);
-  const fBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.22, 0.18, 24), matDarkSteel);
-  fBowl.position.copy(bPos(4.95, -7.85, 0.13));
-  fBowl.castShadow = true;
-  fBowl.receiveShadow = true;
-  fountainGroup.add(fBowl);
-  archRoot.add(fountainGroup);
-  registerDraggable(fountainGroup, 'Courtyard Andalusian Fountain', 'نافورة السقيفة الأندلسية');
+  // ==========================================================================
+  // 1. TUNISIAN FLOOR SOFA (SOFA LANTAI ALA TUNISIA / JALSA ARABIYA)
+  //    Placed right behind the grill, directly beneath the South Courtyard Window (bx = 4.65, by = -5.58, bz = -0.25)
+  // ==========================================================================
+  const tunisianFloorSofaGroup = new THREE.Group();
+  const matKilimCrimson = new THREE.MeshStandardMaterial({
+    color: 0x8e2420,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.85, 0.85),
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matKilimGold = new THREE.MeshStandardMaterial({
+    color: 0xd49b42,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.75, 0.75),
+    roughness: 0.72,
+    metalness: 0.08,
+    envMapIntensity: 0.50,
+    userData: { customEnvIntensity: 0.50 }
+  });
+  const matKilimCream = new THREE.MeshStandardMaterial({
+    color: 0xede2ce,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.70, 0.70),
+    roughness: 0.80,
+    metalness: 0.02,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matKilimTeal = new THREE.MeshStandardMaterial({
+    color: 0x1e5663,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.75, 0.75),
+    roughness: 0.76,
+    metalness: 0.04,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+
+  // Woven Tunisian Kilim Carpet Runner under the floor sofa & tea tray
+  addBoxMesh(2.42, 0.012, 1.48, 4.65, -5.82, -0.242, matKilimGold, tunisianFloorSofaGroup);
+  addBoxMesh(2.30, 0.014, 1.36, 4.65, -5.82, -0.240, matKilimCrimson, tunisianFloorSofaGroup);
+
+  // Low Carved Walnut Plinth Frame & Brass Trim directly under the South Window
+  addBoxMesh(2.16, 0.10, 0.86, 4.65, -5.56, -0.195, matWalnut, tunisianFloorSofaGroup);
+  addBoxMesh(2.20, 0.022, 0.90, 4.65, -5.56, -0.142, matBrass, tunisianFloorSofaGroup);
+
+  // 3 Thick Tufted Tunisian Floor Mattress Cushions (Mtarba / Sedari floor cushions)
+  [-0.68, 0.0, 0.68].forEach((dx, idx) => {
+    const cx = 4.65 + dx;
+    addBoxMesh(0.66, 0.16, 0.80, cx, -5.58, -0.055, matKilimCrimson, tunisianFloorSofaGroup);
+    // Woven geometric Kilim top inlay & brass piping welt
+    addBoxMesh(0.58, 0.025, 0.72, cx, -5.58, 0.032, idx === 1 ? matKilimCream : matKilimCrimson, tunisianFloorSofaGroup);
+    addBoxMesh(0.67, 0.016, 0.81, cx, -5.58, 0.022, matKilimGold, tunisianFloorSofaGroup);
+    // Backrest cushion leaning against the wall right under the South Window sill
+    const backCush = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.42, 0.18), idx % 2 === 0 ? matKilimCrimson : matKilimTeal);
+    backCush.position.copy(bPos(cx, -5.24, 0.22));
+    backCush.rotation.x = 0.14;
+    backCush.castShadow = true;
+    backCush.receiveShadow = true;
+    tunisianFloorSofaGroup.add(backCush);
+    // Decorative Tunisian diamond throw pillow in front of backrest
+    const throwPil = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.12), idx === 1 ? matKilimGold : matKilimCream);
+    throwPil.position.copy(bPos(cx, -5.36, 0.17));
+    throwPil.rotation.x = 0.24;
+    throwPil.rotation.z = (idx - 1) * 0.12;
+    throwPil.castShadow = true;
+    throwPil.receiveShadow = true;
+    tunisianFloorSofaGroup.add(throwPil);
+  });
+
+  // Left & Right Cylindrical Bolster Armrests (Takaya) with Gold Tassel Caps
+  [-0.96, 0.96].forEach((dx) => {
+    const bolster = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.76, 20), matKilimTeal);
+    bolster.rotation.x = Math.PI / 2;
+    bolster.position.copy(bPos(4.65 + dx, -5.58, 0.14));
+    bolster.castShadow = true;
+    bolster.receiveShadow = true;
+    tunisianFloorSofaGroup.add(bolster);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.78, 20), matKilimGold);
+    cap.rotation.x = Math.PI / 2;
+    cap.scale.set(1.02, 0.12, 1.02);
+    cap.position.copy(bPos(4.65 + dx, -5.58, 0.14));
+    tunisianFloorSofaGroup.add(cap);
+  });
+
+  // Low Hammered Brass Tunisian Tea Tray & Mint Tea Glasses in front of the Floor Sofa
+  const teaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.24, 0.03, 24), matBrass);
+  teaTray.position.copy(bPos(4.65, -6.26, -0.22));
+  teaTray.castShadow = true;
+  teaTray.receiveShadow = true;
+  tunisianFloorSofaGroup.add(teaTray);
+  [-0.08, 0.08].forEach((gx) => {
+    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.075, 14), matGlass);
+    glass.position.copy(bPos(4.65 + gx, -6.26, -0.17));
+    tunisianFloorSofaGroup.add(glass);
+  });
+
+  archRoot.add(tunisianFloorSofaGroup);
+  registerDraggable(tunisianFloorSofaGroup, 'Tunisian Majlis Floor Sofa (Jalsa)', 'جلسة عربية تونسية أرضية');
+
+  // ==========================================================================
+  // 2. OUTDOOR BBQ GRILL STATION WITH DEDICATED SMALL ROOF CANOPY
+  //    Replaces old square/circle fountain at bx = 4.85, by = -7.95, bz = -0.25
+  //    Features glowing charcoal embers, cast-iron grates, 3D grilled fish & beef steaks, and a small pitched roof canopy!
+  // ==========================================================================
+  const terraceGrillGroup = new THREE.Group();
+  const gx = 4.85, gy = -7.95;
+
+  // Stone & Travertine Grill Island Plinth + Walnut Doors + Dark Steel Firebox
+  addBoxMesh(1.42, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
+  addBoxMesh(1.34, 0.76, 0.70, gx, gy, 0.21, wallMaterials.courtyard, terraceGrillGroup);
+  // Carved Walnut Storage Doors on front & back of grill island
+  addBoxMesh(0.54, 0.56, 0.72, gx - 0.30, gy, 0.20, matWalnut, terraceGrillGroup);
+  addBoxMesh(0.54, 0.56, 0.72, gx + 0.30, gy, 0.20, matWalnut, terraceGrillGroup);
+  addBoxMesh(0.03, 0.16, 0.74, gx - 0.08, gy, 0.24, matBrass, terraceGrillGroup);
+  addBoxMesh(0.03, 0.16, 0.74, gx + 0.08, gy, 0.24, matBrass, terraceGrillGroup);
+
+  // Marble Side Prep Counter Wings & Brushed Cast-Iron BBQ Firebox Basin
+  addBoxMesh(1.48, 0.05, 0.78, gx, gy, 0.61, matMainFloor, terraceGrillGroup);
+  addBoxMesh(0.86, 0.18, 0.58, gx, gy, 0.66, matDarkSteel, terraceGrillGroup);
+  // Glowing Hot Charcoal Ember Bed inside the Firebox
+  const matCharcoalEmbers = new THREE.MeshStandardMaterial({
+    color: 0x2b1108,
+    emissive: 0xff3b08,
+    emissiveMap: plasterDiffTex,
+    emissiveIntensity: 1.75,
+    roughness: 0.85,
+    metalness: 0.05
+  });
+  addBoxMesh(0.78, 0.04, 0.50, gx, gy, 0.72, matCharcoalEmbers, terraceGrillGroup);
+
+  // Cast-Iron Grill Grate Bars (11 bars across the firebox)
+  for (let bi = -5; bi <= 5; bi++) {
+    addBoxMesh(0.016, 0.014, 0.52, gx + bi * 0.068, gy, 0.755, matDarkSteel, terraceGrillGroup);
+  }
+  // Low wind-guard rim around back & sides of the grill grate
+  addBoxMesh(0.86, 0.14, 0.025, gx, gy + 0.28, 0.82, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.025, 0.14, 0.56, gx - 0.42, gy, 0.82, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.025, 0.14, 0.56, gx + 0.42, gy, 0.82, matDarkSteel, terraceGrillGroup);
+
+  // 3D GRILLED MEDITERRANEAN FISH (2 whole Dorade / Sea Bream with tail fins, sear marks & lemon slices)
+  const matGrilledFish = new THREE.MeshStandardMaterial({ color: 0x8c7b6b, roughness: 0.42, metalness: 0.18 });
+  const matSearMark = new THREE.MeshStandardMaterial({ color: 0x24160e, roughness: 0.75 });
+  const matLemon = new THREE.MeshStandardMaterial({ color: 0xf4d03f, roughness: 0.38 });
+  [-0.22, -0.05].forEach((fxOff, fi) => {
+    const fishGrp = new THREE.Group();
+    fishGrp.position.copy(bPos(gx + fxOff, gy + (fi === 0 ? -0.04 : 0.05), 0.772));
+    fishGrp.rotation.y = fi === 0 ? 0.18 : -0.12;
+    const fBody = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), matGrilledFish);
+    fBody.scale.set(0.42, 0.22, 1.35);
+    fBody.castShadow = true;
+    fishGrp.add(fBody);
+    // Tail fin
+    const fTail = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.08, 4), matGrilledFish);
+    fTail.rotation.x = -Math.PI / 2;
+    fTail.scale.set(0.9, 1.0, 0.28);
+    fTail.position.set(0, 0, -0.16);
+    fishGrp.add(fTail);
+    // Diagonal grill char marks & lemon slice on top
+    for (let sm = -1; sm <= 1; sm++) {
+      const mark = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.006, 0.012), matSearMark);
+      mark.position.set(0, 0.024, sm * 0.045);
+      mark.rotation.y = 0.45;
+      fishGrp.add(mark);
+    }
+    const lemon = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.008, 12), matLemon);
+    lemon.position.set(0, 0.028, 0.01);
+    fishGrp.add(lemon);
+    terraceGrillGroup.add(fishGrp);
+  });
+
+  // 3D GRILLED BEEF RIBEYE STEAKS (2 thick marbled steaks with sear lines & herb butter)
+  const matGrilledSteak = new THREE.MeshStandardMaterial({ color: 0x5c2616, roughness: 0.46, metalness: 0.06 });
+  const matHerbButter = new THREE.MeshStandardMaterial({ color: 0xe6c855, roughness: 0.30 });
+  [0.14, 0.30].forEach((sxOff, si) => {
+    const steakGrp = new THREE.Group();
+    steakGrp.position.copy(bPos(gx + sxOff, gy + (si === 0 ? 0.04 : -0.05), 0.774));
+    steakGrp.rotation.y = si === 0 ? -0.25 : 0.32;
+    const sBody = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.076, 0.032, 14), matGrilledSteak);
+    sBody.scale.set(0.88, 1.0, 1.28);
+    sBody.castShadow = true;
+    steakGrp.add(sBody);
+    for (let sm = -1; sm <= 1; sm++) {
+      const mark = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.006, 0.010), matSearMark);
+      mark.position.set(0, 0.017, sm * 0.032);
+      mark.rotation.y = -0.5;
+      steakGrp.add(mark);
+    }
+    const butter = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.020, 0.008, 10), matHerbButter);
+    butter.position.set(0, 0.020, 0);
+    steakGrp.add(butter);
+    terraceGrillGroup.add(steakGrp);
+  });
+
+  // DEDICATED SMALL ROOF CANOPY SPECIFICALLY FOR THE GRILL ("grill yg punya roof kecil khusus grill")
+  // 4 Corner Posts rising from the grill island corners to support the pitched Tunisian mini-roof
+  const postOffsets = [
+    [-0.68, -0.34], [0.68, -0.34],
+    [-0.68,  0.34], [0.68,  0.34]
+  ];
+  postOffsets.forEach(([pxOff, pyOff]) => {
+    // Lower brass collar + dark steel & walnut column up to canopy eaves (bz = 0.62 .. 1.98)
+    addBoxMesh(0.065, 0.08, 0.065, gx + pxOff, gy + pyOff, 0.66, matBrass, terraceGrillGroup);
+    addBoxMesh(0.048, 1.34, 0.048, gx + pxOff, gy + pyOff, 1.31, matWalnut, terraceGrillGroup);
+    // Decorative Tunisian corner bracket corbels at top of each post
+    addBoxMesh(0.14, 0.045, 0.14, gx + pxOff, gy + pyOff, 1.95, matBrass, terraceGrillGroup);
+  });
+
+  // Canopy Eave Frame Beams & Ornate Scalloped Valance Trim
+  addBoxMesh(1.62, 0.07, 0.92, gx, gy, 2.00, matWalnut, terraceGrillGroup);
+  addBoxMesh(1.68, 0.028, 0.98, gx, gy, 2.04, matBrass, terraceGrillGroup);
+
+  // Pitched Hipped Small Roof Canopy over the Grill (warm terracotta-copper tiles + chimney vent + finial)
+  const matGrillRoofTile = new THREE.MeshStandardMaterial({
+    color: 0x8f3d27,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(1.1, 1.1),
+    roughness: 0.58,
+    metalness: 0.15,
+    envMapIntensity: 0.65,
+    userData: { customEnvIntensity: 0.65 }
+  });
+  const grillRoofCone = new THREE.Mesh(new THREE.ConeGeometry(1.12, 0.38, 4), matGrillRoofTile);
+  grillRoofCone.position.copy(bPos(gx, gy, 2.24));
+  grillRoofCone.rotation.y = Math.PI / 4;
+  grillRoofCone.scale.set(1.12, 1.0, 0.68);
+  grillRoofCone.castShadow = true;
+  grillRoofCone.receiveShadow = true;
+  terraceGrillGroup.add(grillRoofCone);
+
+  // Mini Smoke Extraction Chimney Hood & Brass Crescent Finial on top of the Grill Roof
+  addBoxMesh(0.24, 0.22, 0.24, gx, gy, 2.42, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.30, 0.03, 0.30, gx, gy, 2.54, matBrass, terraceGrillGroup);
+  const finialSphere = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), matBrass);
+  finialSphere.position.copy(bPos(gx, gy, 2.60));
+  terraceGrillGroup.add(finialSphere);
+
+  // Warm Under-Canopy LED Strip illuminating the sizzling fish & steak on the grill
+  addBoxMesh(1.20, 0.018, 0.04, gx, gy, 1.96, matLedBorderOpening, terraceGrillGroup);
+
+  archRoot.add(terraceGrillGroup);
+  registerDraggable(terraceGrillGroup, 'Covered Outdoor BBQ Grill (Fish & Steak)', 'مشواة خارجية بسقف خاص (سمك وستيك)');
 
   const eastArch = createModernArabicArchGroup(2.85, 3.08, 0.11, { infillMode: 'mashrabiya', hasLed: true });
   eastArch.position.copy(bPos(5.84, 1.85, 0.0));
@@ -3478,14 +3719,16 @@ async function buildStaticPolyHavenDecor() {
     registerDraggable(mw, 'Ornate Gilded Hammam Mirror', 'مرآة الحمام المذهبة');
     g.add(mw);
   }
-  // Interior & Arched Terrace Potted Plants (courtyard plants sit at bz = -0.25m on the Arched Terrace)
+  // Interior & Left Concrete Terrace Potted Plants (default outdoor pots placed on the Left Concrete Terrace behind the courtyard wall at bz = -0.25m)
   const plants = [
     ['potted_plant_02', [5.32, 4.20, 0.02], 1.35],
     ['potted_plant_01', [1.65, -0.65, 0.02], 1.15],
-    ['potted_plant_02', [1.82, -5.55, -0.25], 1.45],
-    ['potted_plant_04', [3.38, -5.55, -0.25], 1.35],
-    ['potted_plant_02', [5.45, -8.55, -0.25], 1.75],
-    ['potted_plant_01', [1.80, -8.55, -0.25], 1.35]
+    ['potted_plant_02', [-5.15, -5.58, -0.25], 1.48],
+    ['potted_plant_04', [-3.55, -5.58, -0.25], 1.38],
+    ['potted_plant_02', [-1.85, -5.58, -0.25], 1.65],
+    ['potted_plant_01', [-0.15, -5.62, -0.25], 1.38],
+    ['potted_plant_04', [-4.35, -6.58, -0.25], 1.35],
+    ['potted_plant_01', [-2.65, -6.58, -0.25], 1.32]
   ];
   for (const [id, pos, h] of plants) {
     const pm = await loadPHModel(id);
@@ -4705,32 +4948,51 @@ function updateWalkAndOpenings(dt) {
     if (!op.userData || !op.userData.isOpening) return;
     let targetAngle = op.userData.isOpenPermanent ? (op.userData.openSign || 1) * 1.38 : 0;
 
+    let doorHeldByActor = false;
     if (viewMode === 'walk') {
       const dx = walkState.pos.x - op.position.x;
       const dz = walkState.pos.z - op.position.z;
       const dist = Math.hypot(dx, dz);
 
       if (op.userData.isDoor) {
-        // Transform player offset into door's local space so doors swing AWAY from player's body well before entry
         const cosR = Math.cos(-op.rotation.y);
         const sinR = Math.sin(-op.rotation.y);
         const localX = dx * cosR - dz * sinR;
         const localZ = dx * sinR + dz * cosR;
 
         if (Math.abs(localX) < op.userData.openingWidth * 0.95 && Math.abs(localZ) < 2.15) {
+          doorHeldByActor = true;
           if (!op.userData._walkHolding) {
             op.userData._walkHolding = true;
             op.userData._walkPushSign = localZ >= 0 ? -1 : 1;
           }
           targetAngle = op.userData._walkPushSign * 1.48;
-        } else {
-          op.userData._walkHolding = false;
         }
       } else if (op.userData.isWindow && dist < closestWinDist) {
         closestWinDist = dist;
         closestWin = op;
       }
-    } else {
+    }
+
+    // Also automatically swing doors open when Maître Maher NPC walks through them!
+    if (op.userData.isDoor && !doorHeldByActor && window.maherNpcState && window.maherNpcState.root && window.maherNpcState.root.position.y < 1.5) {
+      const ndx = window.maherNpcState.root.position.x - op.position.x;
+      const ndz = window.maherNpcState.root.position.z - op.position.z;
+      const cosR = Math.cos(-op.rotation.y);
+      const sinR = Math.sin(-op.rotation.y);
+      const localX = ndx * cosR - ndz * sinR;
+      const localZ = ndx * sinR + ndz * cosR;
+      if (Math.abs(localX) < op.userData.openingWidth * 1.05 && Math.abs(localZ) < 2.10) {
+        doorHeldByActor = true;
+        if (!op.userData._walkHolding) {
+          op.userData._walkHolding = true;
+          op.userData._walkPushSign = localZ >= 0 ? -1 : 1;
+        }
+        targetAngle = op.userData._walkPushSign * 1.48;
+      }
+    }
+
+    if (!doorHeldByActor) {
       op.userData._walkHolding = false;
     }
 
@@ -4965,7 +5227,7 @@ function saveDesign() {
     z: o.position.z,
     ry: o.rotation.y
   }));
-  localStorage.setItem('tunisia_modern_arabic_villa_v6', JSON.stringify({
+  localStorage.setItem('tunisia_modern_arabic_villa_v7', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     customPositions
@@ -4974,6 +5236,7 @@ function saveDesign() {
 }
 
 function resetDesign() {
+  localStorage.removeItem('tunisia_modern_arabic_villa_v7');
   localStorage.removeItem('tunisia_modern_arabic_villa_v6');
   localStorage.removeItem('tunisia_modern_arabic_villa_v5');
   localStorage.removeItem('tunisia_modern_arabic_villa_v4');
@@ -4982,10 +5245,606 @@ function resetDesign() {
 }
 
 // ============================================================================
+// MAÎTRE MAHER (SINGLE REALISTIC MALE NPC) & 3D SMOKE / WATER PARTICLE SYSTEM
+// ============================================================================
+const maherNpcGroup = new THREE.Group();
+scene.add(maherNpcGroup);
+
+// Procedural soft radial cloud texture for realistic 3D cooking smoke/steam & water droplets
+const texSmokePuff = (function() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 60);
+  g.addColorStop(0.0, 'rgba(248, 248, 250, 0.72)');
+  g.addColorStop(0.42, 'rgba(232, 235, 240, 0.40)');
+  g.addColorStop(0.76, 'rgba(210, 215, 222, 0.14)');
+  g.addColorStop(1.0, 'rgba(195, 200, 210, 0.0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+})();
+
+const vfxGroup = new THREE.Group();
+scene.add(vfxGroup);
+const smokeParticles = [];
+const waterParticles = [];
+
+const smokePlaneGeo = new THREE.PlaneGeometry(0.36, 0.36);
+for (let i = 0; i < 64; i++) {
+  const mat = new THREE.MeshBasicMaterial({
+    map: texSmokePuff,
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+  const m = new THREE.Mesh(smokePlaneGeo, mat);
+  m.visible = false;
+  m.raycast = () => {};
+  vfxGroup.add(m);
+  smokeParticles.push({
+    mesh: m,
+    active: false,
+    age: 0,
+    maxAge: 2.2,
+    vx: 0, vy: 0.45, vz: 0,
+    baseScale: 0.5,
+    maxOpacity: 0.42
+  });
+}
+
+const matWaterDrop = new THREE.MeshStandardMaterial({
+  color: 0xa8e0ff,
+  emissive: 0x3a92c8,
+  emissiveIntensity: 0.35,
+  roughness: 0.08,
+  metalness: 0.10,
+  transparent: true,
+  opacity: 0.82
+});
+const waterDropGeo = new THREE.SphereGeometry(0.014, 6, 6);
+for (let i = 0; i < 28; i++) {
+  const m = new THREE.Mesh(waterDropGeo, matWaterDrop);
+  m.scale.set(0.8, 1.7, 0.8);
+  m.visible = false;
+  m.raycast = () => {};
+  vfxGroup.add(m);
+  waterParticles.push({
+    mesh: m,
+    active: false,
+    age: 0,
+    maxAge: 0.55,
+    vx: 0, vy: -1.2, vz: 0
+  });
+}
+
+function spawnSmokePuff(worldX, worldY, worldZ, maxOpacity = 0.45, startScale = 0.38) {
+  for (let i = 0; i < smokeParticles.length; i++) {
+    const p = smokeParticles[i];
+    if (!p.active) {
+      p.active = true;
+      p.age = 0;
+      p.maxAge = 1.8 + Math.random() * 1.1;
+      p.mesh.position.set(
+        worldX + (Math.random() - 0.5) * 0.18,
+        worldY + Math.random() * 0.06,
+        worldZ + (Math.random() - 0.5) * 0.18
+      );
+      p.vx = (Math.random() - 0.5) * 0.12;
+      p.vy = 0.36 + Math.random() * 0.22;
+      p.vz = (Math.random() - 0.5) * 0.12;
+      p.baseScale = startScale * (0.85 + Math.random() * 0.35);
+      p.maxOpacity = maxOpacity;
+      p.mesh.scale.setScalar(p.baseScale);
+      p.mesh.material.opacity = 0.0;
+      p.mesh.visible = true;
+      return;
+    }
+  }
+}
+
+function spawnWaterDroplet(worldX, worldY, worldZ, dirX, dirZ) {
+  for (let i = 0; i < waterParticles.length; i++) {
+    const p = waterParticles[i];
+    if (!p.active) {
+      p.active = true;
+      p.age = 0;
+      p.maxAge = 0.42 + Math.random() * 0.18;
+      p.mesh.position.set(
+        worldX + (Math.random() - 0.5) * 0.05,
+        worldY,
+        worldZ + (Math.random() - 0.5) * 0.05
+      );
+      const speed = 0.85 + Math.random() * 0.45;
+      p.vx = dirX * speed + (Math.random() - 0.5) * 0.28;
+      p.vy = -0.35 - Math.random() * 0.35;
+      p.vz = dirZ * speed + (Math.random() - 0.5) * 0.28;
+      p.mesh.visible = true;
+      return;
+    }
+  }
+}
+
+// Waypoint coordinates in Floorplan (bx, by, bz) -> converted via bPos(bx, by, bz)
+const MAHER_WAYPOINTS = {
+  DOOR_OUT:  [2.60, -5.85, -0.25],
+  DOOR_IN:   [2.60, -4.15,  0.00],
+  HALL_MID:  [1.85, -1.65,  0.00],
+  ARCH_GATE: [2.38, -9.85, -0.50],
+  LEFT_ENTRY:[0.40, -6.20, -0.25]
+};
+
+// All 7 autonomous activities for Maître Maher
+const MAHER_ACTIVITIES = {
+  GRILL_TERRACE: {
+    id: 'GRILL_TERRACE',
+    zone: 'terrace_right',
+    bx: 4.02, by: -7.95, bz: -0.25,
+    ry: Math.PI / 2, // Faces East (+X) toward the Covered Terrace BBQ Grill at bx = 4.85, by = -7.95
+    clip: 'Cook_Action',
+    prop: 'spatula',
+    duration: [11, 16],
+    en: 'Grilling Mediterranean Fish & Beef Steak on Terrace',
+    ar: 'يشوي الحوت والستيك في السقيفة'
+  },
+  RELAX_FLOOR_SOFA: {
+    id: 'RELAX_FLOOR_SOFA',
+    zone: 'terrace_right',
+    bx: 4.65, by: -5.68, bz: -0.35, // Lowered slightly so Seated_Idle places him comfortably on the low Tunisian floor sofa!
+    ry: Math.PI, // Faces South (+Z in world) toward the terrace grill & courtyard
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [10, 14],
+    en: 'Relaxing on Tunisian Floor Sofa under the Window',
+    ar: 'مرتاح على الجلسة التونسية الأرضية تحت الشباك'
+  },
+  WATER_LEFT_POTS: {
+    id: 'WATER_LEFT_POTS',
+    zone: 'terrace_left',
+    bx: -2.15, by: -6.32, bz: -0.25,
+    ry: 0, // Faces North (-Z in world) toward the row of potted plants on the Left Concrete Terrace
+    clip: 'Water_Plants',
+    prop: 'watering_can',
+    duration: [10, 14],
+    en: 'Watering Potted Flowers on Left Concrete Terrace',
+    ar: 'يسقي المحابس والنوار في التراس الغربي'
+  },
+  COOK_KITCHEN: {
+    id: 'COOK_KITCHEN',
+    zone: 'inside_kitchen',
+    bx: 0.24, by: -2.50, bz: 0.00,
+    ry: Math.PI / 2, // Faces East (+X) toward the Kitchen Stove & steaming Brass Pot / Skillet at bx = 0.92, by = -2.50
+    clip: 'Cook_Action',
+    prop: 'spatula',
+    duration: [11, 16],
+    en: 'Cooking in the Kitchen (Steaming Pot & Skillet)',
+    ar: 'يطيب في الكوجينة مع الدخان طالع من الطنجرة'
+  },
+  WATCH_TV_MAJLIS: {
+    id: 'WATCH_TV_MAJLIS',
+    zone: 'inside_majlis',
+    bx: 3.40, by: 0.30, bz: 0.02,
+    ry: 0, // Faces North (-Z in world) sitting on the South Majlis Sofa watching the Live Tunisian News TV!
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [12, 17],
+    en: 'Sitting on Salon Sofa & Watching Tunisian News TV',
+    ar: 'قاعد في الصالة يتفرج في الأخبار التونسية'
+  },
+  WATER_OLIVE_GARDEN: {
+    id: 'WATER_OLIVE_GARDEN',
+    zone: 'front_yard',
+    bx: -0.05, by: -9.55, bz: -0.50,
+    ry: 0, // Faces North toward the 3m Ancient Olive Tree
+    clip: 'Water_Plants',
+    prop: 'watering_can',
+    duration: [9, 13],
+    en: 'Watering the Ancient Olive Tree & Garden',
+    ar: 'يسقي شجرة الزيتون والجنينة'
+  },
+  ROOF_BBQ: {
+    id: 'ROOF_BBQ',
+    zone: 'roof', // Spawns directly on the 2nd Floor Roof! ("d roof (spawn saja khusus d roof)")
+    bx: -3.88, by: 2.65, bz: 3.78,
+    ry: -Math.PI / 2, // Faces West (-X) toward the Rooftop Stone BBQ Fire Pit at bx = -4.65, by = 2.65
+    clip: 'Cook_Action',
+    prop: 'spatula',
+    duration: [10, 14],
+    en: 'Grilling at Rooftop BBQ Bar (2nd Floor)',
+    ar: 'يشوي في بار ومشواة السطح (الطابق الثاني)'
+  },
+  ROOF_LOUNGE: {
+    id: 'ROOF_LOUNGE',
+    zone: 'roof', // Spawns directly on the 2nd Floor Roof!
+    bx: 2.85, by: -0.32, bz: 3.80,
+    ry: 0, // Faces North sitting on the Rooftop Lounge Sofa under the Pergola
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [10, 14],
+    en: 'Relaxing on Rooftop Pergola Lounge (2nd Floor)',
+    ar: 'مرتاح في جلسة السطح تحت البرغولا'
+  }
+};
+
+const maherNpcState = {
+  loaded: false,
+  root: null,
+  mixer: null,
+  actions: {},
+  activeAction: null,
+  handBoneR: null,
+  propSpatula: null,
+  propWateringCan: null,
+  spoutWorldPos: new THREE.Vector3(),
+  mode: 'PERFORMING', // 'WALKING' | 'PERFORMING'
+  currentAct: MAHER_ACTIVITIES.GRILL_TERRACE,
+  currentZone: 'terrace_right',
+  pathQueue: [],
+  timer: 12.0,
+  walkSpeed: 1.48,
+  smokeAccum: 0,
+  waterAccum: 0,
+  shadowTick: 0
+};
+window.maherNpcState = maherNpcState;
+
+function buildMaherHandheldProps(handBone) {
+  // 1. Stainless Steel & Walnut BBQ/Kitchen Spatula
+  const spatulaGrp = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.16, 10), matWalnut);
+  handle.rotation.x = Math.PI / 2;
+  handle.position.set(0, 0, 0.08);
+  spatulaGrp.add(handle);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.14, 8), matChrome);
+  stem.rotation.x = Math.PI / 2;
+  stem.position.set(0, 0, 0.22);
+  spatulaGrp.add(stem);
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.004, 0.11), matChrome);
+  blade.position.set(0, -0.005, 0.32);
+  spatulaGrp.add(blade);
+  spatulaGrp.visible = false;
+  handBone.add(spatulaGrp);
+  maherNpcState.propSpatula = spatulaGrp;
+
+  // 2. Traditional Copper & Brass Garden Watering Can
+  const canGrp = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.19, 16), matCopper);
+  body.position.set(0, -0.06, 0.12);
+  canGrp.add(body);
+  const topHandle = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.010, 8, 16, Math.PI * 1.25), matBrass);
+  topHandle.rotation.y = Math.PI / 2;
+  topHandle.position.set(0, 0.03, 0.09);
+  canGrp.add(topHandle);
+  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.022, 0.24, 10), matCopper);
+  spout.rotation.x = Math.PI * 0.34;
+  spout.position.set(0, -0.02, 0.26);
+  canGrp.add(spout);
+  const rose = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.028, 12), matBrass);
+  rose.rotation.x = -Math.PI * 0.66;
+  rose.position.set(0, 0.04, 0.37);
+  rose.name = 'WateringSpoutTip';
+  canGrp.add(rose);
+  canGrp.visible = false;
+  handBone.add(canGrp);
+  maherNpcState.propWateringCan = canGrp;
+}
+
+function playMaherClip(clipName, fadeSec = 0.28) {
+  if (!maherNpcState.loaded) return;
+  const nextAct = maherNpcState.actions[clipName] || maherNpcState.actions['Stand_Idle'];
+  if (!nextAct || maherNpcState.activeAction === nextAct) return;
+  nextAct.enabled = true;
+  nextAct.setEffectiveTimeScale(1.0);
+  nextAct.setEffectiveWeight(1.0);
+  nextAct.reset().play();
+  if (maherNpcState.activeAction) {
+    maherNpcState.activeAction.crossFadeTo(nextAct, fadeSec, false);
+  }
+  maherNpcState.activeAction = nextAct;
+}
+
+function setMaherProp(propType) {
+  if (maherNpcState.propSpatula) maherNpcState.propSpatula.visible = (propType === 'spatula');
+  if (maherNpcState.propWateringCan) maherNpcState.propWateringCan.visible = (propType === 'watering_can');
+}
+
+function computeGroundFloorWaypoints(fromZone, toZone) {
+  if (fromZone === toZone) return [];
+  const insideZones = ['inside_kitchen', 'inside_majlis'];
+  const fromIn = insideZones.includes(fromZone);
+  const toIn = insideZones.includes(toZone);
+  const pts = [];
+
+  if (fromIn && toIn) {
+    pts.push(MAHER_WAYPOINTS.HALL_MID);
+    return pts;
+  }
+  if (fromIn && !toIn) {
+    pts.push(MAHER_WAYPOINTS.HALL_MID, MAHER_WAYPOINTS.DOOR_IN, MAHER_WAYPOINTS.DOOR_OUT);
+    if (toZone === 'terrace_left') {
+      pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+    } else if (toZone === 'front_yard') {
+      pts.push(MAHER_WAYPOINTS.ARCH_GATE);
+    }
+    return pts;
+  }
+  if (!fromIn && toIn) {
+    if (fromZone === 'front_yard') {
+      pts.push(MAHER_WAYPOINTS.ARCH_GATE);
+    } else if (fromZone === 'terrace_left') {
+      pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+    }
+    pts.push(MAHER_WAYPOINTS.DOOR_OUT, MAHER_WAYPOINTS.DOOR_IN, MAHER_WAYPOINTS.HALL_MID);
+    return pts;
+  }
+  // Exterior to exterior
+  if (fromZone === 'terrace_right' && toZone === 'terrace_left') {
+    pts.push(MAHER_WAYPOINTS.DOOR_OUT, MAHER_WAYPOINTS.LEFT_ENTRY);
+  } else if (fromZone === 'terrace_left' && toZone === 'terrace_right') {
+    pts.push(MAHER_WAYPOINTS.LEFT_ENTRY, MAHER_WAYPOINTS.DOOR_OUT);
+  } else if (toZone === 'front_yard') {
+    if (fromZone === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+    pts.push(MAHER_WAYPOINTS.ARCH_GATE);
+  } else if (fromZone === 'front_yard') {
+    pts.push(MAHER_WAYPOINTS.ARCH_GATE);
+    if (toZone === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+  }
+  return pts;
+}
+
+function startMaherActivity(actKey, immediateSpawn = false) {
+  const act = MAHER_ACTIVITIES[actKey] || MAHER_ACTIVITIES.GRILL_TERRACE;
+  const prevZone = maherNpcState.currentZone;
+  maherNpcState.currentAct = act;
+  maherNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
+
+  if (!maherNpcState.root) return;
+
+  // Rule requested by user: "d roof (spawn saja khusus d roof)" -> Whenever moving to or from the 2nd floor roof, spawn directly!
+  const isRoofTransition = (act.zone === 'roof' || prevZone === 'roof' || immediateSpawn);
+  if (isRoofTransition) {
+    maherNpcState.pathQueue = [];
+    maherNpcState.mode = 'PERFORMING';
+    maherNpcState.currentZone = act.zone;
+    maherNpcState.root.position.copy(bPos(act.bx, act.by, act.bz));
+    maherNpcState.root.rotation.y = act.ry;
+    setMaherProp(act.prop);
+    playMaherClip(act.clip, 0.22);
+    requestShadowUpdate();
+    return;
+  }
+
+  // Otherwise on the ground floor, walk naturally along waypoints through doors & terraces!
+  const wps = computeGroundFloorWaypoints(prevZone, act.zone);
+  wps.push([act.bx, act.by, act.bz]);
+  maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+  maherNpcState.currentZone = act.zone;
+  maherNpcState.mode = 'WALKING';
+  setMaherProp(null);
+  playMaherClip('Walk_Cycle', 0.22);
+}
+
+// Expose global helper so any activity can be triggered on demand or verified in browser
+window.setMaherActivity = function(actKey, immediate = true) {
+  startMaherActivity(actKey, immediate);
+};
+
+function pickNextRandomMaherActivity() {
+  const keys = Object.keys(MAHER_ACTIVITIES);
+  const others = keys.filter(k => k !== maherNpcState.currentAct.id);
+  const nextKey = others[Math.floor(Math.random() * others.length)];
+  startMaherActivity(nextKey, false);
+}
+
+function loadMaitreMaherNPC() {
+  loadingActive++; loadingTotal++;
+  updateLoadingUI();
+
+  gltfLoader.load('./maitre_maher_npc.glb', (gltf) => {
+    const npcScene = gltf.scene;
+    const armRoot = npcScene.getObjectByName('Maitre_Maher') || npcScene;
+
+    armRoot.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.frustumCulled = false;
+        if (ch.material) {
+          const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+          mats.forEach(m => {
+            m.envMapIntensity = 0.52;
+            m.userData = { customEnvIntensity: 0.52 };
+            m.needsUpdate = true;
+          });
+        }
+      }
+      if (ch.isBone && (ch.name === 'Hand.R' || ch.name === 'HandR' || ch.name === 'Hand_R')) {
+        maherNpcState.handBoneR = ch;
+      }
+    });
+
+    if (maherNpcState.handBoneR) {
+      buildMaherHandheldProps(maherNpcState.handBoneR);
+    }
+
+    maherNpcGroup.add(armRoot);
+    maherNpcState.root = armRoot;
+    maherNpcState.mixer = new THREE.AnimationMixer(armRoot);
+
+    (gltf.animations || []).forEach((clip) => {
+      const cleanClip = clip.clone();
+      // Keep only Hips vertical/forward local seat offset tracks; strip any armature-level root translation
+      cleanClip.tracks = cleanClip.tracks.filter(trk => {
+        if (!trk.name.endsWith('.position')) return true;
+        return trk.name.includes('Hips');
+      });
+      // Recognise clip name regardless of NLA track prefix
+      for (const baseName of ['Walk_Cycle', 'Stand_Idle', 'Cook_Action', 'Water_Plants', 'Seated_Idle']) {
+        if (clip.name.includes(baseName)) {
+          maherNpcState.actions[baseName] = maherNpcState.mixer.clipAction(cleanClip);
+        }
+      }
+    });
+
+    maherNpcState.loaded = true;
+    // Start immediately on the terrace grilling fish & beef steak under the small grill roof!
+    startMaherActivity('GRILL_TERRACE', true);
+
+    loadingActive--;
+    updateLoadingUI();
+    requestShadowUpdate();
+  }, undefined, (err) => {
+    console.warn('Could not load maitre_maher_npc.glb:', err);
+    loadingActive--;
+    updateLoadingUI();
+  });
+}
+
+function updateMaherNpcAndParticles(dt) {
+  // 1. Update Maître Maher NPC state machine & animation mixer
+  if (maherNpcState.loaded && maherNpcState.root && maherNpcState.mixer) {
+    // Hide rooftop NPC only when viewing 1st-floor cutaway top view
+    if (maherNpcState.currentZone === 'roof' && viewMode === 'top1') {
+      maherNpcGroup.visible = false;
+    } else {
+      maherNpcGroup.visible = true;
+    }
+
+    if (maherNpcState.mode === 'WALKING') {
+      if (maherNpcState.pathQueue.length > 0) {
+        const target = maherNpcState.pathQueue[0];
+        const pos = maherNpcState.root.position;
+        const dx = target.x - pos.x;
+        const dz = target.z - pos.z;
+        const dist = Math.hypot(dx, dz);
+        const step = maherNpcState.walkSpeed * dt;
+
+        if (dist <= step + 0.04) {
+          pos.copy(target);
+          maherNpcState.pathQueue.shift();
+        } else {
+          pos.x += (dx / dist) * step;
+          pos.z += (dz / dist) * step;
+          pos.y += (target.y - pos.y) * Math.min(1.0, dt * 8.0);
+          // Smoothly rotate character to face walking direction (+Z is forward in MakeHuman GLB)
+          const targetYaw = Math.atan2(dx, dz);
+          let diff = targetYaw - maherNpcState.root.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 10.0);
+        }
+      } else {
+        // Arrived at destination activity!
+        const act = maherNpcState.currentAct;
+        maherNpcState.mode = 'PERFORMING';
+        maherNpcState.root.position.copy(bPos(act.bx, act.by, act.bz));
+        maherNpcState.root.rotation.y = act.ry;
+        setMaherProp(act.prop);
+        playMaherClip(act.clip, 0.25);
+      }
+    } else {
+      // PERFORMING current activity
+      maherNpcState.timer -= dt;
+      if (maherNpcState.timer <= 0) {
+        pickNextRandomMaherActivity();
+      }
+    }
+
+    maherNpcState.mixer.update(dt);
+    maherNpcState.shadowTick = (maherNpcState.shadowTick + 1) % 4;
+    if (maherNpcState.shadowTick === 0) requestShadowUpdate();
+  }
+
+  // 2. Spawn continuous 3D cooking smoke/steam from:
+  //    a) Kitchen Stove Brass Pot & Copper Skillet (bx = 0.92, by = -2.50, bz = 0.98)
+  //    b) Terrace Covered BBQ Grill with Fish & Beef Steak (bx = 4.85, by = -7.95, bz = 0.80)
+  //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof (bx = -4.65, by = 2.65, bz = 5.05)
+  maherNpcState.smokeAccum += dt;
+  if (maherNpcState.smokeAccum >= 0.10) {
+    maherNpcState.smokeAccum = 0;
+    const isCookingKitchen = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'COOK_KITCHEN');
+    const isGrillingTerrace = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'GRILL_TERRACE');
+    const isGrillingRoof = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'ROOF_BBQ');
+
+    // Kitchen pot & skillet steam/smoke (always simmering, extra thick when Maître Maher is cooking in the kitchen!)
+    const kPos = bPos(0.98, -2.65, 1.03);
+    spawnSmokePuff(kPos.x, kPos.y, kPos.z, isCookingKitchen ? 0.78 : 0.44, isCookingKitchen ? 0.50 : 0.34);
+    const skPos = bPos(0.85, -2.35, 0.99);
+    spawnSmokePuff(skPos.x, skPos.y, skPos.z, isCookingKitchen ? 0.72 : 0.38, isCookingKitchen ? 0.46 : 0.30);
+
+    // Terrace BBQ grill smoke (rising from grilled fish & beef steak under the small grill roof)
+    const gPos = bPos(4.85, -7.95, 0.80);
+    spawnSmokePuff(gPos.x, gPos.y, gPos.z, isGrillingTerrace ? 0.62 : 0.40, isGrillingTerrace ? 0.48 : 0.34);
+
+    // Rooftop BBQ smoke when active
+    if (isGrillingRoof && roofGroup.visible) {
+      const rPos = bPos(-4.65, 2.65, 5.05);
+      spawnSmokePuff(rPos.x, rPos.y, rPos.z, 0.58, 0.46);
+    }
+  }
+
+  // 3. Spawn pouring water droplets when Maître Maher is watering flowers/olive trees!
+  if (maherNpcState.loaded && maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.prop === 'watering_can') {
+    maherNpcState.waterAccum += dt;
+    if (maherNpcState.waterAccum >= 0.035) {
+      maherNpcState.waterAccum = 0;
+      const rootPos = maherNpcState.root.position;
+      const yaw = maherNpcState.root.rotation.y + Math.sin(performance.now() * 0.003) * 0.22;
+      const fwdX = Math.sin(yaw);
+      const fwdZ = Math.cos(yaw);
+      const spoutX = rootPos.x + fwdX * 0.55 - fwdZ * 0.16;
+      const spoutY = rootPos.y + 0.92;
+      const spoutZ = rootPos.z + fwdZ * 0.55 + fwdX * 0.16;
+      spawnWaterDroplet(spoutX, spoutY, spoutZ, fwdX, fwdZ);
+      spawnWaterDroplet(spoutX, spoutY, spoutZ, fwdX, fwdZ);
+    }
+  }
+
+  // 4. Advance active smoke puffs (billow upward, expand, face camera, fade out)
+  for (let i = 0; i < smokeParticles.length; i++) {
+    const p = smokeParticles[i];
+    if (!p.active) continue;
+    p.age += dt;
+    if (p.age >= p.maxAge) {
+      p.active = false;
+      p.mesh.visible = false;
+      continue;
+    }
+    const t = p.age / p.maxAge;
+    p.mesh.position.x += (p.vx + Math.sin(p.age * 3.2 + i) * 0.06) * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += (p.vz + Math.cos(p.age * 2.8 + i) * 0.06) * dt;
+    p.mesh.scale.setScalar(p.baseScale * (1.0 + t * 1.85));
+    const alpha = t < 0.22 ? (t / 0.22) : Math.pow(1.0 - (t - 0.22) / 0.78, 1.3);
+    p.mesh.material.opacity = p.maxOpacity * alpha;
+    p.mesh.quaternion.copy(activeCamera.quaternion);
+  }
+
+  // 5. Advance active water droplets (arc downward under gravity)
+  for (let i = 0; i < waterParticles.length; i++) {
+    const p = waterParticles[i];
+    if (!p.active) continue;
+    p.age += dt;
+    if (p.age >= p.maxAge) {
+      p.active = false;
+      p.mesh.visible = false;
+      continue;
+    }
+    p.vy -= 4.8 * dt;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+  }
+}
+
+// ============================================================================
 // BOOTSTRAP SCENE
 // ============================================================================
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v6');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v7');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -5008,6 +5867,9 @@ async function initApp() {
   applyAllMaterialsAndLights();
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
+
+  // Load Maître Maher (the single realistic 3D NPC in the villa)
+  loadMaitreMaherNPC();
 
   await Promise.all([
     rebuildCategory('bed'),
@@ -5058,6 +5920,7 @@ function animate(now) {
 
   updateTunisiaNewsBroadcast(nowMs);
   updateWalkAndOpenings(dt);
+  updateMaherNpcAndParticles(dt);
   if (viewMode !== 'walk') controls.update();
   if (composer) {
     if (renderPass) renderPass.camera = activeCamera;
