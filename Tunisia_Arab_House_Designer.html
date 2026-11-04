@@ -121,16 +121,43 @@
     background: var(--gold-bright); color: #111; padding: 2px 8px; border-radius: 6px; font-weight: 800;
   }
   #walk-dpad {
-    position: absolute; bottom: 68px; right: 16px; z-index: 14;
-    display: none; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 5px;
+    position: fixed; bottom: 18px; right: 18px; z-index: 16;
+    width: 118px; height: 118px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(232, 185, 89, 0.14) 0%, rgba(12, 17, 26, 0.88) 72%);
+    border: 2px solid rgba(232, 185, 89, 0.55);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), inset 0 0 18px rgba(232, 185, 89, 0.18);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none; -webkit-user-select: none; user-select: none;
+    cursor: grab;
   }
-  #walk-dpad.visible { display: grid; }
-  .dpad-btn {
-    background: rgba(12, 17, 26, 0.85); border: 1px solid var(--border-gold);
-    border-radius: 10px; color: var(--gold-bright); font-size: 15px; font-weight: 800;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  #walk-dpad.dragging {
+    cursor: grabbing;
+    border-color: var(--gold-bright);
+    box-shadow: 0 10px 34px rgba(232, 185, 89, 0.35), inset 0 0 22px rgba(232, 185, 89, 0.28);
   }
-  .dpad-btn:active { background: var(--gold); color: #111; }
+  .joy-dir {
+    position: absolute; font-size: 9px; font-weight: 800;
+    color: rgba(232, 185, 89, 0.55); pointer-events: none;
+  }
+  .joy-dir.up { top: 6px; left: 50%; transform: translateX(-50%); }
+  .joy-dir.down { bottom: 6px; left: 50%; transform: translateX(-50%); }
+  .joy-dir.left { left: 7px; top: 50%; transform: translateY(-50%); }
+  .joy-dir.right { right: 7px; top: 50%; transform: translateY(-50%); }
+  #joystick-knob {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 32%, #ffe394 0%, #e8b959 55%, #a46d18 100%);
+    border: 2px solid #fff5d6;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65), 0 0 12px rgba(232, 185, 89, 0.55);
+    pointer-events: none;
+    transform: translate3d(0px, 0px, 0px);
+    transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #1b1305;
+  }
+  #walk-dpad.dragging #joystick-knob {
+    transition: none;
+  }
   dialog#photoshoot-dialog {
     margin: auto; width: min(92vw, 920px); background: rgba(12, 17, 26, 0.96);
     color: var(--text-main); border: 1px solid var(--gold); border-radius: 18px;
@@ -219,13 +246,16 @@
   <span id="win-sign-text">🪟 Click Window or Press [F] to Open / Close</span>
 </div>
 
-<div id="walk-dpad">
-  <div></div>
-  <button class="dpad-btn" onpointerdown="setWalkKey('forward',true)" onpointerup="setWalkKey('forward',false)" onpointerleave="setWalkKey('forward',false)">▲</button>
-  <div></div>
-  <button class="dpad-btn" onpointerdown="setWalkKey('left',true)" onpointerup="setWalkKey('left',false)" onpointerleave="setWalkKey('left',false)">◀</button>
-  <button class="dpad-btn" onpointerdown="setWalkKey('back',true)" onpointerup="setWalkKey('back',false)" onpointerleave="setWalkKey('back',false)">▼</button>
-  <button class="dpad-btn" onpointerdown="setWalkKey('right',true)" onpointerup="setWalkKey('right',false)" onpointerleave="setWalkKey('right',false)">▶</button>
+<video id="tunisia-news-video" loop muted autoplay playsinline crossorigin="anonymous" width="854" height="480" style="display:none">
+  <source src="https://upload.wikimedia.org/wikipedia/commons/transcoded/6/64/Tunisia_views.ogg/Tunisia_views.ogg.480p.vp9.webm" type="video/webm" />
+</video>
+
+<div id="walk-dpad" aria-label="MOBA Virtual Analog Movement Joystick" title="Drag 360° to walk or pan camera">
+  <span class="joy-dir up">▲</span>
+  <span class="joy-dir down">▼</span>
+  <span class="joy-dir left">◀</span>
+  <span class="joy-dir right">▶</span>
+  <div id="joystick-knob">✥</div>
 </div>
 
 <div id="selection-hud">
@@ -234,10 +264,6 @@
   <button class="hud-btn" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
   <button class="hud-btn" onclick="rotateSelected(Math.PI/12)">↻ +15°</button>
   <button class="hud-btn" onclick="rotateSelected(Math.PI/2)">⟳ 90°</button>
-  <button class="hud-btn" onclick="nudgeSelected(0, -0.25)">▲</button>
-  <button class="hud-btn" onclick="nudgeSelected(0, 0.25)">▼</button>
-  <button class="hud-btn" onclick="nudgeSelected(-0.25, 0)">◀</button>
-  <button class="hud-btn" onclick="nudgeSelected(0.25, 0)">▶</button>
   <button class="hud-btn" id="btn-hud-deselect" style="display:none" onclick="deselectObject()">✖</button>
 </div>
 
@@ -412,9 +438,14 @@ const renderer = new THREE.WebGLRenderer({
   powerPreference: 'high-performance'
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;
+renderer.shadowMap.needsUpdate = true;
+function requestShadowUpdate() {
+  renderer.shadowMap.needsUpdate = true;
+}
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.04;
@@ -1132,7 +1163,7 @@ function createArchedWindowAssembly(width, height, depth, pointed = 0.14) {
 
   group.add(leftPivot, rightPivot);
   group.userData = {
-    draggable: true, isOpening: true, isWindow: true,
+    draggable: false, isOpening: true, isWindow: true,
     openingWidth: width, openingHeight: height, innerArchW: width - 0.22, innerArchH: height - 0.12,
     sillHeight: 0.85, pointed: pointed,
     leftPivot, rightPivot, openAngle: 0, targetOpenAngle: 0, maxOpenAngle: 1.22, isOpenPermanent: false
@@ -1193,7 +1224,7 @@ function createArchedDoorAssembly(width, height, depth, hasMashrabiyaFanlight = 
 
   group.add(leftPivot, rightPivot);
   group.userData = {
-    draggable: true, isOpening: true, isDoor: true,
+    draggable: false, isOpening: true, isDoor: true,
     openingWidth: width, openingHeight: height, innerArchW: width - 0.22, innerArchH: height - 0.12,
     sillHeight: 0.0, pointed: pointed,
     leftPivot, rightPivot, openAngle: 0, targetOpenAngle: 0, maxOpenAngle: 1.42, isOpenPermanent: false
@@ -1223,6 +1254,20 @@ const openingsGroup = new THREE.Group();
 scene.add(openingsGroup);
 
 const draggableObjects = [];
+
+function freezeStaticMeshes(rootGroup) {
+  rootGroup.updateMatrixWorld(true);
+  rootGroup.traverse((obj) => {
+    if (obj === rootGroup) return;
+    let curr = obj;
+    while (curr && curr !== rootGroup) {
+      if (curr.userData && (curr.userData.draggable || curr.userData.isOpening)) return;
+      curr = curr.parent;
+    }
+    obj.updateMatrix();
+    obj.matrixAutoUpdate = false;
+  });
+}
 
 // Prevent any Z-fighting on rugs
 matRug.polygonOffset = true;
@@ -1297,6 +1342,8 @@ function rebuildDynamicWalls() {
       else addBoxMesh(w.thick, H, segLen, w.fixed, segMid, H * 0.5, mat, dynamicWallsGroup);
     }
   });
+  freezeStaticMeshes(dynamicWallsGroup);
+  requestShadowUpdate();
 }
 
 function snapOpeningToNearestWall(opObj, targetBx, targetBy) {
@@ -1369,10 +1416,13 @@ function buildStaticArchitecture() {
   addBoxMesh(3.90, 0.025, 3.80, -4.05, -3.10, 0.013, matBathFloor, archRoot, false);
   addBoxMesh(4.80, 0.20, 4.40, 3.70, -7.10, -0.10, matCourtyardFloor, archRoot, false);
 
-  // Glitch-free Berber / Kairouan Rugs (thin 0.008m at bz=0.005 with polygonOffset, NO coplanar static AO decals under bed!)
-  addBoxMesh(3.40, 0.008, 3.10, -4.20, 2.50, 0.005, matRug, archRoot, false);
-  addBoxMesh(3.95, 0.008, 4.20, 3.25, 1.65, 0.005, matRug, archRoot, false);
-  addBoxMesh(4.10, 0.012, 4.40, 2.85, 1.40, 3.78, matRug, roofGroup, false);
+  // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable)
+  const rugBed = addBoxMesh(3.40, 0.008, 3.10, -4.20, 2.50, 0.005, matRug, archRoot, false);
+  registerDraggable(rugBed, 'King Bedroom Kairouan Rug', 'زربية القيروان لبيت النوم');
+  const rugMajlis = addBoxMesh(3.95, 0.008, 4.20, 3.25, 1.65, 0.005, matRug, archRoot, false);
+  registerDraggable(rugMajlis, 'Grand Majlis Berber Carpet', 'زربية الصالة البربرية');
+  const rugRoof = addBoxMesh(4.10, 0.012, 4.40, 2.85, 1.40, 3.78, matRug, roofGroup, false);
+  registerDraggable(rugRoof, 'Rooftop Lounge Berber Rug', 'زربية جلسة السطح');
 
   // Walnut Baseboards, Dark Plinth Reveal & Ceiling Crown Moldings (creates deep architectural contrast at wall joints)
   addBoxMesh(11.8, 0.14, 0.12, 0.0, 4.84, H - 0.07, matWalnut);
@@ -1394,11 +1444,17 @@ function buildStaticArchitecture() {
   [2.30, 3.70, 5.10].forEach(cx => {
     addBoxMesh(0.038, 0.012, 3.80, cx, -7.15, 0.006, matLedBorderOpening, archRoot, false);
   });
-  addBoxMesh(1.25, 0.34, 1.25, 4.95, -7.85, 0.17, wallMaterials.courtyard);
-  addBoxMesh(1.05, 0.28, 1.05, 4.95, -7.85, 0.16, new THREE.MeshStandardMaterial({ color: 0x1d687a, roughness: 0.05, metalness: 0.2 }));
+
+  const fountainGroup = new THREE.Group();
+  addBoxMesh(1.25, 0.34, 1.25, 4.95, -7.85, 0.17, wallMaterials.courtyard, fountainGroup);
+  addBoxMesh(1.05, 0.28, 1.05, 4.95, -7.85, 0.16, new THREE.MeshStandardMaterial({ color: 0x1d687a, roughness: 0.05, metalness: 0.2 }), fountainGroup);
   const fBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.22, 0.18, 24), matDarkSteel);
   fBowl.position.copy(bPos(4.95, -7.85, 0.38));
-  archRoot.add(fBowl);
+  fBowl.castShadow = true;
+  fBowl.receiveShadow = true;
+  fountainGroup.add(fBowl);
+  archRoot.add(fountainGroup);
+  registerDraggable(fountainGroup, 'Courtyard Andalusian Fountain', 'نافورة السقيفة الأندلسية');
 
   const eastArch = createModernArabicArchGroup(2.85, 3.08, 0.11, { infillMode: 'mashrabiya', hasLed: true });
   eastArch.position.copy(bPos(5.84, 1.85, 0.0));
@@ -1420,46 +1476,71 @@ function buildStaticArchitecture() {
   welcomeArch.position.copy(bPos(2.38, -9.20, 0.0));
   archRoot.add(welcomeArch);
 
-  // Bathroom Hammam Shower, Rain Head, Porcelain Toilet & Marble Vanity
-  addBoxMesh(1.68, 0.08, 1.72, -5.00, -4.00, 0.04, matMainFloor);
-  addBoxMesh(0.04, 2.25, 1.65, -4.18, -4.00, 1.15, matGlass);
+  // Bathroom Hammam Shower, Rain Head, Porcelain Toilet & Marble Vanity (each selectable, movable & rotatable)
+  const bathShowerGroup = new THREE.Group();
+  addBoxMesh(1.68, 0.08, 1.72, -5.00, -4.00, 0.04, matMainFloor, bathShowerGroup);
+  addBoxMesh(0.04, 2.25, 1.65, -4.18, -4.00, 1.15, matGlass, bathShowerGroup);
   const showerArch = createModernArabicArchGroup(1.62, 2.40, 0.10, { infillMode: 'none', hasLed: true, frameMat: matBrass });
   showerArch.position.copy(bPos(-4.18, -4.00, 0.0));
   showerArch.rotation.y = Math.PI / 2;
-  archRoot.add(showerArch);
+  bathShowerGroup.add(showerArch);
   const sPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.10, 12), matBrass);
   sPipe.position.copy(bPos(-5.75, -4.00, 1.15));
-  archRoot.add(sPipe);
+  bathShowerGroup.add(sPipe);
   const sDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.03, 24), matBrass);
   sDisc.position.copy(bPos(-5.45, -4.00, 2.18));
-  archRoot.add(sDisc);
+  bathShowerGroup.add(sDisc);
+  archRoot.add(bathShowerGroup);
+  registerDraggable(bathShowerGroup, 'Hammam Walk-In Rain Shower', 'دوش الحمام النحاسي العصري');
 
+  const bathToiletGroup = new THREE.Group();
   const porcelainMat = new THREE.MeshStandardMaterial({ color: 0xf8f8fa, roughness: 0.10 });
-  addBoxMesh(0.24, 0.82, 0.44, -5.68, -1.85, 0.41, porcelainMat);
+  addBoxMesh(0.24, 0.82, 0.44, -5.68, -1.85, 0.41, porcelainMat, bathToiletGroup);
   const tBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.18, 0.44, 24), porcelainMat);
   tBowl.position.copy(bPos(-5.35, -1.85, 0.22));
-  archRoot.add(tBowl);
-  addBoxMesh(1.35, 0.82, 0.56, -3.15, -4.56, 0.41, matWalnut);
-  addBoxMesh(1.40, 0.05, 0.60, -3.15, -4.56, 0.84, matMainFloor);
+  tBowl.castShadow = true;
+  tBowl.receiveShadow = true;
+  bathToiletGroup.add(tBowl);
+  archRoot.add(bathToiletGroup);
+  registerDraggable(bathToiletGroup, 'Luxury Porcelain Toilet', 'تواليت خزف فاخر');
+
+  const bathVanityGroup = new THREE.Group();
+  addBoxMesh(1.35, 0.82, 0.56, -3.15, -4.56, 0.41, matWalnut, bathVanityGroup);
+  addBoxMesh(1.40, 0.05, 0.60, -3.15, -4.56, 0.84, matMainFloor, bathVanityGroup);
   const vSink = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.16, 0.16, 28), matBrass);
   vSink.position.copy(bPos(-3.15, -4.56, 0.94));
-  archRoot.add(vSink);
+  vSink.castShadow = true;
+  vSink.receiveShadow = true;
+  bathVanityGroup.add(vSink);
+  archRoot.add(bathVanityGroup);
+  registerDraggable(bathVanityGroup, 'Walnut Vanity & Brass Sink', 'خزانة ومغسلة الحمام النحاسية');
 
   // Base Flat Roof Slab, Terrace Floor, Rooftop Pergola & BBQ Counter
   addBoxMesh(12.30, 0.24, 10.30, 0.0, 0.0, 3.62, wallMaterials.south_ext, roofGroup);
   addBoxMesh(11.70, 0.03, 9.70, 0.0, 0.0, 3.755, matCourtyardFloor, roofGroup);
+
+  const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
-    addBoxMesh(0.16, 2.55, 0.16, px, py, 5.02, matWalnut, roofGroup);
+    addBoxMesh(0.16, 2.55, 0.16, px, py, 5.02, matWalnut, roofPergolaGroup);
   });
   [-1.2, 0.1, 1.4, 2.7, 4.0].forEach(by => {
-    addBoxMesh(4.80, 0.16, 0.12, 2.85, by, 6.28, matWalnut, roofGroup);
+    addBoxMesh(4.80, 0.16, 0.12, 2.85, by, 6.28, matWalnut, roofPergolaGroup);
   });
   for (let i=0; i<8; i++) {
-    addBoxMesh(0.08, 0.06, 5.50, 0.85 + i*0.56, 1.40, 6.38, matWalnut, roofGroup);
+    addBoxMesh(0.08, 0.06, 5.50, 0.85 + i*0.56, 1.40, 6.38, matWalnut, roofPergolaGroup);
   }
-  addBoxMesh(1.10, 0.92, 3.40, -4.65, 2.20, 4.22, matMashrabiya, roofGroup);
-  addBoxMesh(1.16, 0.06, 3.48, -4.65, 2.20, 4.71, matMainFloor, roofGroup);
-  addBoxMesh(0.92, 0.65, 1.30, -4.65, 2.65, 5.85, matBrass, roofGroup);
+  roofGroup.add(roofPergolaGroup);
+  registerDraggable(roofPergolaGroup, 'Rooftop Walnut Pergola', 'برغولا السطح الخشبية');
+
+  const roofBarGroup = new THREE.Group();
+  addBoxMesh(1.10, 0.92, 3.40, -4.65, 2.20, 4.22, matMashrabiya, roofBarGroup);
+  addBoxMesh(1.16, 0.06, 3.48, -4.65, 2.20, 4.71, matMainFloor, roofBarGroup);
+  addBoxMesh(0.92, 0.65, 1.30, -4.65, 2.65, 5.85, matBrass, roofBarGroup);
+  roofGroup.add(roofBarGroup);
+  registerDraggable(roofBarGroup, 'Rooftop BBQ Bar & Counter', 'بار ومشواة السطح');
+
+  freezeStaticMeshes(archRoot);
+  freezeStaticMeshes(roofGroup);
 }
 
 function rebuildNorthWallArches() {
@@ -1471,6 +1552,7 @@ function rebuildNorthWallArches() {
     a.position.copy(bPos(ax, 4.84, 0.0));
     northWallArchGroup.add(a);
   });
+  freezeStaticMeshes(northWallArchGroup);
 }
 
 function rebuildFacadeDecor() {
@@ -1497,6 +1579,7 @@ function rebuildFacadeDecor() {
     a.position.copy(bPos(ex, -5.14, 0.15));
     facadeDecorGroup.add(a);
   });
+  freezeStaticMeshes(facadeDecorGroup);
 }
 
 function rebuildOpenings() {
@@ -1511,12 +1594,12 @@ function rebuildOpenings() {
   matArchTrim.color.set(cfg.frameColor);
   const p = cfg.pointed || 0.15;
 
+  // Doors & windows only swing open/closed on click or [F] (not in draggableObjects)
   // 1. Grand Main Entrance Arched Door Portal (X=2.60, Y=-5.00)
   const mainDoor = createArchedDoorAssembly(1.36, 3.05, 0.32, true, p);
   mainDoor.userData.labelEn = 'Grand Main Entrance Arch Door';
   mainDoor.userData.labelAr = 'الباب الرئيسي المقوس';
   openingsGroup.add(mainDoor);
-  draggableObjects.push(mainDoor);
   snapOpeningToNearestWall(mainDoor, 2.60, -5.00);
 
   // 2. Bathroom Arched Door (centered at X=-2.10, Y=-2.85 on bath_east wall for smooth walkthrough!)
@@ -1524,7 +1607,6 @@ function rebuildOpenings() {
   bathDoor.userData.labelEn = 'Hammam Bathroom Arched Door';
   bathDoor.userData.labelAr = 'باب الحمام المقوس';
   openingsGroup.add(bathDoor);
-  draggableObjects.push(bathDoor);
   snapOpeningToNearestWall(bathDoor, -2.10, -2.85);
 
   // 3. South Courtyard Arched Window (X=4.70, Y=-5.00)
@@ -1532,7 +1614,6 @@ function rebuildOpenings() {
   sWin.userData.labelEn = 'South Courtyard Arched Window';
   sWin.userData.labelAr = 'شباك السقيفة المقوس';
   openingsGroup.add(sWin);
-  draggableObjects.push(sWin);
   snapOpeningToNearestWall(sWin, 4.70, -5.00);
 
   // 4. West Bedroom Arched Window (X=-6.00, Y=0.00)
@@ -1540,7 +1621,6 @@ function rebuildOpenings() {
   wWin.userData.labelEn = 'West Bedroom Arched Window';
   wWin.userData.labelAr = 'شباك بيت النوم الغربي المقوس';
   openingsGroup.add(wWin);
-  draggableObjects.push(wWin);
   snapOpeningToNearestWall(wWin, -6.00, 0.00);
 }
 
@@ -1580,6 +1660,7 @@ function loadPHModel(assetId) {
         modelCache[assetId] = root;
         loadingActive--;
         updateLoadingUI();
+        requestShadowUpdate();
         resolve(root.clone(true));
       }, (err) => {
         console.warn('GLTF parse warning for', assetId, err);
@@ -1642,6 +1723,8 @@ function fitAndPlaceModel(modelObj, targetSpan, targetHeight, rotY, tintHex) {
     aoMesh.rotation.x = -Math.PI / 2;
     aoMesh.position.y = 0.004;
     aoMesh.renderOrder = 2;
+    aoMesh.raycast = () => {};
+    aoMesh.userData.isAODecal = true;
     wrapper.add(aoMesh);
   }
   return wrapper;
@@ -1668,6 +1751,33 @@ function clearGroup(g) {
 }
 
 function registerDraggable(obj, labelEn, labelAr) {
+  if (obj.children && obj.children.length > 0) {
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3();
+    obj.traverse((ch) => {
+      if (ch.isMesh && (!ch.userData || !ch.userData.isAODecal)) {
+        box.expandByObject(ch);
+      }
+    });
+    if (!box.isEmpty()) {
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      const targetX = center.x;
+      const targetY = box.min.y;
+      const targetZ = center.z;
+      const dx = targetX - obj.position.x;
+      const dy = targetY - obj.position.y;
+      const dz = targetZ - obj.position.z;
+      if (Math.hypot(dx, dy, dz) > 0.001) {
+        const localShift = new THREE.Vector3(dx, dy, dz).applyAxisAngle(new THREE.Vector3(0, 1, 0), -obj.rotation.y);
+        obj.children.forEach(ch => {
+          ch.position.sub(localShift);
+        });
+        obj.position.set(targetX, targetY, targetZ);
+        obj.updateMatrixWorld(true);
+      }
+    }
+  }
   obj.userData.draggable = true;
   obj.userData.labelEn = labelEn;
   obj.userData.labelAr = labelAr || labelEn;
@@ -1829,6 +1939,7 @@ async function buildDetailedKitchenAndFridge() {
   skHandle.rotation.z = Math.PI / 2;
   skHandle.position.copy(bPos(0.68, -2.35, 0.96));
   kGroup.add(skHandle);
+  registerDraggable(kGroup, "Chef's L-Shaped Kitchen Counter & Sink", 'خزائن ورخام الكوجينة على شكل L');
 
   // Real Poly Haven 3D Electric Stove, Brass Stew Pot, Ceramic Jar & Brass Oil Pitcher!
   const stv = await loadPHModel('electric_stove');
@@ -1849,12 +1960,14 @@ async function buildDetailedKitchenAndFridge() {
   if (jar) {
     const jw = fitAndPlaceModel(jar, null, 0.26, 0.2);
     jw.position.copy(bPos(0.42, -4.55, 0.91));
+    registerDraggable(jw, 'Artisan Ceramic Kitchen Jar', 'جرة خزفية للكوجينة');
     g.add(jw);
   }
   const pitcher = await loadPHModel('brass_vase_01');
   if (pitcher) {
     const oilW = fitAndPlaceModel(pitcher, null, 0.25, 0);
     oilW.position.copy(bPos(0.94, -3.35, 0.91));
+    registerDraggable(oilW, 'Tunisian Brass Olive Oil Pitcher', 'إبريق زيت زيتون نحاسي');
     g.add(oilW);
   }
 
@@ -1871,6 +1984,277 @@ async function buildDetailedKitchenAndFridge() {
     }
   }
 }
+
+// ============================================================================
+// 480P TUNISIAN NATIONAL TV NEWS BROADCAST (THREE.VideoTexture + LIVE 480P CANVAS)
+// ============================================================================
+const tvVideoEl = document.getElementById('tunisia-news-video');
+if (tvVideoEl) {
+  tvVideoEl.muted = true;
+  tvVideoEl.play().catch(() => {});
+}
+const tvVideoTexture = tvVideoEl ? new THREE.VideoTexture(tvVideoEl) : null;
+if (tvVideoTexture) {
+  tvVideoTexture.minFilter = THREE.LinearFilter;
+  tvVideoTexture.magFilter = THREE.LinearFilter;
+  tvVideoTexture.encoding = THREE.sRGBEncoding;
+}
+
+const tvBroadcastCanvas = document.createElement('canvas');
+tvBroadcastCanvas.width = 854;
+tvBroadcastCanvas.height = 480;
+const tvBroadcastCtx = tvBroadcastCanvas.getContext('2d');
+const tvBroadcastTexture = new THREE.CanvasTexture(tvBroadcastCanvas);
+tvBroadcastTexture.minFilter = THREE.LinearFilter;
+tvBroadcastTexture.magFilter = THREE.LinearFilter;
+tvBroadcastTexture.encoding = THREE.sRGBEncoding;
+
+let lastTvRenderTime = 0;
+function updateTunisiaNewsBroadcast(nowMs) {
+  if (nowMs - lastTvRenderTime < 42) return; // ~24 fps 480p broadcast update
+  lastTvRenderTime = nowMs;
+  const ctx = tvBroadcastCtx;
+  const W = 854, H = 480;
+  const tSec = (nowMs * 0.001) % 60.0; // 60-second (~1 minute) news report loop
+  const seg = Math.floor(tSec / 15.0); // 4x 15s segments in the 1-minute loop
+
+  let drewVideo = false;
+  if (tvVideoEl && tvVideoEl.readyState >= 2 && !tvVideoEl.paused && tvVideoEl.videoWidth > 0) {
+    try {
+      ctx.drawImage(tvVideoEl, 0, 0, W, H);
+      drewVideo = true;
+    } catch (e) {
+      drewVideo = false;
+    }
+  }
+
+  if (!drewVideo) {
+    if (seg === 0 || seg === 2) {
+      // SCENE A: Wataniya 1 Main Newsroom Studio in Tunis (Anchor + Panoramic Tunis Skyline Backdrop)
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#091834');
+      bgGrad.addColorStop(0.55, '#132d5e');
+      bgGrad.addColorStop(1, '#071124');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Studio curved LED video wall showing Sidi Bou Said / Tunis medina silhouette & world grid
+      ctx.strokeStyle = 'rgba(85, 165, 255, 0.16)';
+      ctx.lineWidth = 1;
+      for (let gx = 40; gx < W; gx += 48) {
+        ctx.beginPath(); ctx.moveTo(gx, 36); ctx.lineTo(gx, 340); ctx.stroke();
+      }
+      for (let gy = 50; gy < 340; gy += 38) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+      }
+
+      // Glowing Tunisia studio screen behind anchor (Left side)
+      ctx.fillStyle = 'rgba(14, 42, 86, 0.85)';
+      ctx.strokeStyle = '#e8b959';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(46, 72, 340, 200);
+      ctx.strokeRect(46, 72, 340, 200);
+
+      // Animated Sidi Bou Said coastal horizon & white-and-blue domes inside studio screen
+      const skyG = ctx.createLinearGradient(46, 72, 46, 210);
+      skyG.addColorStop(0, '#1e69b8');
+      skyG.addColorStop(1, '#79c2ff');
+      ctx.fillStyle = skyG;
+      ctx.fillRect(48, 74, 336, 126);
+      ctx.fillStyle = '#0c4da2';
+      ctx.fillRect(48, 200, 336, 70);
+
+      // White Sidi Bou Said villas & blue domes
+      const panX = Math.sin(tSec * 0.6) * 10;
+      ctx.fillStyle = '#f8f5ee';
+      ctx.fillRect(80 + panX, 148, 58, 52);
+      ctx.fillRect(148 + panX, 134, 72, 66);
+      ctx.fillRect(230 + panX, 152, 64, 48);
+      ctx.fillStyle = '#0e5ec4';
+      ctx.beginPath();
+      ctx.arc(184 + panX, 134, 24, Math.PI, 0);
+      ctx.arc(262 + panX, 152, 18, Math.PI, 0);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText('SIDI BOU SAID & CARTHAGE', 64, 248);
+
+      // News Anchor at Studio Desk (Right-Center)
+      const headBob = Math.sin(tSec * 3.2) * 2.2;
+      const talkOpen = Math.abs(Math.sin(tSec * 9.5)) * 4.5;
+      // Shoulders / Suit
+      ctx.fillStyle = '#182438';
+      ctx.beginPath();
+      ctx.moveTo(465, 355);
+      ctx.quadraticCurveTo(475, 250, 560, 250);
+      ctx.quadraticCurveTo(645, 250, 655, 355);
+      ctx.closePath();
+      ctx.fill();
+      // White shirt & Tunisian red tie
+      ctx.fillStyle = '#f5f7fa';
+      ctx.beginPath();
+      ctx.moveTo(540, 252); ctx.lineTo(580, 252); ctx.lineTo(560, 325);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#c8102e';
+      ctx.beginPath();
+      ctx.moveTo(555, 260); ctx.lineTo(565, 260); ctx.lineTo(568, 335); ctx.lineTo(552, 335);
+      ctx.closePath();
+      ctx.fill();
+      // Head
+      ctx.fillStyle = '#dca884';
+      ctx.beginPath();
+      ctx.ellipse(560, 195 + headBob, 34, 42, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Hair
+      ctx.fillStyle = '#1e1a17';
+      ctx.beginPath();
+      ctx.arc(560, 182 + headBob, 35, Math.PI * 0.95, Math.PI * 2.05);
+      ctx.fill();
+      // Eyes & eyebrows
+      ctx.fillStyle = '#1b1b1b';
+      ctx.fillRect(543, 186 + headBob, 9, 4);
+      ctx.fillRect(568, 186 + headBob, 9, 4);
+      // Animated speaking mouth
+      ctx.fillStyle = '#7a2828';
+      ctx.beginPath();
+      ctx.ellipse(560, 216 + headBob, 9, 2 + talkOpen, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glossy Broadcast Anchor Desk
+      const deskGrad = ctx.createLinearGradient(0, 325, 0, 385);
+      deskGrad.addColorStop(0, '#d8dee9');
+      deskGrad.addColorStop(0.3, '#223656');
+      deskGrad.addColorStop(1, '#0d182b');
+      ctx.fillStyle = deskGrad;
+      ctx.fillRect(360, 328, 440, 56);
+      ctx.fillStyle = '#c8102e';
+      ctx.fillRect(360, 328, 440, 5);
+    } else {
+      // SCENE B: Live Field Report from Tunis / Hammamet / Sidi Bou Said Coastline
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 265);
+      skyGrad.addColorStop(0, '#0f5298');
+      skyGrad.addColorStop(0.65, '#4da6ff');
+      skyGrad.addColorStop(1, '#cbe7ff');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, 265);
+
+      // Mediterranean Sea with animated shimmering waves
+      const seaGrad = ctx.createLinearGradient(0, 255, 0, 380);
+      seaGrad.addColorStop(0, '#006994');
+      seaGrad.addColorStop(1, '#00385c');
+      ctx.fillStyle = seaGrad;
+      ctx.fillRect(0, 255, W, 130);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 2;
+      for (let wy = 272; wy < 360; wy += 16) {
+        const waveShift = Math.sin(tSec * 2.0 + wy) * 18;
+        ctx.beginPath();
+        ctx.moveTo(40 + waveShift, wy);
+        ctx.lineTo(180 + waveShift, wy);
+        ctx.moveTo(320 - waveShift, wy + 5);
+        ctx.lineTo(520 - waveShift, wy + 5);
+        ctx.moveTo(620 + waveShift, wy + 2);
+        ctx.lineTo(790 + waveShift, wy + 2);
+        ctx.stroke();
+      }
+
+      // Sidi Bou Said Cliffside Whitewashed Villas & Cypress Trees
+      const camPan = Math.cos(tSec * 0.45) * 16;
+      const houses = [
+        [70, 155, 95, 102], [175, 125, 110, 132], [295, 145, 90, 112],
+        [395, 115, 125, 142], [530, 140, 105, 117], [645, 160, 115, 97]
+      ];
+      houses.forEach(([hx, hy, hw, hh], idx) => {
+        const x = hx + camPan;
+        ctx.fillStyle = '#f9f6f0';
+        ctx.fillRect(x, hy, hw, hh);
+        // Blue arched doors & windows
+        ctx.fillStyle = '#0e62c7';
+        ctx.fillRect(x + 18, hy + 28, 22, 34);
+        ctx.fillRect(x + hw - 40, hy + 28, 22, 34);
+        ctx.beginPath();
+        ctx.arc(x + hw * 0.5, hy, hw * 0.28, Math.PI, 0);
+        ctx.fill();
+      });
+    }
+  }
+
+  // Top-Left LIVE Pill + Clock
+  ctx.fillStyle = 'rgba(200, 16, 46, 0.92)';
+  ctx.fillRect(28, 22, 148, 32);
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(46, 38, 6 + Math.sin(tSec * 6) * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('LIVE • مباشر 480p', 60, 43);
+
+  const nowDate = new Date();
+  const timeStr = nowDate.toTimeString().slice(0, 8) + ' TUNIS';
+  ctx.fillStyle = 'rgba(10, 18, 32, 0.82)';
+  ctx.fillRect(182, 22, 138, 32);
+  ctx.fillStyle = '#ffd67a';
+  ctx.font = 'bold 13px monospace';
+  ctx.fillText(timeStr, 194, 43);
+
+  // Top-Right Tunisian Flag Emblem + Wataniya 1 Logo Bug
+  ctx.fillStyle = 'rgba(12, 20, 36, 0.86)';
+  ctx.fillRect(W - 235, 22, 207, 36);
+  ctx.fillStyle = '#c8102e';
+  ctx.fillRect(W - 235, 22, 46, 36);
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(W - 212, 40, 11, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#c8102e';
+  ctx.beginPath();
+  ctx.arc(W - 210, 40, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText('الوطنية 1 • WATANIYA', W - 180, 45);
+
+  // Lower-Third Breaking News Banner
+  ctx.fillStyle = 'rgba(200, 16, 46, 0.95)';
+  ctx.fillRect(28, 366, 260, 34);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText('الأخبار التونسية • TUNISIA NEWS', 42, 388);
+
+  ctx.fillStyle = 'rgba(12, 22, 40, 0.94)';
+  ctx.fillRect(28, 400, W - 56, 40);
+  ctx.strokeStyle = '#e8b959';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(28, 400, W - 56, 40);
+
+  const headlines = [
+    'نشرة الأخبار الرئيسية: ازدهار العمارة التونسية العصرية في سيدي بوسعيد وقرطاج والحمامات',
+    'TUNISIA REPORT: LUXURY MEDITERRANEAN VILLA DESIGN & HERITAGE ARCHITECTURE IN CARTHAGE',
+    'تونس العاصمة: نمو السياحة الثقافية والبيئية في القيروان وجربة وسواحل البحر الأبيض المتوسط',
+    'MÉTÉO TUNISIE: CIEL ENSOLEILLÉ SUR TUNIS, HAMMAMET ET SIDI BOU SAID • TEMPÉRATURE 26°C'
+  ];
+  ctx.fillStyle = '#f8f5ee';
+  ctx.font = 'bold 17px sans-serif';
+  ctx.fillText(headlines[seg % headlines.length], 46, 426);
+
+  // Bottom Scrolling News Ticker Bar
+  ctx.fillStyle = '#070e1a';
+  ctx.fillRect(0, 444, W, 36);
+  ctx.fillStyle = '#e8b959';
+  ctx.fillRect(0, 444, W, 2);
+
+  const tickerText = 'الأخبار التونسية • الوطنية 1 • TUNISIA LIVE NEWS • تونس: تطور مشاريع الفيلات العصرية بطابع سيدي بوسعيد وقرطاج • حالة الطقس: سماء صافية ومشمسة على كامل السواحل التونسية • ';
+  ctx.fillStyle = '#ffd67a';
+  ctx.font = 'bold 15px sans-serif';
+  const scrollX = W - ((nowMs * 0.09) % 1650);
+  ctx.fillText(tickerText + tickerText, scrollX, 467);
+
+  tvBroadcastTexture.needsUpdate = true;
+}
+updateTunisiaNewsBroadcast(performance.now());
 
 async function rebuildCategory(cat) {
   if (cat === 'openings') {
@@ -1906,6 +2290,7 @@ async function rebuildCategory(cat) {
       if (lan) {
         const lw = fitAndPlaceModel(lan, null, 0.35, 0);
         lw.position.copy(bPos(-5.50, ny, 0.68));
+        registerDraggable(lw, 'Bedside Brass Diya Lantern', 'فانوس نحاسي بجانب الفرش');
         g.add(lw);
       }
     }
@@ -1929,27 +2314,30 @@ async function rebuildCategory(cat) {
     if (bv) {
       const bvw = fitAndPlaceModel(bv, null, 0.32, 0);
       bvw.position.copy(bPos(0.55, 0.15, 0.52));
+      registerDraggable(bvw, 'Engraved Brass Center Vase', 'مزهرية نحاسية منقوشة');
       g.add(bvw);
     }
   } else if (cat === 'majlis') {
     const cfg = FURNITURE_CATEGORIES.majlis.items[state.furnitureChoice.majlis];
     const s1 = await loadPHModel(cfg.asset);
     if (s1) {
-      const w1 = fitAndPlaceModel(s1, [2.65, 0.98, 0.92], null, 0, cfg.tint);
+      // South Sofa rotated by Math.PI so it faces North toward the coffee table & TV
+      const w1 = fitAndPlaceModel(s1, [2.65, 0.98, 0.92], null, Math.PI, cfg.tint);
       w1.position.copy(bPos(3.40, 0.08, 0.02));
       registerDraggable(w1, cfg.en + ' (South)', cfg.ar + ' (جنوب)');
       g.add(w1);
     }
     const s2 = await loadPHModel(cfg.asset);
     if (s2) {
-      const w2 = fitAndPlaceModel(s2, [0.98, 2.55, 0.92], null, Math.PI/2, cfg.tint);
+      // East Sofa rotated by -Math.PI/2 so it faces West toward the coffee table (not East wall)
+      const w2 = fitAndPlaceModel(s2, [0.98, 2.55, 0.92], null, -Math.PI/2, cfg.tint);
       w2.position.copy(bPos(4.88, 1.85, 0.02));
       registerDraggable(w2, cfg.en + ' (East)', cfg.ar + ' (شرق)');
       g.add(w2);
     }
     const ac = await loadPHModel('ArmChair_01');
     if (ac) {
-      const aw = fitAndPlaceModel(ac, null, 0.88, -Math.PI/2.2, cfg.tint);
+      const aw = fitAndPlaceModel(ac, null, 0.88, Math.PI/2.2, cfg.tint);
       aw.position.copy(bPos(1.92, 2.35, 0.02));
       registerDraggable(aw, 'Majlis Salon Armchair', 'كرسي صالون ملكي');
       g.add(aw);
@@ -1965,12 +2353,14 @@ async function rebuildCategory(cat) {
     if (bp) {
       const bpw = fitAndPlaceModel(bp, null, 0.25, 0);
       bpw.position.copy(bPos(3.20, 1.75, 0.50));
+      registerDraggable(bpw, 'Tunisian Brass Coffee Pot', 'إبريق قهوة نحاسي تونسي');
       g.add(bpw);
     }
     const cv = await loadPHModel('ceramic_vase_01');
     if (cv) {
       const cvw = fitAndPlaceModel(cv, null, 0.27, 0);
       cvw.position.copy(bPos(3.60, 1.75, 0.50));
+      registerDraggable(cvw, 'Nabeul Ceramic Table Vase', 'مزهرية خزف نابل');
       g.add(cvw);
     }
     const ot = await loadPHModel('Ottoman_01');
@@ -1997,11 +2387,24 @@ async function rebuildCategory(cat) {
     );
     tvFrame.position.set(0, 1.63, -0.24);
     tvGroup.add(tvFrame);
+
+    // Position TV screen on the front face of tvFrame (z = -0.205) facing the Majlis sofas
+    const tvScrMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      map: tvBroadcastTexture,
+      emissive: 0xffffff,
+      emissiveMap: tvBroadcastTexture,
+      emissiveIntensity: 0.72,
+      roughness: 0.12,
+      metalness: 0.10
+    });
     const tvScr = new THREE.Mesh(
-      new THREE.BoxGeometry(1.86 * ts, 1.04 * ts, 0.06),
-      new THREE.MeshStandardMaterial({ color: 0x0e1520, emissive: 0x122238, emissiveIntensity: 0.18, roughness: 0.08, metalness: 0.35 })
+      new THREE.BoxGeometry(1.86 * ts, 1.04 * ts, 0.016),
+      tvScrMat
     );
-    tvScr.position.set(0, 1.63, -0.235);
+    tvScr.position.set(0, 1.63, -0.205);
+    tvScr.userData.isLed = true;
+    tvScr.userData.videoTexture = tvVideoTexture;
     tvGroup.add(tvScr);
 
     registerDraggable(tvGroup, cfg.en, cfg.ar);
@@ -2038,10 +2441,12 @@ async function rebuildCategory(cat) {
       if (sm) {
         const sw = fitAndPlaceModel(sm, null, 0.44, sc[3]);
         sw.position.copy(bPos(sc[0], sc[1], sc[2]));
+        registerDraggable(sw, 'Moroccan Brass Wall Lantern', 'فانوس حائط نحاسي تقليدي');
         g.add(sw);
       }
     }
   }
+  requestShadowUpdate();
 }
 
 async function buildStaticPolyHavenDecor() {
@@ -2050,6 +2455,7 @@ async function buildStaticPolyHavenDecor() {
   if (mir) {
     const mw = fitAndPlaceModel(mir, null, 1.25, 0);
     mw.position.copy(bPos(-3.15, -4.82, 1.02));
+    registerDraggable(mw, 'Ornate Gilded Hammam Mirror', 'مرآة الحمام المذهبة');
     g.add(mw);
   }
   const plants = [
@@ -2069,35 +2475,40 @@ async function buildStaticPolyHavenDecor() {
       g.add(pw);
     }
   }
-  // Rooftop Sofas, Family Table, Stone BBQ Fire Pit & Barstools
+  // Rooftop Sofas (all facing inward toward Rooftop Coffee Table at bPos(2.65, 1.40, 3.78)), Table, Stone BBQ Fire Pit & Barstools
   const r1 = await loadPHModel('sofa_03');
   if (r1) {
-    const rw1 = fitAndPlaceModel(r1, [3.20, 0.95, 0.85], null, Math.PI);
+    const rw1 = fitAndPlaceModel(r1, [3.20, 0.95, 0.85], null, 0);
     rw1.position.copy(bPos(2.85, 3.35, 3.78));
+    registerDraggable(rw1, 'Rooftop Lounge Sofa (North)', 'أريكة جلسة السطح (شمال)');
     roofGroup.add(rw1);
   }
   const r1e = await loadPHModel('sofa_03');
   if (r1e) {
-    const rwe = fitAndPlaceModel(r1e, [0.95, 3.20, 0.85], null, Math.PI/2);
+    const rwe = fitAndPlaceModel(r1e, [0.95, 3.20, 0.85], null, -Math.PI/2);
     rwe.position.copy(bPos(4.35, 1.40, 3.78));
+    registerDraggable(rwe, 'Rooftop Lounge Sofa (East)', 'أريكة جلسة السطح (شرق)');
     roofGroup.add(rwe);
   }
   const r2 = await loadPHModel('sofa_02');
   if (r2) {
-    const rw2 = fitAndPlaceModel(r2, [2.80, 0.92, 0.85], null, 0);
+    const rw2 = fitAndPlaceModel(r2, [2.80, 0.92, 0.85], null, Math.PI);
     rw2.position.copy(bPos(2.85, -0.55, 3.78));
+    registerDraggable(rw2, 'Rooftop Lounge Sofa (South)', 'أريكة جلسة السطح (جنوب)');
     roofGroup.add(rw2);
   }
   const rt = await loadPHModel('modern_coffee_table_01');
   if (rt) {
     const rtw = fitAndPlaceModel(rt, [1.85, 1.10, 0.52], null, 0);
     rtw.position.copy(bPos(2.65, 1.40, 3.78));
+    registerDraggable(rtw, 'Rooftop Teak Coffee Table', 'طاولة قهوة السطح');
     roofGroup.add(rtw);
   }
   const bbq = await loadPHModel('stone_fire_pit');
   if (bbq) {
     const bw = fitAndPlaceModel(bbq, [0.88, 1.15, 0.55], null, 0);
     bw.position.copy(bPos(-4.65, 2.65, 4.72));
+    registerDraggable(bw, 'Stone BBQ Grill & Fire Pit', 'مشواة وموقد حجر طبيعي');
     roofGroup.add(bw);
   }
   for (const sy of [0.95, 1.95, 2.95]) {
@@ -2105,9 +2516,11 @@ async function buildStaticPolyHavenDecor() {
     if (bs) {
       const bsw = fitAndPlaceModel(bs, null, 0.76, 0);
       bsw.position.copy(bPos(-3.65, sy, 3.78));
+      registerDraggable(bsw, 'Rooftop BBQ Barstool', 'كرسي بار السطح');
       roofGroup.add(bsw);
     }
   }
+  requestShadowUpdate();
 }
 
 // ============================================================================
@@ -2154,32 +2567,6 @@ zoneLights.bathroom.position.copy(bPos(-3.85, -2.85, 2.85));
 zoneLights.exterior.position.copy(bPos(2.80, -6.20, 2.65));
 Object.values(zoneLights).forEach(l => scene.add(l));
 
-const archLights = [
-  [-2.50, 4.45, 2.10],
-  [0.55, 4.45, 2.10],
-  [3.60, 4.45, 2.10],
-  [5.45, 1.85, 2.10]
-].map(([bx, by, bz]) => {
-  const pl = new THREE.PointLight(0xffaa38, 0.42, 4.2, 2.0);
-  pl.position.copy(bPos(bx, by, bz));
-  scene.add(pl);
-  return pl;
-});
-
-const openingLights = [
-  [2.60, -5.35, 2.15],
-  [4.70, -5.35, 1.85],
-  [2.38, -9.00, 2.10],
-  [-4.40, -5.45, 1.85],
-  [-0.80, -5.45, 1.85],
-  [-6.25, 0.00, 1.85]
-].map(([bx, by, bz]) => {
-  const pl = new THREE.PointLight(0xffaa38, 0.45, 4.5, 2.0);
-  pl.position.copy(bPos(bx, by, bz));
-  scene.add(pl);
-  return pl;
-});
-
 function applyAllMaterialsAndLights() {
   const tod = state.timeOfDay || 'sunset';
   const todLedMult = tod === 'day' ? 0.22 : (tod === 'night' ? 1.35 : 0.90);
@@ -2194,7 +2581,7 @@ function applyAllMaterialsAndLights() {
     wallMaterials[wKey].needsUpdate = true;
   });
 
-  // 2. LED Border Strip Color, Volumetric Halo & PointLights
+  // 2. LED Border Strip Color & Volumetric Halo (emissive + UnrealBloomPass without extra fragment PointLight loops)
   const ledCfg = LED_BORDER_STYLES.find(s => s.id === state.ledBorderStyle) || LED_BORDER_STYLES[0];
   const ledOn = state.switches.led_borders && ledCfg.id !== 'off';
   const mult = state.ledBrightness * todLedMult;
@@ -2213,17 +2600,6 @@ function applyAllMaterialsAndLights() {
   matLedBorderOpening.emissiveIntensity = showOpenLed ? ledCfg.intensity * mult : 0.0;
   matLedHaloOpening.color.set(ledCfg.color);
   matLedHaloOpening.opacity = showOpenLed ? Math.min(0.85, 0.28 * mult) : 0.0;
-
-  archLights.forEach(pl => {
-    pl.visible = showArchLed && state.northArchStyle !== 'none_clean';
-    pl.color.set(ledCfg.color);
-    pl.intensity = showArchLed ? 0.32 * mult : 0.0;
-  });
-  openingLights.forEach(pl => {
-    pl.visible = showOpenLed;
-    pl.color.set(ledCfg.color);
-    pl.intensity = showOpenLed ? 0.36 * mult : 0.0;
-  });
 
   // 3. Room Chandelier Lights
   const rColorObj = ROOM_LAMP_COLORS.find(c => c.id === state.roomLampColor) || ROOM_LAMP_COLORS[0];
@@ -2319,6 +2695,7 @@ function setTimeOfDay(mode) {
     }
   });
   applyAllMaterialsAndLights();
+  requestShadowUpdate();
 }
 
 // ============================================================================
@@ -2334,20 +2711,20 @@ const orthoCamera = new THREE.OrthographicCamera(
 let activeCamera = perspCamera;
 let viewMode = 'orbit'; // 'orbit' | 'top1' | 'top2' | 'walk'
 
-// Post-Processing Composer (UnrealBloom + Filmic Contrast & Vignette)
+// Post-Processing Composer (Half-Res UnrealBloom + Filmic Contrast & Vignette)
 let composer = null;
 let renderPass = null;
 function initPostProcessing() {
   if (!THREE.EffectComposer || !THREE.RenderPass || !THREE.UnrealBloomPass) return;
   composer = new THREE.EffectComposer(renderer);
-  composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   composer.setSize(window.innerWidth, window.innerHeight);
 
   renderPass = new THREE.RenderPass(scene, activeCamera);
   composer.addPass(renderPass);
 
   const bloomPass = new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    new THREE.Vector2(Math.floor(window.innerWidth * 0.5), Math.floor(window.innerHeight * 0.5)),
     0.18, // strength
     0.45, // radius
     1.18  // threshold (only emissive LEDs & bulbs bloom, never walls/floors)
@@ -2419,11 +2796,77 @@ const walkState = {
   lastLookX: 0,
   lastLookY: 0
 };
+const joyState = {
+  x: 0,
+  y: 0,
+  active: false,
+  pointerId: null
+};
 let nearbyWindowOpening = null;
 
 function setWalkKey(dir, pressed) {
   walkState.keys[dir] = pressed;
 }
+
+// Initialize MOBA Virtual Analog Joystick (fixed outer circle + 360° draggable inner knob)
+(function initMobaJoystick() {
+  const pad = document.getElementById('walk-dpad');
+  const knob = document.getElementById('joystick-knob');
+  if (!pad || !knob) return;
+  const maxRadius = 35; // (118px outer - 48px inner) / 2
+
+  function updateKnobFromEvent(e) {
+    const rect = pad.getBoundingClientRect();
+    const cx = rect.left + rect.width * 0.5;
+    const cy = rect.top + rect.height * 0.5;
+    let dx = e.clientX - cx;
+    let dy = e.clientY - cy;
+    const dist = Math.hypot(dx, dy);
+    if (dist > maxRadius) {
+      dx = (dx / dist) * maxRadius;
+      dy = (dy / dist) * maxRadius;
+    }
+    knob.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0px)`;
+    joyState.x = dx / maxRadius;
+    joyState.y = dy / maxRadius;
+  }
+
+  function resetKnob() {
+    joyState.active = false;
+    joyState.pointerId = null;
+    joyState.x = 0;
+    joyState.y = 0;
+    pad.classList.remove('dragging');
+    knob.style.transform = 'translate3d(0px, 0px, 0px)';
+  }
+
+  pad.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.stopPropagation();
+    joyState.active = true;
+    joyState.pointerId = e.pointerId;
+    pad.classList.add('dragging');
+    if (pad.setPointerCapture) {
+      try { pad.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    updateKnobFromEvent(e);
+  });
+
+  pad.addEventListener('pointermove', (e) => {
+    if (!joyState.active || e.pointerId !== joyState.pointerId) return;
+    e.stopPropagation();
+    updateKnobFromEvent(e);
+  });
+
+  pad.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== joyState.pointerId) return;
+    e.stopPropagation();
+    resetKnob();
+  });
+
+  pad.addEventListener('pointercancel', resetKnob);
+  pad.addEventListener('lostpointercapture', resetKnob);
+})();
 
 function toggleRoof() {
   if (viewMode === 'top1' || viewMode === 'top2') setViewMode('orbit');
@@ -2431,6 +2874,7 @@ function toggleRoof() {
   roofGroup.visible = state.roofVisible;
   facadeDecorGroup.visible = true;
   furnGroups.lamps.visible = true;
+  requestShadowUpdate();
   updateStaticUIStrings();
 }
 
@@ -2441,9 +2885,7 @@ function setViewMode(mode) {
     if (btn) btn.classList.toggle('active', m === mode);
   });
 
-  const walkDpad = document.getElementById('walk-dpad');
   const winSign = document.getElementById('window-sign-hud');
-  if (walkDpad) walkDpad.classList.toggle('visible', mode === 'walk');
   if (winSign && mode !== 'walk') winSign.classList.remove('visible');
 
   if (mode === 'orbit') {
@@ -2501,6 +2943,7 @@ function setViewMode(mode) {
     syncWalkCamera();
   }
   if (renderPass) renderPass.camera = activeCamera;
+  requestShadowUpdate();
   updateStaticUIStrings();
 }
 
@@ -2533,8 +2976,8 @@ function setCamPreset(preset, btnEl) {
     controls.target.set(0.0, 0.5, 0.4);
   } else if (preset === 'majlis') {
     state.roofVisible = false; roofGroup.visible = false;
-    perspCamera.position.set(0.2, 1.85, 1.2);
-    controls.target.set(0.5, 1.35, -3.2);
+    perspCamera.position.set(1.8, 3.2, 2.6);
+    controls.target.set(3.45, 1.15, -2.2);
   } else if (preset === 'bedroom') {
     state.roofVisible = false; roofGroup.visible = false;
     perspCamera.position.set(0.5, 2.2, 1.8);
@@ -2557,11 +3000,12 @@ function setCamPreset(preset, btnEl) {
     controls.target.set(0.5, 4.3, -1.5);
   }
   controls.update();
+  requestShadowUpdate();
   updateStaticUIStrings();
 }
 
 // ============================================================================
-// SELECT-FIRST MOVE, MAGNETIC WALL SNAP & DOOR/WINDOW HINGE INTERACTION
+// SELECT-FIRST MOVE, CENTER-PIVOT ROTATE & DOOR/WINDOW HINGE INTERACTION
 // ============================================================================
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -2572,12 +3016,31 @@ let isDraggingObject = false;
 let downClientX = 0;
 let downClientY = 0;
 let downHitRoot = null;
+let downOpeningRoot = null;
 const dragOffset = new THREE.Vector3();
+
+function isObjectVisibleInHierarchy(obj) {
+  let curr = obj;
+  while (curr) {
+    if (curr.visible === false) return false;
+    curr = curr.parent;
+  }
+  return true;
+}
 
 function getDraggableRoot(obj) {
   let curr = obj;
   while (curr) {
     if (curr.userData && curr.userData.draggable) return curr;
+    curr = curr.parent;
+  }
+  return null;
+}
+
+function getOpeningRoot(obj) {
+  let curr = obj;
+  while (curr) {
+    if (curr.userData && curr.userData.isOpening && (curr.userData.isDoor || curr.userData.isWindow)) return curr;
     curr = curr.parent;
   }
   return null;
@@ -2644,22 +3107,16 @@ function updateSelectedHudText() {
       deselBtn.style.display = 'inline-block';
       deselBtn.textContent = t('btnDeselect');
     }
-    if (openBtn) {
-      if (selectedObject.userData.isOpening) {
-        openBtn.style.display = 'inline-block';
-        openBtn.textContent = selectedObject.userData.isOpenPermanent ? t('btnCloseLeaf') : t('btnOpenLeaf');
-      } else {
-        openBtn.style.display = 'none';
-      }
-    }
+    if (openBtn) openBtn.style.display = 'none';
   }
 }
 
 function toggleSelectedOpening() {
-  const target = selectedObject && selectedObject.userData.isOpening ? selectedObject : nearbyWindowOpening;
+  const target = (selectedObject && selectedObject.userData.isOpening) ? selectedObject : nearbyWindowOpening;
   if (!target || !target.userData.isOpening) return;
   target.userData.isOpenPermanent = !target.userData.isOpenPermanent;
   target.userData.openSign = target.userData.openSign || 1;
+  requestShadowUpdate();
   updateSelectedHudText();
 }
 
@@ -2676,19 +3133,27 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     walkState.lastLookY = cy;
     updatePointer(e);
     raycaster.setFromCamera(pointer, activeCamera);
-    // Only raycast against lightweight door/window openings in Walk Mode for zero-lag look & click
-    const hits = raycaster.intersectObjects(openingsGroup.children, true);
-    downHitRoot = hits.length > 0 ? getDraggableRoot(hits[0].object) : null;
+    const openHits = raycaster.intersectObjects(openingsGroup.children, true);
+    downOpeningRoot = openHits.length > 0 ? getOpeningRoot(openHits[0].object) : null;
+    downHitRoot = null;
     return;
   }
 
   updatePointer(e);
   raycaster.setFromCamera(pointer, activeCamera);
-  const hits = raycaster.intersectObjects(draggableObjects, true);
-  downHitRoot = hits.length > 0 ? getDraggableRoot(hits[0].object) : null;
+  const visibleDraggables = draggableObjects.filter(isObjectVisibleInHierarchy);
+  const hits = raycaster.intersectObjects(visibleDraggables, true);
+  const openHits = raycaster.intersectObjects(openingsGroup.children, true);
+
+  if (openHits.length > 0 && (hits.length === 0 || openHits[0].distance <= hits[0].distance)) {
+    downOpeningRoot = getOpeningRoot(openHits[0].object);
+    downHitRoot = null;
+  } else {
+    downOpeningRoot = null;
+    downHitRoot = hits.length > 0 ? getDraggableRoot(hits[0].object) : null;
+  }
 
   // SELECT-FIRST RULE: Only drag if the user pressed down on the ALREADY-SELECTED object!
-  // If pressing on an unselected object or empty space, OrbitControls handles camera rotation/pan.
   if (downHitRoot && downHitRoot === selectedObject) {
     dragPlane.constant = -selectedObject.position.y;
     if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
@@ -2722,29 +3187,26 @@ window.addEventListener('pointermove', (e) => {
   updatePointer(e);
   raycaster.setFromCamera(pointer, activeCamera);
   if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
-    const nx = planeIntersect.x + dragOffset.x;
-    const nz = planeIntersect.z + dragOffset.z;
-    if (selectedObject.userData.isOpening) {
-      // Snap entire window/door set magnetically to the nearest architectural wall & rebuild wall cutout
-      snapOpeningToNearestWall(selectedObject, nx, -nz);
-    } else {
-      selectedObject.position.x = nx;
-      selectedObject.position.z = nz;
-    }
+    selectedObject.position.x = planeIntersect.x + dragOffset.x;
+    selectedObject.position.z = planeIntersect.z + dragOffset.z;
+    requestShadowUpdate();
   }
 });
 
 window.addEventListener('pointerup', (e) => {
+  if (!isDraggingObject && !walkState.looking && e.target !== renderer.domElement) return;
   const cx = e.changedTouches && e.changedTouches.length ? e.changedTouches[0].clientX : e.clientX;
   const cy = e.changedTouches && e.changedTouches.length ? e.changedTouches[0].clientY : e.clientY;
   const dist = Math.hypot((cx || downClientX) - downClientX, (cy || downClientY) - downClientY);
 
   if (viewMode === 'walk') {
     walkState.looking = false;
-    if (dist < 6 && downHitRoot && downHitRoot.userData.isOpening) {
-      downHitRoot.userData.isOpenPermanent = !downHitRoot.userData.isOpenPermanent;
-      downHitRoot.userData.openSign = 1;
+    if (dist < 6 && downOpeningRoot) {
+      downOpeningRoot.userData.isOpenPermanent = !downOpeningRoot.userData.isOpenPermanent;
+      downOpeningRoot.userData.openSign = 1;
+      requestShadowUpdate();
     }
+    downOpeningRoot = null;
     downHitRoot = null;
     return;
   }
@@ -2752,51 +3214,32 @@ window.addEventListener('pointerup', (e) => {
   if (isDraggingObject) {
     isDraggingObject = false;
     controls.enabled = true;
-    // In Top View, a single click (< 6px) on an already-selected door/window also toggles open/close
-    if (dist < 6 && (viewMode === 'top1' || viewMode === 'top2') && selectedObject && selectedObject.userData.isOpening) {
-      selectedObject.userData.isOpenPermanent = !selectedObject.userData.isOpenPermanent;
-      selectedObject.userData.openSign = 1;
-      updateSelectedHudText();
-    }
+    requestShadowUpdate();
+    downOpeningRoot = null;
     downHitRoot = null;
     return;
   }
 
-  // Single click (< 6px) without camera drag -> Select object (or deselect if clicking empty floor/sky)
+  // Single click (< 6px): toggle door/window if clicked on opening, else select object (or deselect on empty floor/sky)
   if (dist < 6) {
-    if (downHitRoot) {
+    if (downOpeningRoot) {
+      downOpeningRoot.userData.isOpenPermanent = !downOpeningRoot.userData.isOpenPermanent;
+      downOpeningRoot.userData.openSign = 1;
+      requestShadowUpdate();
+    } else if (downHitRoot) {
       selectObject(downHitRoot);
-      if ((viewMode === 'top1' || viewMode === 'top2') && downHitRoot.userData.isOpening) {
-        downHitRoot.userData.isOpenPermanent = !downHitRoot.userData.isOpenPermanent;
-        downHitRoot.userData.openSign = 1;
-        updateSelectedHudText();
-      }
     } else {
       deselectObject();
     }
   }
+  downOpeningRoot = null;
   downHitRoot = null;
 });
 
 function rotateSelected(deltaRad) {
   if (!selectedObject) return;
-  if (selectedObject.userData.isOpening) {
-    selectedObject.rotation.y += Math.PI;
-    return;
-  }
   selectedObject.rotation.y += deltaRad;
-}
-
-function nudgeSelected(dx, dz) {
-  if (!selectedObject) return;
-  const nx = selectedObject.position.x + dx;
-  const nz = selectedObject.position.z + dz;
-  if (selectedObject.userData.isOpening) {
-    snapOpeningToNearestWall(selectedObject, nx, -nz);
-  } else {
-    selectedObject.position.x = nx;
-    selectedObject.position.z = nz;
-  }
+  requestShadowUpdate();
 }
 
 window.addEventListener('keydown', (e) => {
@@ -2807,11 +3250,10 @@ window.addEventListener('keydown', (e) => {
   if (k === 'd' || e.key === 'ArrowRight') walkState.keys.right = true;
   if (k === 'r' && viewMode !== 'walk') rotateSelected(Math.PI / 12);
   if (k === 'f') {
-    if (viewMode === 'walk' && nearbyWindowOpening) {
+    if (nearbyWindowOpening) {
       nearbyWindowOpening.userData.isOpenPermanent = !nearbyWindowOpening.userData.isOpenPermanent;
       nearbyWindowOpening.userData.openSign = 1;
-    } else if (selectedObject && selectedObject.userData.isOpening) {
-      toggleSelectedOpening();
+      requestShadowUpdate();
     }
   }
   if (e.key === 'Escape' && selectedObject) deselectObject();
@@ -2876,32 +3318,52 @@ function resolveWalkCollisions(px, pz) {
 }
 
 function updateWalkAndOpenings(dt) {
+  let moveFwd = (walkState.keys.forward ? 1 : 0) - (walkState.keys.back ? 1 : 0) - joyState.y;
+  let moveRight = (walkState.keys.right ? 1 : 0) - (walkState.keys.left ? 1 : 0) + joyState.x;
+  const inputMag = Math.hypot(moveFwd, moveRight);
+  if (inputMag > 1) {
+    moveFwd /= inputMag;
+    moveRight /= inputMag;
+  }
+
   if (viewMode === 'walk') {
-    const speed = 3.25 * dt;
-    const fwdX = -Math.sin(walkState.yaw);
-    const fwdZ = -Math.cos(walkState.yaw);
-    const rightX = Math.cos(walkState.yaw);
-    const rightZ = -Math.sin(walkState.yaw);
-
-    let mx = 0, mz = 0;
-    if (walkState.keys.forward) { mx += fwdX; mz += fwdZ; }
-    if (walkState.keys.back) { mx -= fwdX; mz -= fwdZ; }
-    if (walkState.keys.right) { mx += rightX; mz += rightZ; }
-    if (walkState.keys.left) { mx -= rightX; mz -= rightZ; }
-
-    const len = Math.hypot(mx, mz);
-    if (len > 0.001) {
-      mx = (mx / len) * speed;
-      mz = (mz / len) * speed;
+    if (inputMag > 0.01) {
+      const speed = 3.25 * dt;
+      const fwdX = -Math.sin(walkState.yaw);
+      const fwdZ = -Math.cos(walkState.yaw);
+      const rightX = Math.cos(walkState.yaw);
+      const rightZ = -Math.sin(walkState.yaw);
+      const mx = (fwdX * moveFwd + rightX * moveRight) * speed;
+      const mz = (fwdZ * moveFwd + rightZ * moveRight) * speed;
       const resolved = resolveWalkCollisions(walkState.pos.x + mx, walkState.pos.z + mz);
       walkState.pos.x = resolved.x;
       walkState.pos.z = resolved.z;
       syncWalkCamera();
     }
+  } else if (inputMag > 0.01) {
+    // Proportional WASD / MOBA Analog Joystick camera translation in Orbit & Top View modes
+    const panSpeed = (viewMode === 'orbit' ? 5.2 : 6.5) * dt;
+    let fwdX = controls.target.x - activeCamera.position.x;
+    let fwdZ = controls.target.z - activeCamera.position.z;
+    const fLen = Math.hypot(fwdX, fwdZ);
+    if (fLen < 0.001) {
+      fwdX = 0; fwdZ = -1;
+    } else {
+      fwdX /= fLen; fwdZ /= fLen;
+    }
+    const rightX = -fwdZ;
+    const rightZ = fwdX;
+    const mx = (fwdX * moveFwd + rightX * moveRight) * panSpeed;
+    const mz = (fwdZ * moveFwd + rightZ * moveRight) * panSpeed;
+    activeCamera.position.x += mx;
+    activeCamera.position.z += mz;
+    controls.target.x += mx;
+    controls.target.z += mz;
   }
 
   let closestWin = null;
   let closestWinDist = 2.6;
+  let anyOpeningMoved = false;
 
   openingsGroup.children.forEach(op => {
     if (!op.userData || !op.userData.isOpening) return;
@@ -2937,11 +3399,15 @@ function updateWalkAndOpenings(dt) {
     }
 
     const cur = op.userData.openAngle || 0;
-    const next = cur + (targetAngle - cur) * Math.min(1, dt * 10.5);
-    op.userData.openAngle = next;
-    if (op.userData.leftPivot) op.userData.leftPivot.rotation.y = next;
-    if (op.userData.rightPivot) op.userData.rightPivot.rotation.y = -next;
+    if (Math.abs(targetAngle - cur) > 0.001) {
+      const next = cur + (targetAngle - cur) * Math.min(1, dt * 10.5);
+      op.userData.openAngle = next;
+      if (op.userData.leftPivot) op.userData.leftPivot.rotation.y = next;
+      if (op.userData.rightPivot) op.userData.rightPivot.rotation.y = -next;
+      anyOpeningMoved = true;
+    }
   });
+  if (anyOpeningMoved) requestShadowUpdate();
 
   nearbyWindowOpening = closestWin;
   const winSign = document.getElementById('window-sign-hud');
@@ -3067,6 +3533,7 @@ async function startPhotoshootRender() {
       origSunPos.y + Math.sin(ang * 2) * (rad * 0.5),
       origSunPos.z + Math.sin(ang) * rad
     );
+    renderer.shadowMap.needsUpdate = true;
     if (activeCamera.setViewOffset) {
       activeCamera.setViewOffset(w, h, jx * 0.85, jy * 0.85, w, h);
     }
@@ -3095,6 +3562,7 @@ async function startPhotoshootRender() {
   sunLight.position.copy(origSunPos);
   sunLight.shadow.bias = origShadowBias;
   renderer.toneMappingExposure = origExposure;
+  renderer.shadowMap.needsUpdate = true;
   scene.remove(giBounce1, giBounce2);
   if (selectedObject) setSelectionHighlight(selectedObject, true);
   if (composer) composer.render();
@@ -3159,11 +3627,9 @@ function saveDesign() {
     x: o.position.x,
     y: o.position.y,
     z: o.position.z,
-    ry: o.rotation.y,
-    wallId: o.userData.wallId || null,
-    isOpenPermanent: !!o.userData.isOpenPermanent
+    ry: o.rotation.y
   }));
-  localStorage.setItem('tunisia_modern_arabic_villa_v5', JSON.stringify({
+  localStorage.setItem('tunisia_modern_arabic_villa_v6', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     customPositions
@@ -3172,6 +3638,7 @@ function saveDesign() {
 }
 
 function resetDesign() {
+  localStorage.removeItem('tunisia_modern_arabic_villa_v6');
   localStorage.removeItem('tunisia_modern_arabic_villa_v5');
   localStorage.removeItem('tunisia_modern_arabic_villa_v4');
   localStorage.removeItem('tunisia_modern_arabic_villa_v3');
@@ -3182,7 +3649,7 @@ function resetDesign() {
 // BOOTSTRAP SCENE
 // ============================================================================
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v5');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v6');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -3222,12 +3689,10 @@ async function initApp() {
       if (obj && obj.userData.labelEn === sp.labelEn) {
         obj.position.set(sp.x, sp.y, sp.z);
         obj.rotation.y = sp.ry;
-        if (sp.wallId) obj.userData.wallId = sp.wallId;
-        obj.userData.isOpenPermanent = !!sp.isOpenPermanent;
       }
     });
-    rebuildDynamicWalls();
   }
+  requestShadowUpdate();
 }
 
 window.addEventListener('resize', () => {
@@ -3241,14 +3706,19 @@ window.addEventListener('resize', () => {
   orthoCamera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+  if (window.bloomPass) {
+    window.bloomPass.setSize(Math.floor(window.innerWidth * 0.5), Math.floor(window.innerHeight * 0.5));
+  }
 });
 
 let lastFrameTime = performance.now();
 function animate(now) {
   requestAnimationFrame(animate);
-  const dt = Math.min(0.05, Math.max(0.001, ((now || performance.now()) - lastFrameTime) / 1000));
-  lastFrameTime = now || performance.now();
+  const nowMs = now || performance.now();
+  const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastFrameTime) / 1000));
+  lastFrameTime = nowMs;
 
+  updateTunisiaNewsBroadcast(nowMs);
   updateWalkAndOpenings(dt);
   if (viewMode !== 'walk') controls.update();
   if (composer) {

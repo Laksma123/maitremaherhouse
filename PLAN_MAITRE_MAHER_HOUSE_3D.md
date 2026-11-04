@@ -61,19 +61,19 @@ The code uses helper `bPos(bx, by, bz)` which maps Floorplan coordinates `(bx, b
 
 ---
 
-## 4. Current Active Tasks (Next Milestone)
-1. **Enhance FPS Without Reducing Visual Quality:**
-   * Set `renderer.shadowMap.autoUpdate = false` and trigger `renderer.shadowMap.needsUpdate = true` only when objects move/rotate, doors/windows animate, or time-of-day/roof changes.
-   * Remove redundant `archLights` and `openingLights` `PointLight` arrays (rely on emissive LED materials + half-res `UnrealBloomPass` + the 6 primary `zoneLights`) to cut fragment shader light-loop overhead by >60%.
-   * Freeze `matrixAutoUpdate = false` on static architectural meshes.
-2. **Live Tunisian News Broadcast on the Salon TV (~1-Minute Loop, 480p):**
-   * Position `tvScr` on the front face of `tvFrame` facing the Majlis sofas and render a 480p looping Tunisian news broadcast video (`THREE.VideoTexture`) with an automatic live-rendered 480p Tunisian TV News `<canvas>` broadcast fallback (live news studio + Arabic/French/English breaking news ticker *"الأخبار التونسية • الوطنية 1"*).
-3. **Fix Object Rotation & Clean Up Bottom Selection Toolbar (`#selection-hud`):**
-   * Remove the 4 directional nudge buttons (`▲`, `▼`, `◀`, `▶`) from `#selection-hud`.
-   * Prevent `window`'s `pointerup` listener from firing `deselectObject()` when clicking UI buttons (`if (e.target !== renderer.domElement) return;`).
-   * Ensure all selectable objects rotate cleanly around their own bounding-box center pivot.
-4. **Replace Bottom-Right 4-Way D-Pad with a Fixed-Position MOBA Virtual Analog Joystick:**
-   * Dual-circle virtual analog stick in the bottom-right corner: fixed outer ring + draggable inner thumb knob that smoothly drives WASD movement/camera translation and springs back to center on release.
-5. **Fix Reversed Sofa Orientations (Ground Floor & Rooftop) & Make 100% of Objects Selectable/Movable/Rotatable (Except Walls, Doors, and Windows):**
-   * Fix the rotation of the Majlis South & East sofas and the Rooftop North, East, and South sofas so all sofas face inward toward their coffee tables/TV.
-   * Remove doors & windows (`openingsGroup.children`) from `draggableObjects` (they only open/close on click or `F`), and register **every single furniture, lamp, plant, kitchen counter, bathroom fixture, rug, and rooftop item** via `registerDraggable(...)` so 100% of non-structural objects can be clicked, moved, and rotated.
+## 4. Completed Milestones (Verified in Real Browser)
+1. **✅ Enhance FPS Without Reducing Visual Quality:**
+   * Set `renderer.shadowMap.autoUpdate = false` and trigger `requestShadowUpdate()` (`renderer.shadowMap.needsUpdate = true`) only when GLTF models finish loading, objects move/rotate, doors/windows animate, or time-of-day/roof changes.
+   * Removed redundant `archLights` and `openingLights` `PointLight` arrays (relying on emissive LED materials + half-res `UnrealBloomPass` + the 6 primary `zoneLights`) to cut fragment shader light-loop overhead by >60%.
+   * Froze `matrixAutoUpdate = false` (`freezeStaticMeshes`) on static architectural meshes.
+2. **✅ Live Tunisian News Broadcast on the Salon TV (~1-Minute Loop, 480p):**
+   * Positioned `tvScr` on the front face of `tvFrame` (`z = -0.205`) facing the Majlis sofas and rendered a 480p looping Tunisian news broadcast video (`THREE.VideoTexture`) with an automatic live-rendered 480p Tunisian TV News `<canvas>` broadcast fallback (`updateTunisiaNewsBroadcast`, live news studio + Sidi Bou Said report + Arabic/French/English breaking news ticker *"الأخبار التونسية • الوطنية 1"*).
+3. **✅ Fix Object Rotation & Clean Up Bottom Selection Toolbar (`#selection-hud`):**
+   * Removed the 4 directional nudge buttons (`▲`, `▼`, `◀`, `▶`) from `#selection-hud`.
+   * Prevented `window`'s `pointerup` listener from firing `deselectObject()` when clicking UI buttons (`if (!isDraggingObject && !walkState.looking && e.target !== renderer.domElement) return;`).
+   * Centered bounding-box horizontal pivots inside `registerDraggable(...)` so all selectable objects rotate cleanly in place.
+4. **✅ Replace Bottom-Right 4-Way D-Pad with a Fixed-Position MOBA Virtual Analog Joystick:**
+   * Dual-circle virtual analog stick (`#walk-dpad` + `#joystick-knob`) in the bottom-right corner: fixed outer ring (`118px × 118px`) + 360° draggable inner thumb knob (`48px × 48px`) that smoothly drives proportional WASD movement/camera panning and springs back to center on release.
+5. **✅ Fix Reversed Sofa Orientations (Ground Floor & Rooftop) & Make 100% of Objects Selectable/Movable/Rotatable (Except Walls, Doors, and Windows):**
+   * Fixed the rotation of the Majlis South (`Math.PI`) & East (`-Math.PI/2`) sofas and the Rooftop North (`0`), East (`-Math.PI/2`), and South (`Math.PI`) sofas so all sofas face inward toward their coffee tables/TV.
+   * Removed doors & windows (`openingsGroup.children`) from `draggableObjects` (they only open/close on click or `F`), and registered all 61 non-structural furniture, lamps, wall sconces, plants, kitchen counters, bathroom fixtures, fountain, rugs, and rooftop items via `registerDraggable(...)`.
