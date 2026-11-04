@@ -1905,30 +1905,30 @@ function buildStaticArchitecture() {
   });
 
   // Woven Tunisian Kilim Carpet Runner under the floor sofa & tea tray
-  addBoxMesh(2.42, 0.012, 1.48, 4.65, -5.82, -0.242, matKilimGold, tunisianFloorSofaGroup);
+  addBoxMesh(2.42, 0.012, 1.48, 4.65, -5.82, -0.244, matKilimGold, tunisianFloorSofaGroup);
   addBoxMesh(2.30, 0.014, 1.36, 4.65, -5.82, -0.240, matKilimCrimson, tunisianFloorSofaGroup);
 
-  // Low Carved Walnut Plinth Frame & Brass Trim directly under the South Window
-  addBoxMesh(2.16, 0.10, 0.86, 4.65, -5.56, -0.195, matWalnut, tunisianFloorSofaGroup);
-  addBoxMesh(2.20, 0.022, 0.90, 4.65, -5.56, -0.142, matBrass, tunisianFloorSofaGroup);
+  // Carved Walnut Plinth Frame & Brass Trim directly under the South Window (ergonomic Sedari height & depth so thighs rest flush on cushion & calves hang 100% in front of trim)
+  addBoxMesh(2.16, 0.21, 0.68, 4.65, -5.49, -0.135, matWalnut, tunisianFloorSofaGroup);
+  addBoxMesh(2.20, 0.024, 0.70, 4.65, -5.49, -0.020, matBrass, tunisianFloorSofaGroup);
 
-  // 3 Thick Tufted Tunisian Floor Mattress Cushions (Mtarba / Sedari floor cushions)
+  // 3 Thick Tufted Tunisian Floor Mattress Cushions (Mtarba / Sedari cushions, top at bz = +0.196m)
   [-0.68, 0.0, 0.68].forEach((dx, idx) => {
     const cx = 4.65 + dx;
-    addBoxMesh(0.66, 0.16, 0.80, cx, -5.58, -0.055, matKilimCrimson, tunisianFloorSofaGroup);
+    addBoxMesh(0.66, 0.19, 0.68, cx, -5.49, 0.085, matKilimCrimson, tunisianFloorSofaGroup);
     // Woven geometric Kilim top inlay & brass piping welt
-    addBoxMesh(0.58, 0.025, 0.72, cx, -5.58, 0.032, idx === 1 ? matKilimCream : matKilimCrimson, tunisianFloorSofaGroup);
-    addBoxMesh(0.67, 0.016, 0.81, cx, -5.58, 0.022, matKilimGold, tunisianFloorSofaGroup);
+    addBoxMesh(0.58, 0.024, 0.62, cx, -5.49, 0.184, idx === 1 ? matKilimCream : matKilimCrimson, tunisianFloorSofaGroup);
+    addBoxMesh(0.67, 0.016, 0.69, cx, -5.49, 0.174, matKilimGold, tunisianFloorSofaGroup);
     // Backrest cushion leaning against the wall right under the South Window sill
     const backCush = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.42, 0.18), idx % 2 === 0 ? matKilimCrimson : matKilimTeal);
-    backCush.position.copy(bPos(cx, -5.24, 0.22));
+    backCush.position.copy(bPos(cx, -5.21, 0.38));
     backCush.rotation.x = 0.14;
     backCush.castShadow = true;
     backCush.receiveShadow = true;
     tunisianFloorSofaGroup.add(backCush);
     // Decorative Tunisian diamond throw pillow in front of backrest
     const throwPil = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.12), idx === 1 ? matKilimGold : matKilimCream);
-    throwPil.position.copy(bPos(cx, -5.36, 0.17));
+    throwPil.position.copy(bPos(cx, -5.32, 0.31));
     throwPil.rotation.x = 0.24;
     throwPil.rotation.z = (idx - 1) * 0.12;
     throwPil.castShadow = true;
@@ -1938,32 +1938,39 @@ function buildStaticArchitecture() {
 
   // Left & Right Cylindrical Bolster Armrests (Takaya) with Gold Tassel Caps
   [-0.96, 0.96].forEach((dx) => {
-    const bolster = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.76, 20), matKilimTeal);
+    const bolster = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.64, 20), matKilimTeal);
     bolster.rotation.x = Math.PI / 2;
-    bolster.position.copy(bPos(4.65 + dx, -5.58, 0.14));
+    bolster.position.copy(bPos(4.65 + dx, -5.49, 0.29));
     bolster.castShadow = true;
     bolster.receiveShadow = true;
     tunisianFloorSofaGroup.add(bolster);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.78, 20), matKilimGold);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.66, 20), matKilimGold);
     cap.rotation.x = Math.PI / 2;
     cap.scale.set(1.02, 0.12, 1.02);
-    cap.position.copy(bPos(4.65 + dx, -5.58, 0.14));
+    cap.position.copy(bPos(4.65 + dx, -5.49, 0.29));
     tunisianFloorSofaGroup.add(cap);
   });
 
-  // Low Hammered Brass Tunisian Tea Tray & Mint Tea Glasses in front of the Floor Sofa
+  // Low Hammered Brass Tunisian Tea Tray & Mint Tea Glasses offset gracefully on the Kilim runner so seated feet have 100% clear space
   const teaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.24, 0.03, 24), matBrass);
-  teaTray.position.copy(bPos(4.65, -6.26, -0.22));
+  teaTray.position.copy(bPos(4.65 + 0.58, -6.18, -0.22));
   teaTray.castShadow = true;
   teaTray.receiveShadow = true;
   tunisianFloorSofaGroup.add(teaTray);
-  [-0.08, 0.08].forEach((gx) => {
+  [-0.08, 0.08].forEach((gxOff) => {
     const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.075, 14), matGlass);
-    glass.position.copy(bPos(4.65 + gx, -6.26, -0.17));
+    glass.position.copy(bPos(4.65 + 0.58 + gxOff, -6.18, -0.17));
     tunisianFloorSofaGroup.add(glass);
   });
 
   archRoot.add(tunisianFloorSofaGroup);
+  attachNpcTargetWorld(
+    tunisianFloorSofaGroup,
+    bPos(4.65, -5.65, -0.215),
+    bPos(4.65, -6.65, -0.215)
+  );
+  tunisianFloorSofaGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
+  window.tunisianFloorSofaObj = tunisianFloorSofaGroup;
   registerDraggable(tunisianFloorSofaGroup, 'Tunisian Majlis Floor Sofa (Jalsa)', 'جلسة عربية تونسية أرضية');
 
   // ==========================================================================
@@ -2108,6 +2115,14 @@ function buildStaticArchitecture() {
   addBoxMesh(1.20, 0.018, 0.04, gx, gy, 1.96, matLedBorderOpening, terraceGrillGroup);
 
   archRoot.add(terraceGrillGroup);
+  attachNpcTargetWorld(
+    terraceGrillGroup,
+    bPos(gx, gy - 0.81, -0.25),
+    bPos(gx, gy, -0.25),
+    bPos(gx, gy, 0.80)
+  );
+  terraceGrillGroup.userData.npcActivityId = 'GRILL_TERRACE';
+  window.terraceGrillObj = terraceGrillGroup;
   registerDraggable(terraceGrillGroup, 'Covered Outdoor BBQ Grill (Fish & Steak)', 'مشواة خارجية بسقف خاص (سمك وستيك)');
 
   const eastArch = createModernArabicArchGroup(2.85, 3.08, 0.11, { infillMode: 'mashrabiya', hasLed: true });
@@ -2455,6 +2470,31 @@ function clearGroup(g) {
   }
 }
 
+function attachNpcTargetWorld(obj, standWorld, lookWorld, smokeWorld = null) {
+  const yAxis = new THREE.Vector3(0, 1, 0);
+  const toLocal = (wVec) => wVec.clone().sub(obj.position).applyAxisAngle(yAxis, -obj.rotation.y);
+  const standNode = new THREE.Object3D();
+  standNode.position.copy(toLocal(standWorld));
+  standNode.name = 'npcStandNode';
+  obj.add(standNode);
+
+  const lookNode = new THREE.Object3D();
+  lookNode.position.copy(toLocal(lookWorld));
+  lookNode.name = 'npcLookNode';
+  obj.add(lookNode);
+
+  obj.userData.npcStandNode = standNode;
+  obj.userData.npcLookNode = lookNode;
+
+  if (smokeWorld) {
+    const smokeNode = new THREE.Object3D();
+    smokeNode.position.copy(toLocal(smokeWorld));
+    smokeNode.name = 'npcSmokeNode';
+    obj.add(smokeNode);
+    obj.userData.npcSmokeNode = smokeNode;
+  }
+}
+
 function registerDraggable(obj, labelEn, labelAr) {
   if (obj.children && obj.children.length > 0) {
     obj.updateMatrixWorld(true);
@@ -2746,6 +2786,14 @@ async function buildDetailedKitchenAndFridge() {
   skHandle.rotation.z = Math.PI / 2;
   skHandle.position.copy(bPos(0.68, -2.35, 0.96));
   kGroup.add(skHandle);
+  attachNpcTargetWorld(
+    kGroup,
+    bPos(0.24, -2.50, 0.00),
+    bPos(0.92, -2.50, 0.00),
+    bPos(0.85, -2.35, 0.99)
+  );
+  kGroup.userData.npcActivityId = 'COOK_KITCHEN';
+  window.kitchenCounterObj = kGroup;
   registerDraggable(kGroup, "Chef's L-Shaped Kitchen Counter & Sink", 'خزائن ورخام الكوجينة على شكل L');
 
   // Real Poly Haven 3D Electric Stove (tuned PBR material so white enamel never washes out at grazing angles)
@@ -2780,6 +2828,15 @@ async function buildDetailedKitchenAndFridge() {
       sw.add(cap);
     });
     sw.position.copy(bPos(0.92, -2.50, 0.02));
+    attachNpcTargetWorld(
+      sw,
+      bPos(0.24, -2.50, 0.00),
+      bPos(0.92, -2.50, 0.00),
+      bPos(0.92, -2.50, 0.96)
+    );
+    sw.userData.npcActivityId = 'COOK_KITCHEN';
+    window.kitchenStoveObj = sw;
+    window.activeKitchenObj = sw;
     registerDraggable(sw, '4-Burner Electric Range Stove', 'فرن وغاز كهربائي عصري');
     g.add(sw);
   }
@@ -2787,6 +2844,13 @@ async function buildDetailedKitchenAndFridge() {
   if (pot) {
     const pw = fitAndPlaceModel(pot, null, 0.22, 0.4);
     pw.position.copy(bPos(0.98, -2.65, 0.92));
+    attachNpcTargetWorld(
+      pw,
+      bPos(0.24, -2.65, 0.00),
+      bPos(0.98, -2.65, 0.00),
+      bPos(0.98, -2.65, 1.03)
+    );
+    window.kitchenPotObj = pw;
     registerDraggable(pw, 'Hammered Brass Cooking Pot', 'طنجرة نحاس تقليدية');
     g.add(pw);
   }
@@ -3158,6 +3222,13 @@ async function rebuildCategory(cat) {
       // South Sofa rotated by Math.PI so it faces North toward the coffee table & TV
       const w1 = fitAndPlaceModel(s1, [2.65, 0.98, 0.92], null, Math.PI, cfg.tint);
       w1.position.copy(bPos(3.40, 0.08, 0.02));
+      attachNpcTargetWorld(
+        w1,
+        bPos(3.40, 0.22, 0.02),
+        bPos(3.40, 1.22, 0.02)
+      );
+      w1.userData.npcActivityId = 'WATCH_TV_MAJLIS';
+      window.activeMajlisSofa = w1;
       registerDraggable(w1, cfg.en + ' (South)', cfg.ar + ' (جنوب)');
       g.add(w1);
     }
@@ -3166,6 +3237,12 @@ async function rebuildCategory(cat) {
       // East Sofa rotated by -Math.PI/2 so it faces West toward the coffee table (not East wall)
       const w2 = fitAndPlaceModel(s2, [0.98, 2.55, 0.92], null, -Math.PI/2, cfg.tint);
       w2.position.copy(bPos(4.88, 1.85, 0.02));
+      attachNpcTargetWorld(
+        w2,
+        bPos(4.74, 1.85, 0.02),
+        bPos(3.74, 1.85, 0.02)
+      );
+      w2.userData.npcActivityId = 'WATCH_TV_MAJLIS';
       registerDraggable(w2, cfg.en + ' (East)', cfg.ar + ' (شرق)');
       g.add(w2);
     }
@@ -3735,6 +3812,15 @@ async function buildStaticPolyHavenDecor() {
     if (pm) {
       const pw = fitAndPlaceModel(pm, null, h, 0);
       pw.position.copy(bPos(pos[0], pos[1], pos[2]));
+      attachNpcTargetWorld(
+        pw,
+        bPos(pos[0], pos[1] - 0.76, pos[2]),
+        bPos(pos[0], pos[1], pos[2])
+      );
+      pw.userData.npcActivityId = 'WATER_LEFT_POTS';
+      if (Math.abs(pos[0] - (-2.05)) < 0.1 && Math.abs(pos[1] - (-5.55)) < 0.1) {
+        window.activeWaterPot = pw;
+      }
       registerDraggable(pw, 'Mediterranean Potted Plant', 'نبتة متوسطية طبيعية');
       g.add(pw);
     }
@@ -3870,6 +3956,14 @@ async function buildStaticPolyHavenDecor() {
     bigOliveGroup.add(pad);
   });
 
+  attachNpcTargetWorld(
+    bigOliveGroup,
+    bPos(-0.05, -9.55, -0.50),
+    bPos(-0.05, -8.25, -0.50)
+  );
+  bigOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+  window.bigOliveTreeObj = bigOliveGroup;
+  window.activeOliveTree = bigOliveGroup;
   registerDraggable(bigOliveGroup, 'Ancient Mediterranean Olive Tree (3m)', 'شجرة زيتون تونسية معمرة');
   g.add(bigOliveGroup);
 
@@ -3930,6 +4024,12 @@ async function buildStaticPolyHavenDecor() {
     });
 
     smallOliveGroup.rotation.y = (i * 0.45) - 0.5;
+    attachNpcTargetWorld(
+      smallOliveGroup,
+      bPos(ox, -16.15, -0.50),
+      bPos(ox, -15.20, -0.50)
+    );
+    smallOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
     registerDraggable(
       smallOliveGroup,
       `Potted Olive Tree #${i + 1} (1.5m)`,
@@ -3980,6 +4080,12 @@ async function buildStaticPolyHavenDecor() {
   if (r1) {
     const rw1 = fitAndPlaceModel(r1, [3.20, 0.95, 0.85], null, 0);
     rw1.position.copy(bPos(2.85, 3.35, 3.78));
+    attachNpcTargetWorld(
+      rw1,
+      bPos(2.85, 3.18, 3.80),
+      bPos(2.85, 2.18, 3.80)
+    );
+    rw1.userData.npcActivityId = 'ROOF_LOUNGE';
     registerDraggable(rw1, 'Rooftop Lounge Sofa (North)', 'أريكة جلسة السطح (شمال)');
     roofGroup.add(rw1);
   }
@@ -3987,6 +4093,12 @@ async function buildStaticPolyHavenDecor() {
   if (r1e) {
     const rwe = fitAndPlaceModel(r1e, [0.95, 3.20, 0.85], null, -Math.PI/2);
     rwe.position.copy(bPos(4.35, 1.40, 3.78));
+    attachNpcTargetWorld(
+      rwe,
+      bPos(4.18, 1.40, 3.80),
+      bPos(3.18, 1.40, 3.80)
+    );
+    rwe.userData.npcActivityId = 'ROOF_LOUNGE';
     registerDraggable(rwe, 'Rooftop Lounge Sofa (East)', 'أريكة جلسة السطح (شرق)');
     roofGroup.add(rwe);
   }
@@ -3994,6 +4106,13 @@ async function buildStaticPolyHavenDecor() {
   if (r2) {
     const rw2 = fitAndPlaceModel(r2, [2.80, 0.92, 0.85], null, Math.PI);
     rw2.position.copy(bPos(2.85, -0.55, 3.78));
+    attachNpcTargetWorld(
+      rw2,
+      bPos(2.85, -0.38, 3.80),
+      bPos(2.85, 0.62, 3.80)
+    );
+    rw2.userData.npcActivityId = 'ROOF_LOUNGE';
+    window.activeRoofSofa = rw2;
     registerDraggable(rw2, 'Rooftop Lounge Sofa (South)', 'أريكة جلسة السطح (جنوب)');
     roofGroup.add(rw2);
   }
@@ -4008,6 +4127,14 @@ async function buildStaticPolyHavenDecor() {
   if (bbq) {
     const bw = fitAndPlaceModel(bbq, [0.88, 1.15, 0.55], null, 0);
     bw.position.copy(bPos(-4.65, 2.65, 4.72));
+    attachNpcTargetWorld(
+      bw,
+      bPos(-3.88, 2.65, 3.78),
+      bPos(-4.65, 2.65, 3.78),
+      bPos(-4.65, 2.65, 5.05)
+    );
+    bw.userData.npcActivityId = 'ROOF_BBQ';
+    window.roofBbqObj = bw;
     registerDraggable(bw, 'Stone BBQ Grill & Fire Pit', 'مشواة وموقد حجر طبيعي');
     roofGroup.add(bw);
   }
@@ -4653,6 +4780,14 @@ function setSelectionHighlight(obj, active) {
 }
 
 function selectObject(obj) {
+  if (obj && obj.userData && obj.userData.npcActivityId) {
+    const actId = obj.userData.npcActivityId;
+    if (actId === 'WATER_LEFT_POTS') window.activeWaterPot = obj;
+    else if (actId === 'WATER_OLIVE_GARDEN') window.activeOliveTree = obj;
+    else if (actId === 'COOK_KITCHEN') window.activeKitchenObj = obj;
+    else if (actId === 'WATCH_TV_MAJLIS') window.activeMajlisSofa = obj;
+    else if (actId === 'ROOF_LOUNGE') window.activeRoofSofa = obj;
+  }
   if (selectedObject === obj) {
     updateSelectedHudText();
     return;
@@ -5713,6 +5848,61 @@ function updateMaherFloatingBadge() {
   maherBadgeTex.needsUpdate = true;
 }
 
+const _tmpStandWorld = new THREE.Vector3();
+const _tmpLookWorld = new THREE.Vector3();
+const _tmpSmokeWorld = new THREE.Vector3();
+
+function getZoneFromWorldPos(wx, wy, wz) {
+  if (wy > 2.0) return 'roof';
+  // Note: wx = bx, wz = -by
+  if (wx >= -6.05 && wx <= 6.05 && wz >= -5.05 && wz <= 5.05) {
+    if (wx < 1.45 && wz >= 1.0) return 'inside_kitchen';
+    return 'inside_majlis';
+  }
+  if (wx >= 1.35 && wx <= 6.25 && wz > 5.05 && wz <= 9.35) {
+    return 'terrace_right';
+  }
+  if (wx >= -6.25 && wx < 1.35 && wz > 5.05 && wz <= 7.25) {
+    return 'terrace_left';
+  }
+  return 'front_yard';
+}
+
+function getDynamicActivityTarget(actId) {
+  const act = MAHER_ACTIVITIES[actId] || MAHER_ACTIVITIES.GRILL_TERRACE;
+  let targetObj = null;
+  if (actId === 'GRILL_TERRACE') targetObj = window.terraceGrillObj;
+  else if (actId === 'RELAX_FLOOR_SOFA') targetObj = window.tunisianFloorSofaObj;
+  else if (actId === 'WATER_LEFT_POTS') targetObj = window.activeWaterPot;
+  else if (actId === 'WATER_OLIVE_GARDEN') targetObj = window.activeOliveTree;
+  else if (actId === 'COOK_KITCHEN') targetObj = window.activeKitchenObj || window.kitchenStoveObj || window.kitchenCounterObj;
+  else if (actId === 'WATCH_TV_MAJLIS') targetObj = window.activeMajlisSofa;
+  else if (actId === 'ROOF_BBQ') targetObj = window.roofBbqObj;
+  else if (actId === 'ROOF_LOUNGE') targetObj = window.activeRoofSofa;
+
+  if (targetObj && targetObj.userData && targetObj.userData.npcStandNode && targetObj.userData.npcLookNode) {
+    targetObj.updateMatrixWorld(true);
+    targetObj.userData.npcStandNode.getWorldPosition(_tmpStandWorld);
+    targetObj.userData.npcLookNode.getWorldPosition(_tmpLookWorld);
+    const dx = _tmpLookWorld.x - _tmpStandWorld.x;
+    const dz = _tmpLookWorld.z - _tmpStandWorld.z;
+    const ry = (Math.hypot(dx, dz) > 0.0001) ? Math.atan2(dx, dz) : act.ry;
+    const zone = getZoneFromWorldPos(_tmpStandWorld.x, _tmpStandWorld.y, _tmpStandWorld.z);
+    return {
+      pos: _tmpStandWorld.clone(),
+      ry,
+      zone
+    };
+  }
+
+  const fallbackPos = bPos(act.bx, act.by, act.bz);
+  return {
+    pos: fallbackPos,
+    ry: act.ry,
+    zone: act.zone
+  };
+}
+
 function startMaherActivity(actKey, immediateSpawn = false) {
   const act = MAHER_ACTIVITIES[actKey] || MAHER_ACTIVITIES.GRILL_TERRACE;
   const prevZone = maherNpcState.currentZone;
@@ -5722,25 +5912,27 @@ function startMaherActivity(actKey, immediateSpawn = false) {
 
   if (!maherNpcState.root) return;
 
+  const dynTarget = getDynamicActivityTarget(act.id);
+
   // Rule requested by user: "d roof (spawn saja khusus d roof)" -> Whenever moving to or from the 2nd floor roof, spawn directly!
-  const isRoofTransition = (act.zone === 'roof' || prevZone === 'roof' || immediateSpawn);
+  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn);
   if (isRoofTransition) {
     maherNpcState.pathQueue = [];
     maherNpcState.mode = 'PERFORMING';
-    maherNpcState.currentZone = act.zone;
-    maherNpcState.root.position.copy(bPos(act.bx, act.by, act.bz));
-    maherNpcState.root.rotation.y = act.ry;
+    maherNpcState.currentZone = dynTarget.zone;
+    maherNpcState.root.position.copy(dynTarget.pos);
+    maherNpcState.root.rotation.y = dynTarget.ry;
     setMaherProp(act.prop);
     playMaherClip(act.clip, 0.22);
     requestShadowUpdate();
     return;
   }
 
-  // Otherwise on the ground floor, walk naturally along waypoints through doors & terraces!
-  const wps = computeGroundFloorWaypoints(prevZone, act.zone);
-  wps.push([act.bx, act.by, act.bz]);
+  // Otherwise on the ground floor, walk naturally along waypoints through doors & terraces to the live object's target pose!
+  const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
   maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
-  maherNpcState.currentZone = act.zone;
+  maherNpcState.pathQueue.push(dynTarget.pos.clone());
+  maherNpcState.currentZone = dynTarget.zone;
   maherNpcState.mode = 'WALKING';
   setMaherProp(null);
   playMaherClip('Walk_Cycle', 0.22);
@@ -5863,8 +6055,13 @@ function updateMaherNpcAndParticles(dt) {
       maherNpcGroup.visible = true;
     }
 
+    const act = maherNpcState.currentAct;
+    const dynTarget = getDynamicActivityTarget(act.id);
+
     if (maherNpcState.mode === 'WALKING') {
+      // Continuously keep final path destination locked to the target object's live position!
       if (maherNpcState.pathQueue.length > 0) {
+        maherNpcState.pathQueue[maherNpcState.pathQueue.length - 1].copy(dynTarget.pos);
         const target = maherNpcState.pathQueue[0];
         const pos = maherNpcState.root.position;
         const dx = target.x - pos.x;
@@ -5887,16 +6084,41 @@ function updateMaherNpcAndParticles(dt) {
           maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 10.0);
         }
       } else {
-        // Arrived at destination activity!
-        const act = maherNpcState.currentAct;
+        // Arrived at destination activity! Lock to live object position & orientation!
         maherNpcState.mode = 'PERFORMING';
-        maherNpcState.root.position.copy(bPos(act.bx, act.by, act.bz));
-        maherNpcState.root.rotation.y = act.ry;
+        maherNpcState.currentZone = dynTarget.zone;
+        maherNpcState.root.position.copy(dynTarget.pos);
+        maherNpcState.root.rotation.y = dynTarget.ry;
         setMaherProp(act.prop);
         playMaherClip(act.clip, 0.25);
       }
     } else {
-      // PERFORMING current activity
+      // PERFORMING current activity:
+      // If the user moved or rotated/flipped the target object, automatically walk to the new position & open/front side!
+      const pos = maherNpcState.root.position;
+      const distToTarget = Math.hypot(dynTarget.pos.x - pos.x, dynTarget.pos.z - pos.z);
+      if (!isDraggingObject && distToTarget > 0.14) {
+        if (dynTarget.zone === 'roof' || maherNpcState.currentZone === 'roof') {
+          maherNpcState.currentZone = dynTarget.zone;
+          pos.copy(dynTarget.pos);
+          maherNpcState.root.rotation.y = dynTarget.ry;
+        } else {
+          const wps = computeGroundFloorWaypoints(maherNpcState.currentZone, dynTarget.zone);
+          maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+          maherNpcState.pathQueue.push(dynTarget.pos.clone());
+          maherNpcState.currentZone = dynTarget.zone;
+          maherNpcState.mode = 'WALKING';
+          setMaherProp(null);
+          playMaherClip('Walk_Cycle', 0.20);
+        }
+      } else if (!isDraggingObject) {
+        pos.lerp(dynTarget.pos, Math.min(1.0, dt * 12.0));
+        let diff = dynTarget.ry - maherNpcState.root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 12.0);
+      }
+
       maherNpcState.timer -= dt;
       if (maherNpcState.timer <= 0) {
         pickNextRandomMaherActivity();
@@ -5908,10 +6130,10 @@ function updateMaherNpcAndParticles(dt) {
     if (maherNpcState.shadowTick === 0) requestShadowUpdate();
   }
 
-  // 2. Spawn continuous 3D cooking smoke/steam from:
-  //    a) Kitchen Stove Brass Pot & Copper Skillet (bx = 0.92, by = -2.50, bz = 0.98)
-  //    b) Terrace Covered BBQ Grill with Fish & Beef Steak (bx = 4.85, by = -7.55, bz = 0.80)
-  //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof (bx = -4.65, by = 2.65, bz = 5.05)
+  // 2. Spawn continuous 3D cooking smoke/steam dynamically locked to the live 3D objects:
+  //    a) Kitchen Stove & Brass Pot / Copper Skillet
+  //    b) Terrace Covered BBQ Grill with Fish & Beef Steak
+  //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof
   maherNpcState.smokeAccum += dt;
   if (maherNpcState.smokeAccum >= 0.10) {
     maherNpcState.smokeAccum = 0;
@@ -5919,20 +6141,30 @@ function updateMaherNpcAndParticles(dt) {
     const isGrillingTerrace = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'GRILL_TERRACE');
     const isGrillingRoof = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'ROOF_BBQ');
 
-    // Kitchen pot & skillet steam/smoke (always simmering, extra thick when Maître Maher is cooking in the kitchen!)
-    const kPos = bPos(0.98, -2.65, 1.03);
-    spawnSmokePuff(kPos.x, kPos.y, kPos.z, isCookingKitchen ? 0.78 : 0.44, isCookingKitchen ? 0.50 : 0.34);
-    const skPos = bPos(0.85, -2.35, 0.99);
-    spawnSmokePuff(skPos.x, skPos.y, skPos.z, isCookingKitchen ? 0.72 : 0.38, isCookingKitchen ? 0.46 : 0.30);
+    // Kitchen pot & stove steam/smoke (dynamically follows moved/rotated stove, pot & counter!)
+    if (window.kitchenPotObj && window.kitchenPotObj.userData && window.kitchenPotObj.userData.npcSmokeNode) {
+      window.kitchenPotObj.updateMatrixWorld(true);
+      window.kitchenPotObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, isCookingKitchen ? 0.78 : 0.44, isCookingKitchen ? 0.50 : 0.34);
+    }
+    if (window.kitchenCounterObj && window.kitchenCounterObj.userData && window.kitchenCounterObj.userData.npcSmokeNode) {
+      window.kitchenCounterObj.updateMatrixWorld(true);
+      window.kitchenCounterObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, isCookingKitchen ? 0.72 : 0.38, isCookingKitchen ? 0.46 : 0.30);
+    }
 
-    // Terrace BBQ grill smoke (rising from grilled fish & beef steak under the small grill roof)
-    const gPos = bPos(4.85, -7.55, 0.80);
-    spawnSmokePuff(gPos.x, gPos.y, gPos.z, isGrillingTerrace ? 0.62 : 0.40, isGrillingTerrace ? 0.48 : 0.34);
+    // Terrace BBQ grill smoke (dynamically follows moved/rotated terrace grill!)
+    if (window.terraceGrillObj && window.terraceGrillObj.userData && window.terraceGrillObj.userData.npcSmokeNode) {
+      window.terraceGrillObj.updateMatrixWorld(true);
+      window.terraceGrillObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, isGrillingTerrace ? 0.62 : 0.40, isGrillingTerrace ? 0.48 : 0.34);
+    }
 
-    // Rooftop BBQ smoke when active
-    if (isGrillingRoof && roofGroup.visible) {
-      const rPos = bPos(-4.65, 2.65, 5.05);
-      spawnSmokePuff(rPos.x, rPos.y, rPos.z, 0.58, 0.46);
+    // Rooftop BBQ smoke when active (dynamically follows moved/rotated rooftop firepit!)
+    if (isGrillingRoof && roofGroup.visible && window.roofBbqObj && window.roofBbqObj.userData && window.roofBbqObj.userData.npcSmokeNode) {
+      window.roofBbqObj.updateMatrixWorld(true);
+      window.roofBbqObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, 0.58, 0.46);
     }
   }
 
@@ -6038,8 +6270,12 @@ async function initApp() {
       if (obj && obj.userData.labelEn === sp.labelEn) {
         obj.position.set(sp.x, sp.y, sp.z);
         obj.rotation.y = sp.ry;
+        obj.updateMatrixWorld(true);
       }
     });
+    if (maherNpcState.loaded && maherNpcState.currentAct) {
+      startMaherActivity(maherNpcState.currentAct.id, true);
+    }
   }
   requestShadowUpdate();
 }
