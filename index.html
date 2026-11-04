@@ -1579,11 +1579,11 @@ const WALL_DEFS = [
   { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east', baseZ: 0.0, topZ: 3.50 },
   { id: 'bath_east', axis: 'y', fixed: -2.10, min: -4.88, max: -1.20, thick: 0.18, rotY: Math.PI / 2, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
   { id: 'bath_north', axis: 'x', fixed: -1.20, min: -5.88, max: -2.10, thick: 0.18, rotY: 0, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
-  // East Side Guest Cabin Walls (bx = 6.00 .. 12.00, by = -9.20 .. -5.00, rising from bz = -0.25m up to bz = +3.78m matching the right wall height!)
-  { id: 'cabin_west', axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_south', axis: 'x', fixed: -9.20, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_east', axis: 'y', fixed: 12.00, min: -9.20, max: -5.00, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_north', axis: 'x', fixed: -5.00, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
+  // East Side Guest Cabin Walls (bx = 6.00 .. 12.00, by = -13.40 .. -9.20: back wall cabin_north is collinear with the front terrace wall at by = -9.20m, rising from bz = -0.25m up to bz = +3.78m matching the right wall height!)
+  { id: 'cabin_west', axis: 'y', fixed: 6.00, min: -13.40, max: -9.20, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_south', axis: 'x', fixed: -13.40, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_east', axis: 'y', fixed: 12.00, min: -13.40, max: -9.20, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_north', axis: 'x', fixed: -9.20, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
 ];
 
 function addBoxMesh(w, h, d, bx, by, bz, mat, parent = archRoot, castShadow = true) {
@@ -1725,15 +1725,15 @@ function buildStaticArchitecture() {
     m.receiveShadow = true;
     archRoot.add(m);
   };
-  // Split Exterior Ground (top at bz = -0.50m) into 4 seamless slabs around the Recessed Family Swimming Pool (bx = -12.20..-8.20, by = -7.10..+0.90)
+  // Split Exterior Ground (top at bz = -0.50m) into 4 seamless slabs around the Recessed Half-Width Family Swimming Pool (bx = -10.20..-8.20, by = -7.10..+0.90)
   // 1) East Main Ground Slab (bx = -8.20 .. +32.0, width 40.20m, center bx = 11.90, by = -36.5 .. +27.5, center by = -4.5)
   addSoilGroundSlab(40.20, 64.0, 11.90, -4.50);
-  // 2) West Ground Slab (bx = -32.0 .. -12.20, width 19.80m, center bx = -22.10, by = -36.5 .. +27.5, center by = -4.5)
-  addSoilGroundSlab(19.80, 64.0, -22.10, -4.50);
-  // 3) South Pool-Strip Ground Slab (bx = -12.20 .. -8.20, width 4.00m, by = -36.5 .. -7.10, depth 29.40m, center by = -21.80)
-  addSoilGroundSlab(4.00, 29.40, -10.20, -21.80);
-  // 4) North Pool-Strip Ground Slab (bx = -12.20 .. -8.20, width 4.00m, by = +0.90 .. +27.5, depth 26.60m, center by = +14.20)
-  addSoilGroundSlab(4.00, 26.60, -10.20, 14.20);
+  // 2) West Ground Slab (bx = -32.0 .. -10.20, width 21.80m, center bx = -21.10, by = -36.5 .. +27.5, center by = -4.5)
+  addSoilGroundSlab(21.80, 64.0, -21.10, -4.50);
+  // 3) South Pool-Strip Ground Slab (bx = -10.20 .. -8.20, width 2.00m, by = -36.5 .. -7.10, depth 29.40m, center by = -21.80)
+  addSoilGroundSlab(2.00, 29.40, -9.20, -21.80);
+  // 4) North Pool-Strip Ground Slab (bx = -10.20 .. -8.20, width 2.00m, by = +0.90 .. +27.5, depth 26.60m, center by = +14.20)
+  addSoilGroundSlab(2.00, 26.60, -9.20, 14.20);
 
   // Ray-Traced Style Specular Rainwater Puddles on Exterior Soil (bz = -0.496m)
   const wetRingMat = new THREE.MeshStandardMaterial({
@@ -1937,13 +1937,13 @@ function buildStaticArchitecture() {
     polygonOffsetUnits: -1
   });
 
-  // 1) Horizontal West-to-East Leg of Letter-L Walkway (bx = -6.35 .. +2.38, centered at by = -11.45m)
-  // North inner grass strip along horizontal leg (bx = -6.35 .. +0.65, center bx = -2.85, by = -10.26)
-  addBoxMesh(7.00, 0.054, 0.92, -2.85, -10.26, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(7.08, 0.038, 1.00, -2.85, -10.26, -0.481, matArchTrim, archRoot, false);
-  // South outer grass strip along horizontal leg + corner (bx = -6.35 .. +4.10, center bx = -1.125, by = -12.64)
-  addBoxMesh(10.45, 0.054, 0.92, -1.125, -12.64, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(10.53, 0.038, 1.00, -1.125, -12.64, -0.481, matArchTrim, archRoot, false);
+  // 1) Horizontal West-to-East Leg of Letter-L Walkway (starts at the West edge of the Left Swimming Pool bx = -10.61m and runs along the Pool & Left Terrace to bx = +2.38m, centered at by = -11.45m!)
+  // North inner grass strip along horizontal leg (bx = -10.61 .. +0.65, width = 11.26m, center bx = -4.98, by = -10.26)
+  addBoxMesh(11.26, 0.054, 0.92, -4.98, -10.26, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(11.34, 0.038, 1.00, -4.98, -10.26, -0.481, matArchTrim, archRoot, false);
+  // South outer grass strip along horizontal leg + corner (bx = -10.61 .. +4.10, width = 14.71m, center bx = -3.255, by = -12.64)
+  addBoxMesh(14.71, 0.054, 0.92, -3.255, -12.64, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(14.79, 0.038, 1.00, -3.255, -12.64, -0.481, matArchTrim, archRoot, false);
 
   // 2) Vertical South-to-North Turn of Letter-L into the Welcome Arch (bx = 2.38, by = -11.45 .. -9.85)
   // West inner corner grass strip flanking the turn (bx = 1.12, by = -9.85 .. -10.72, center by = -10.285)
@@ -1953,21 +1953,21 @@ function buildStaticArchitecture() {
   addBoxMesh(0.95, 0.054, 2.34, 3.64, -11.015, -0.468, matLawnBed, archRoot, false);
   addBoxMesh(1.03, 0.038, 2.42, 3.64, -11.015, -0.481, matArchTrim, archRoot, false);
 
-  // Travertine stepping pavers along the Horizontal Leg of the Letter-L (bx = -5.90 .. +1.50 at by = -11.45)
-  [-5.90, -4.98, -4.06, -3.14, -2.22, -1.30, -0.38, 0.54, 1.46].forEach(px => {
+  // Travertine stepping pavers along the Horizontal Leg of the Letter-L from the Left Pool (bx = -10.22) to the Welcome Arch Turn (bx = +1.48) at by = -11.45
+  [-10.22, -9.32, -8.42, -7.52, -6.62, -5.72, -4.82, -3.92, -3.02, -2.12, -1.22, -0.32, 0.58, 1.48].forEach(px => {
     addBoxMesh(0.64, 0.048, 1.38, px, -11.45, -0.474, matMainFloor, archRoot, true);
   });
   // Corner & North-turn stepping pavers leading straight into the Welcome Arch steps at bx = 2.38
   addBoxMesh(1.38, 0.048, 1.38, 2.38, -11.45, -0.474, matMainFloor, archRoot, true);
   addBoxMesh(1.38, 0.048, 0.64, 2.38, -10.35, -0.474, matMainFloor, archRoot, true);
 
-  // Continuous manicured grass border bed around the 11 front potted olive trees, stretching from the Swimming Pool (bx = -12.30m) all the way to the New Cabin Front Terrace (bx = +12.30m, width = 24.60m, by = -15.20m)
-  addBoxMesh(24.60, 0.054, 1.55, 0.0, -15.20, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(24.72, 0.038, 1.65, 0.0, -15.20, -0.481, matArchTrim, archRoot, false);
+  // Continuous manicured grass border bed around the 11 front potted olive trees, shifted forward (by = -19.00m) and stretching from the Swimming Pool (bx = -10.65m) all the way to the New Cabin Front Terrace (bx = +12.15m, width = 22.80m, center bx = +0.75m)
+  addBoxMesh(22.80, 0.054, 1.55, 0.75, -19.00, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(22.92, 0.038, 1.65, 0.75, -19.00, -0.481, matArchTrim, archRoot, false);
 
   // ==========================================================================
-  // POINT 3: FAMILY SWIMMING POOL (3–5 PEOPLE) LEFT OF STAIRCASE + DEEP REFLECTIVE WATER + RIPPLES + WALKWAY
-  //   - Positioned to the left (West) of the staircase: bx = -12.20m .. -8.20m (width = 4.00m)
+  // POINT 3: FAMILY SWIMMING POOL (HALF WIDTH = 2.00m × 8.00m) LEFT OF STAIRCASE + DEEP REFLECTIVE WATER + RIPPLES + WALKWAY
+  //   - Positioned to the left (West) of the staircase: bx = -10.20m .. -8.20m (width = 2.00m, center bx = -9.20m)
   //   - Stretches from left of Left Terrace (by = -7.10m) to middle-back of house (by = +0.90m, length = 8.00m)
   //   - True 3D recessed deep basin (floor at bz = -1.85m, water surface at bz = -0.44m)
   //   - Stepping-stone walkway with manicured grass from Left Terrace straight to the pool (by = -6.05m)
@@ -1986,18 +1986,18 @@ function buildStaticArchitecture() {
   });
 
   // Recessed Pool Floor (bz = -1.85m) & 4 Inner Zellige Pool Walls (bz = -1.85m .. -0.40m)
-  addBoxMesh(4.16, 0.16, 8.16, -10.20, -3.10, -1.93, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(2.16, 0.16, 8.16, -9.20, -3.10, -1.93, matPoolZellige, familyPoolGroup, true);
   // East & West inner pool walls
   addBoxMesh(0.18, 1.48, 8.16, -8.19, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
-  addBoxMesh(0.18, 1.48, 8.16, -12.21, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(0.18, 1.48, 8.16, -10.21, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
   // South & North inner pool walls
-  addBoxMesh(4.16, 1.48, 0.18, -10.20, -7.11, -1.14, matPoolZellige, familyPoolGroup, true);
-  addBoxMesh(4.16, 1.48, 0.18, -10.20, 0.91, -1.14, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(2.16, 1.48, 0.18, -9.20, -7.11, -1.14, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(2.16, 1.48, 0.18, -9.20, 0.91, -1.14, matPoolZellige, familyPoolGroup, true);
 
-  // Underwater Pool Steps at South-East Entry Corner (bx = -8.28 .. -9.18, by = -6.55 .. -5.55) aligned with Left Terrace Walkway!
-  [0, 1, 2, 3].forEach((si) => {
-    const stepW = 0.24 * (si + 1);
-    const stepTop = -0.62 - si * 0.28;
+  // Underwater Pool Steps at South-East Entry Corner (bx = -8.28 .. -8.88, by = -6.55 .. -5.55) aligned with Left Terrace Walkway!
+  [0, 1, 2].forEach((si) => {
+    const stepW = 0.20 * (si + 1);
+    const stepTop = -0.64 - si * 0.32;
     const stepH = stepTop - (-1.85);
     addBoxMesh(stepW, stepH, 1.12, -8.28 - stepW * 0.5, -6.05, -1.85 + stepH * 0.5, matPoolZellige, familyPoolGroup, true);
     addBoxMesh(stepW + 0.02, 0.03, 1.14, -8.28 - stepW * 0.5, -6.05, stepTop - 0.015, matMainFloor, familyPoolGroup, true);
@@ -2005,22 +2005,19 @@ function buildStaticArchitecture() {
 
   // Wide Travertine & Carthage Marble Pool Coping Rim framing all 4 sides of the pool (top at bz = -0.41m)
   addBoxMesh(0.46, 0.14, 8.84, -8.02, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(0.46, 0.14, 8.84, -12.38, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(4.82, 0.14, 0.46, -10.20, -7.29, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(4.82, 0.14, 0.46, -10.20, 1.09, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(0.46, 0.14, 8.84, -10.38, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(2.82, 0.14, 0.46, -9.20, -7.29, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(2.82, 0.14, 0.46, -9.20, 1.09, -0.48, matMainFloor, familyPoolGroup, true);
   // Subtle outer coping trim
   addBoxMesh(0.52, 0.06, 8.92, -8.02, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(0.52, 0.06, 8.92, -12.38, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(4.90, 0.06, 0.52, -10.20, -7.29, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(4.90, 0.06, 0.52, -10.20, 1.09, -0.49, matArchTrim, familyPoolGroup, true);
-
-  // West Poolside Stone Promenade Slab (bx = -13.65 .. -12.60, by = -7.30 .. +1.10) where the 6 Mediterranean flower pots sit!
-  addBoxMesh(1.05, 0.04, 8.40, -13.12, -3.10, -0.485, matConcreteTerrace, familyPoolGroup, true);
+  addBoxMesh(0.52, 0.06, 8.92, -10.38, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(2.90, 0.06, 0.52, -9.20, -7.29, -0.49, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(2.90, 0.06, 0.52, -9.20, 1.09, -0.49, matArchTrim, familyPoolGroup, true);
 
   // Underwater Warm LED Pool Lights along East & West inner walls
   [-5.60, -3.10, -0.60].forEach((ly) => {
     addBoxMesh(0.03, 0.08, 0.36, -8.29, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
-    addBoxMesh(0.03, 0.08, 0.36, -12.11, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
+    addBoxMesh(0.03, 0.08, 0.36, -10.11, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
   });
 
   // Procedural Animated Wave Normal Map for Deep Pool Water Reflection
@@ -2044,7 +2041,7 @@ function buildStaticArchitecture() {
   pwCtx.putImageData(pwImg, 0, 0);
   const poolWaveNorTex = new THREE.CanvasTexture(poolWaveCanvas);
   poolWaveNorTex.wrapS = poolWaveNorTex.wrapT = THREE.RepeatWrapping;
-  poolWaveNorTex.repeat.set(4, 8);
+  poolWaveNorTex.repeat.set(3, 8);
   window.poolWaveNorTex = poolWaveNorTex;
 
   // Layer 1: Deep Optical Absorption Water Volume (bz = -0.98m) giving true deep-water optical richness ("airnya dalam")
@@ -2057,9 +2054,9 @@ function buildStaticArchitecture() {
     opacity: 0.56,
     depthWrite: false
   });
-  const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(3.96, 7.96), matPoolDeepAbsorption);
+  const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(1.96, 7.96), matPoolDeepAbsorption);
   poolDeepLayer.rotation.x = -Math.PI / 2;
-  poolDeepLayer.position.copy(bPos(-10.20, -3.10, -0.98));
+  poolDeepLayer.position.copy(bPos(-9.20, -3.10, -0.98));
   poolDeepLayer.raycast = () => {};
   familyPoolGroup.add(poolDeepLayer);
 
@@ -2076,10 +2073,10 @@ function buildStaticArchitecture() {
     depthWrite: false
   });
   window.matPoolWater = matPoolSurfaceReflect;
-  const poolSurfGeo = new THREE.PlaneGeometry(3.96, 7.96, 24, 48);
+  const poolSurfGeo = new THREE.PlaneGeometry(1.96, 7.96, 16, 48);
   const poolWaterMesh = new THREE.Mesh(poolSurfGeo, matPoolSurfaceReflect);
   poolWaterMesh.rotation.x = -Math.PI / 2;
-  poolWaterMesh.position.copy(bPos(-10.20, -3.10, -0.44));
+  poolWaterMesh.position.copy(bPos(-9.20, -3.10, -0.44));
   poolWaterMesh.receiveShadow = true;
   poolWaterMesh.userData.npcActivityId = 'SWIM_POOL';
   window.poolWaterMesh = poolWaterMesh;
@@ -2104,7 +2101,7 @@ function buildStaticArchitecture() {
     return t;
   })();
   window.poolRippleRings = [];
-  const rippleGeo = new THREE.PlaneGeometry(0.55, 0.55);
+  const rippleGeo = new THREE.PlaneGeometry(0.48, 0.48);
   for (let ri = 0; ri < 18; ri++) {
     const rMat = new THREE.MeshBasicMaterial({
       map: texRippleRing,
@@ -2118,7 +2115,7 @@ function buildStaticArchitecture() {
     });
     const rMesh = new THREE.Mesh(rippleGeo, rMat);
     rMesh.rotation.x = -Math.PI / 2;
-    const initBx = -11.75 + Math.random() * 3.10;
+    const initBx = -9.85 + Math.random() * 1.30;
     const initBy = -6.60 + Math.random() * 7.00;
     rMesh.position.copy(bPos(initBx, initBy, -0.434));
     rMesh.raycast = () => {};
@@ -2127,7 +2124,7 @@ function buildStaticArchitecture() {
       mesh: rMesh,
       age: Math.random() * 2.4,
       maxAge: 1.8 + Math.random() * 1.4,
-      baseScale: 0.45 + Math.random() * 0.55,
+      baseScale: 0.42 + Math.random() * 0.48,
       maxOpacity: 0.42 + Math.random() * 0.25
     });
   }
@@ -2418,7 +2415,7 @@ function buildStaticArchitecture() {
   //    Features glowing charcoal embers, cast-iron grates, 3D grilled fish & beef steaks, and a small pitched roof canopy!
   // ==========================================================================
   const terraceGrillGroup = new THREE.Group();
-  const gx = 4.18, gy = -7.85;
+  const gx = 4.85, gy = -7.55;
 
   // Stone & Travertine Grill Island Plinth + Walnut Doors + Dark Steel Firebox
   addBoxMesh(1.42, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
@@ -2577,7 +2574,8 @@ function buildStaticArchitecture() {
   addBoxMesh(0.24, 0.825, 2.10, 1.40, -8.15, 0.1625, wallMaterials.courtyard);
   addBoxMesh(0.30, 0.06, 2.18, 1.40, -8.15, 0.605, matArchTrim);
 
-  // 2) Right Terrace Wall / Cabin West Wall (bx = 6.00, by = -9.20..-5.00): wall geometry with arched doorway at by = -7.05 is built via WALL_DEFS ('cabin_west'); top cornice cap at bz = 3.81m
+  // 2) Right Terrace Wall (bx = 6.00, by = -5.00..-9.20, length 4.20m): solid wall raised to match main house / rooftop floor height (bz = +3.78m, total height 4.03m from bz = -0.25m)
+  addBoxMesh(0.24, 4.03, 4.20, 6.00, -7.10, 1.765, wallMaterials.courtyard);
   addBoxMesh(0.30, 0.06, 4.28, 6.00, -7.10, 3.81, matArchTrim);
 
   // 3) Front Terrace Wall (bx = 4.68, by = -9.20, length 2.65m): lowered to match Terrace Grill counter top (bz = +0.635m, total height 0.885m from bz = -0.25m)
@@ -2585,90 +2583,94 @@ function buildStaticArchitecture() {
   addBoxMesh(2.73, 0.06, 0.30, 4.68, -9.20, 0.605, matArchTrim);
 
   // ==========================================================================
-  // EAST GUEST CABIN ("SEMACAM KABIN DENGAN PINTU MENGHADAP ARAH KIRI RUMAH UTAMA")
+  // EAST GUEST CABIN ("KABIN BARU BAGIAN BELAKANGNYA SEJAJAR DENGAN DINDING TERRACE DEPAN")
   //   - Extends to the right from bx = 6.00m to bx = 12.00m (width = 6.00m = half of main house 12.0m length!)
-  //   - Front wall (by = -9.20, bx = 6.00..12.00) is collinear with the front wall near the grill (by = -9.20),
-  //     rising to bz = +3.78m (exact same height as the right wall at bx = 6.00!)
-  //   - Arched Door on the Cabin West Wall (bx = 6.00, by = -7.05) faces left (-bx) toward the main house!
+  //   - Back wall (cabin_north at by = -9.20, bx = 6.00..12.00) is collinear ("sejajar") with the front terrace wall near the grill (by = -9.20),
+  //     rising to bz = +3.78m (exact same height as the right terrace wall at bx = 6.00!)
+  //   - Front wall (cabin_south) is at by = -13.40m (center by = -11.30m)
+  //   - Arched Door on the Cabin West Wall (bx = 6.00, by = -11.30) faces left (-bx) toward the main house!
   // ==========================================================================
   // Cabin Foundation Podium & Polished Carthage Marble Interior Floor (bz = -0.25m)
-  addBoxMesh(6.00, 0.24, 4.20, 9.00, -7.10, -0.37, wallMaterials.courtyard, archRoot, true);
-  addBoxMesh(6.14, 0.04, 4.34, 9.00, -7.10, -0.295, matArchTrim, archRoot, true);
-  addBoxMesh(5.72, 0.018, 3.92, 9.00, -7.10, -0.244, matMainFloor, archRoot, false);
+  addBoxMesh(6.00, 0.24, 4.20, 9.00, -11.30, -0.37, wallMaterials.courtyard, archRoot, true);
+  addBoxMesh(6.14, 0.04, 4.34, 9.00, -11.30, -0.295, matArchTrim, archRoot, true);
+  addBoxMesh(5.72, 0.018, 3.92, 9.00, -11.30, -0.244, matMainFloor, archRoot, false);
+  // Travertine step outside the Cabin West Door (bx = 6.00, by = -11.30) down to the front yard (-0.50m)
+  addBoxMesh(0.42, 0.125, 1.48, 5.74, -11.30, -0.4375, matMainFloor, archRoot, true);
   // Woven Tunisian Berber Carpet inside the Cabin
-  addBoxMesh(3.60, 0.014, 2.50, 9.15, -7.10, -0.236, matRug, archRoot, false);
+  addBoxMesh(3.60, 0.014, 2.50, 9.15, -11.30, -0.236, matRug, archRoot, false);
 
-  // Top Cornice Trim Caps (bz = 3.81m) around the 3 outer Cabin walls (cabin_south, cabin_east, cabin_north)
+  // Top Cornice Trim Caps (bz = 3.81m) around the 4 Cabin walls (cabin_west, cabin_south, cabin_east, cabin_north)
+  addBoxMesh(0.30, 0.06, 4.28, 6.00, -11.30, 3.81, matArchTrim);
+  addBoxMesh(6.16, 0.06, 0.30, 9.00, -13.40, 3.81, matArchTrim);
+  addBoxMesh(0.30, 0.06, 4.28, 12.00, -11.30, 3.81, matArchTrim);
   addBoxMesh(6.16, 0.06, 0.30, 9.00, -9.20, 3.81, matArchTrim);
-  addBoxMesh(0.30, 0.06, 4.28, 12.00, -7.10, 3.81, matArchTrim);
-  addBoxMesh(6.16, 0.06, 0.30, 9.00, -5.00, 3.81, matArchTrim);
 
-  // Cabin Interior Furnishing: Luxury Tunisian Guest Daybed & Divan (against East wall bx = 10.85, by = -7.10) + Inlaid Walnut Tea Table
+  // Cabin Interior Furnishing: Luxury Tunisian Guest Daybed & Divan (against East wall bx = 10.92, by = -11.30) + Inlaid Walnut Tea Table
   const cabinDaybedGroup = new THREE.Group();
-  addBoxMesh(1.18, 0.32, 2.56, 10.92, -7.10, -0.09, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.22, 0.03, 2.60, 10.92, -7.10, 0.08, matBrass, cabinDaybedGroup);
-  addBoxMesh(1.12, 0.18, 2.48, 10.90, -7.10, 0.18, matKilimCream, cabinDaybedGroup);
-  addBoxMesh(1.04, 0.03, 2.40, 10.88, -7.10, 0.28, matKilimCrimson, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.32, 2.56, 10.92, -11.30, -0.09, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.22, 0.03, 2.60, 10.92, -11.30, 0.08, matBrass, cabinDaybedGroup);
+  addBoxMesh(1.12, 0.18, 2.48, 10.90, -11.30, 0.18, matKilimCream, cabinDaybedGroup);
+  addBoxMesh(1.04, 0.03, 2.40, 10.88, -11.30, 0.28, matKilimCrimson, cabinDaybedGroup);
   // Headboard, footboard & backrest cushions along the East cabin wall
-  addBoxMesh(1.18, 0.68, 0.12, 10.92, -5.80, 0.36, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.18, 0.68, 0.12, 10.92, -8.40, 0.36, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.68, 0.12, 10.92, -10.00, 0.36, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.68, 0.12, 10.92, -12.60, 0.36, matWalnut, cabinDaybedGroup);
   [-0.78, 0.0, 0.78].forEach((dy, idx) => {
-    addBoxMesh(0.22, 0.42, 0.72, 11.34, -7.10 + dy, 0.46, idx === 1 ? matKilimGold : matKilimTeal, cabinDaybedGroup);
+    addBoxMesh(0.22, 0.42, 0.72, 11.34, -11.30 + dy, 0.46, idx === 1 ? matKilimGold : matKilimTeal, cabinDaybedGroup);
   });
-  // Side walnut console table & brass lantern inside the Cabin (North wall bx = 8.95, by = -5.52)
-  addBoxMesh(1.36, 0.62, 0.52, 8.95, -5.52, 0.06, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.42, 0.04, 0.56, 8.95, -5.52, 0.39, matMainFloor, cabinDaybedGroup);
+  // Side walnut console table & brass lantern inside the Cabin (against North back wall bx = 8.95, by = -9.72)
+  addBoxMesh(1.36, 0.62, 0.52, 8.95, -9.72, 0.06, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.42, 0.04, 0.56, 8.95, -9.72, 0.39, matMainFloor, cabinDaybedGroup);
   const cabinLantern = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.08, 0.28, 12), matBrass);
-  cabinLantern.position.copy(bPos(8.95, -5.52, 0.55));
+  cabinLantern.position.copy(bPos(8.95, -9.72, 0.55));
   cabinDaybedGroup.add(cabinLantern);
   archRoot.add(cabinDaybedGroup);
   registerDraggable(cabinDaybedGroup, 'Cabin Guest Daybed & Walnut Console', 'ديوان وسرير مقصورة الضيوف التونسية');
 
   // ==========================================================================
-  // NEW TERRACE IN FRONT OF THE CABIN ("TERRACE DEPAN KABIN (ARAH DEPAN RUMAH UTAMA)")
-  //   - Spans bx = 6.00m .. 12.00m (width = 6.00m, center bx = 9.00m), by = -9.20m .. -12.30m (depth = 3.10m, center by = -10.75m)
+  // NEW TERRACE IN FRONT OF THE SHIFTED CABIN ("TERRACE DEPAN KABIN BARU")
+  //   - Spans bx = 6.00m .. 12.00m (width = 6.00m, center bx = 9.00m), by = -13.40m .. -16.50m (depth = 3.10m, center by = -14.95m)
   //   - Sits at bz = -0.25m (matching the Right Arched Terrace & Left Concrete Terrace)
   //   - Features a full Tunisian Sofa Lesehan ("beri sofa lesehan d terrace baru ini")!
   // ==========================================================================
-  addBoxMesh(6.00, 0.24, 3.10, 9.00, -10.75, -0.37, matCourtyardFloor, archRoot, true);
-  addBoxMesh(6.10, 0.04, 3.18, 9.00, -10.75, -0.295, matArchTrim, archRoot, true);
-  // Front & West Travertine Steps from New Cabin Terrace (-0.25m) down to Exterior Soil (-0.50m) & Walkway (-11.45m)
-  addBoxMesh(2.40, 0.125, 0.38, 9.00, -12.46, -0.4375, matMainFloor, archRoot, true);
-  addBoxMesh(0.36, 0.125, 1.38, 5.84, -11.45, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(6.00, 0.24, 3.10, 9.00, -14.95, -0.37, matCourtyardFloor, archRoot, true);
+  addBoxMesh(6.10, 0.04, 3.18, 9.00, -14.95, -0.295, matArchTrim, archRoot, true);
+  // Front & West Travertine Steps from New Cabin Terrace (-0.25m) down to Exterior Soil (-0.50m)
+  addBoxMesh(2.40, 0.125, 0.38, 9.00, -16.66, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(0.36, 0.125, 1.38, 5.84, -14.95, -0.4375, matMainFloor, archRoot, true);
 
   // TUNISIAN SOFA LESEHAN ON THE NEW CABIN FRONT TERRACE ("BERI SOFA LESEHAN D TERRACE BARU INI")
   const cabinTerraceLesehanGroup = new THREE.Group();
   // Large Hand-Woven Tunisian Kilim Carpet Runner (3.90m x 2.25m) on the New Cabin Terrace
-  addBoxMesh(3.90, 0.012, 2.25, 9.00, -10.68, -0.244, matKilimGold, cabinTerraceLesehanGroup);
-  addBoxMesh(3.74, 0.015, 2.10, 9.00, -10.68, -0.240, matKilimCrimson, cabinTerraceLesehanGroup);
-  addBoxMesh(2.85, 0.017, 1.45, 9.00, -10.68, -0.236, matKilimTeal, cabinTerraceLesehanGroup);
+  addBoxMesh(3.90, 0.012, 2.25, 9.00, -14.88, -0.244, matKilimGold, cabinTerraceLesehanGroup);
+  addBoxMesh(3.74, 0.015, 2.10, 9.00, -14.88, -0.240, matKilimCrimson, cabinTerraceLesehanGroup);
+  addBoxMesh(2.85, 0.017, 1.45, 9.00, -14.88, -0.236, matKilimTeal, cabinTerraceLesehanGroup);
 
-  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Brass Trim (backed against the Cabin front wall at by = -9.20m, facing the front olive garden!)
-  // 1) Main Back Sofa Bench (bx = 7.20 .. 10.80, by = -9.68)
-  addBoxMesh(3.60, 0.16, 0.72, 9.00, -9.68, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(3.64, 0.022, 0.75, 9.00, -9.68, -0.075, matBrass, cabinTerraceLesehanGroup);
-  // 2) Left & Right Side Return Sofa Wings (bx = 7.52 and bx = 10.48, by = -10.62)
-  addBoxMesh(0.70, 0.16, 1.18, 7.52, -10.62, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(0.73, 0.022, 1.21, 7.52, -10.62, -0.075, matBrass, cabinTerraceLesehanGroup);
-  addBoxMesh(0.70, 0.16, 1.18, 10.48, -10.62, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(0.73, 0.022, 1.21, 10.48, -10.62, -0.075, matBrass, cabinTerraceLesehanGroup);
+  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Brass Trim (backed against the Cabin front wall at by = -13.40m, facing the front olive garden!)
+  // 1) Main Back Sofa Bench (bx = 7.20 .. 10.80, by = -13.88)
+  addBoxMesh(3.60, 0.16, 0.72, 9.00, -13.88, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(3.64, 0.022, 0.75, 9.00, -13.88, -0.075, matBrass, cabinTerraceLesehanGroup);
+  // 2) Left & Right Side Return Sofa Wings (bx = 7.52 and bx = 10.48, by = -14.82)
+  addBoxMesh(0.70, 0.16, 1.18, 7.52, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, 7.52, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
+  addBoxMesh(0.70, 0.16, 1.18, 10.48, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, 10.48, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
 
-  // 4 Thick Tufted Tunisian Floor Sofa Mattresses along the Back Bench (bx = 7.65, 8.55, 9.45, 10.35, by = -9.68)
+  // 4 Thick Tufted Tunisian Floor Sofa Mattresses along the Back Bench (bx = 7.65, 8.55, 9.45, 10.35, by = -13.88)
   [-1.35, -0.45, 0.45, 1.35].forEach((dx, idx) => {
     const cx = 9.00 + dx;
     const cMat = (idx % 2 === 0) ? matKilimCrimson : matKilimTeal;
-    addBoxMesh(0.86, 0.17, 0.70, cx, -9.68, 0.015, cMat, cabinTerraceLesehanGroup);
-    addBoxMesh(0.78, 0.024, 0.62, cx, -9.68, 0.108, idx === 1 || idx === 2 ? matKilimCream : matKilimGold, cabinTerraceLesehanGroup);
+    addBoxMesh(0.86, 0.17, 0.70, cx, -13.88, 0.015, cMat, cabinTerraceLesehanGroup);
+    addBoxMesh(0.78, 0.024, 0.62, cx, -13.88, 0.108, idx === 1 || idx === 2 ? matKilimCream : matKilimGold, cabinTerraceLesehanGroup);
     // Plump angled backrest cushion leaning against the Cabin Front Wall
     const backC = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.42, 0.18), idx % 2 === 0 ? matKilimTeal : matKilimCrimson);
-    backC.position.copy(bPos(cx, -9.40, 0.29));
+    backC.position.copy(bPos(cx, -13.60, 0.29));
     backC.rotation.x = 0.15;
     backC.castShadow = true;
     backC.receiveShadow = true;
     cabinTerraceLesehanGroup.add(backC);
     // Decorative Tunisian diamond throw pillow
     const throwP = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.12), idx % 2 === 0 ? matKilimGold : matKilimCream);
-    throwP.position.copy(bPos(cx, -9.52, 0.23));
+    throwP.position.copy(bPos(cx, -13.72, 0.23));
     throwP.rotation.x = 0.24;
     throwP.rotation.z = (idx - 1.5) * 0.10;
     throwP.castShadow = true;
@@ -2679,54 +2681,54 @@ function buildStaticArchitecture() {
   // Left & Right Return Wing Floor Cushions & Outer Bolster Armrests (Takaya)
   [-1.48, 1.48].forEach((dx, sIdx) => {
     const wx = 9.00 + dx;
-    addBoxMesh(0.68, 0.17, 1.14, wx, -10.62, 0.015, sIdx === 0 ? matKilimTeal : matKilimCrimson, cabinTerraceLesehanGroup);
-    addBoxMesh(0.60, 0.024, 1.06, wx, -10.62, 0.108, matKilimCream, cabinTerraceLesehanGroup);
+    addBoxMesh(0.68, 0.17, 1.14, wx, -14.82, 0.015, sIdx === 0 ? matKilimTeal : matKilimCrimson, cabinTerraceLesehanGroup);
+    addBoxMesh(0.60, 0.024, 1.06, wx, -14.82, 0.108, matKilimCream, cabinTerraceLesehanGroup);
     // Side bolster pillow along the outer edge of each wing
     const sideBolster = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 1.05, 18), matKilimGold);
     sideBolster.rotation.x = Math.PI / 2;
-    sideBolster.position.copy(bPos(wx + (sIdx === 0 ? -0.22 : 0.22), -10.62, 0.20));
+    sideBolster.position.copy(bPos(wx + (sIdx === 0 ? -0.22 : 0.22), -14.82, 0.20));
     sideBolster.castShadow = true;
     sideBolster.receiveShadow = true;
     cabinTerraceLesehanGroup.add(sideBolster);
   });
 
-  // Low Carved Walnut & Brass Arabic Coffee Table in the center of the Cabin Terrace Sofa Lesehan (bx = 9.00, by = -10.75)
-  addBoxMesh(1.28, 0.18, 0.68, 9.00, -10.75, -0.145, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(1.34, 0.028, 0.74, 9.00, -10.75, -0.042, matMainFloor, cabinTerraceLesehanGroup);
-  addBoxMesh(1.36, 0.018, 0.76, 9.00, -10.75, -0.028, matBrass, cabinTerraceLesehanGroup);
+  // Low Carved Walnut & Brass Arabic Coffee Table in the center of the Cabin Terrace Sofa Lesehan (bx = 9.00, by = -14.95)
+  addBoxMesh(1.28, 0.18, 0.68, 9.00, -14.95, -0.145, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(1.34, 0.028, 0.74, 9.00, -14.95, -0.042, matMainFloor, cabinTerraceLesehanGroup);
+  addBoxMesh(1.36, 0.018, 0.76, 9.00, -14.95, -0.028, matBrass, cabinTerraceLesehanGroup);
   // Hammered Brass Mint-Tea Tray, Teapot (Berrad) & 4 Tea Glasses on the Low Table
   const cabinTeaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.26, 0.026, 24), matBrass);
-  cabinTeaTray.position.copy(bPos(9.00, -10.75, -0.01));
+  cabinTeaTray.position.copy(bPos(9.00, -14.95, -0.01));
   cabinTeaTray.castShadow = true;
   cabinTerraceLesehanGroup.add(cabinTeaTray);
   const cabinTeapot = new THREE.Mesh(new THREE.SphereGeometry(0.082, 16, 14), matBrass);
   cabinTeapot.scale.set(1.0, 1.28, 1.0);
-  cabinTeapot.position.copy(bPos(9.00, -10.75, 0.075));
+  cabinTeapot.position.copy(bPos(9.00, -14.95, 0.075));
   cabinTeapot.castShadow = true;
   cabinTerraceLesehanGroup.add(cabinTeapot);
   [[-0.14, -0.08], [0.14, -0.08], [-0.14, 0.08], [0.14, 0.08]].forEach(([gxOff, gyOff]) => {
     const gl = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.075, 14), matGlass);
-    gl.position.copy(bPos(9.00 + gxOff, -10.75 + gyOff, 0.04));
+    gl.position.copy(bPos(9.00 + gxOff, -14.95 + gyOff, 0.04));
     cabinTerraceLesehanGroup.add(gl);
   });
 
-  // 2 Embroidered Leather Tunisian Floor Poufs at the front corners of the Kilim rug (bx = 8.20 and 9.80, by = -11.48)
+  // 2 Embroidered Leather Tunisian Floor Poufs at the front corners of the Kilim rug (bx = 8.20 and 9.80, by = -15.68)
   [-0.80, 0.80].forEach((pxOff, pIdx) => {
     const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.31, 0.22, 24), pIdx === 0 ? matKilimCrimson : matKilimGold);
-    pouf.position.copy(bPos(9.00 + pxOff, -11.48, -0.125));
+    pouf.position.copy(bPos(9.00 + pxOff, -15.68, -0.125));
     pouf.castShadow = true;
     pouf.receiveShadow = true;
     cabinTerraceLesehanGroup.add(pouf);
     const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.27, 0.03, 24), matKilimCream);
-    poufTop.position.copy(bPos(9.00 + pxOff, -11.48, -0.005));
+    poufTop.position.copy(bPos(9.00 + pxOff, -15.68, -0.005));
     cabinTerraceLesehanGroup.add(poufTop);
   });
 
   archRoot.add(cabinTerraceLesehanGroup);
   attachNpcTargetWorld(
     cabinTerraceLesehanGroup,
-    bPos(9.00, -9.85, -0.215),
-    bPos(9.00, -10.85, -0.215)
+    bPos(9.00, -14.05, -0.215),
+    bPos(9.00, -15.05, -0.215)
   );
   cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
@@ -2778,9 +2780,9 @@ function buildStaticArchitecture() {
   // Base Flat Roof Slab, Terrace Floor, Rooftop Pergola & BBQ Counter
   addBoxMesh(12.30, 0.24, 10.30, 0.0, 0.0, 3.62, wallMaterials.south_ext, roofGroup);
   addBoxMesh(11.70, 0.03, 9.70, 0.0, 0.0, 3.755, matCourtyardFloor, roofGroup);
-  // East Guest Cabin Flat Roof Slab & Terrace Surface (bx = 6.00..12.00, by = -9.20..-5.00; hides with roofGroup when Open Roof Cutaway is ON!)
-  addBoxMesh(6.24, 0.24, 4.44, 9.00, -7.10, 3.62, wallMaterials.courtyard, roofGroup);
-  addBoxMesh(5.76, 0.03, 3.96, 9.00, -7.10, 3.755, matCourtyardFloor, roofGroup);
+  // East Guest Cabin Flat Roof Slab & Terrace Surface (bx = 6.00..12.00, by = -13.40..-9.20; hides with roofGroup when Open Roof Cutaway is ON!)
+  addBoxMesh(6.24, 0.24, 4.44, 9.00, -11.30, 3.62, wallMaterials.courtyard, roofGroup);
+  addBoxMesh(5.76, 0.03, 3.96, 9.00, -11.30, 3.755, matCourtyardFloor, roofGroup);
 
   const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
@@ -2840,9 +2842,9 @@ function rebuildFacadeDecor() {
   addBoxMesh(0.04, 0.48, 10.34, 6.16, 0.0, 4.35, matMashrabiya, facadeDecorGroup);
   for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matWalnut, facadeDecorGroup);
   for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matWalnut, facadeDecorGroup);
-  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the East Guest Cabin Front Wall (by = -9.20, bx = 6.00..12.00)
-  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 6.50 + i*0.45, -9.42, 3.55, matWalnut, facadeDecorGroup);
-  addBoxMesh(5.80, 0.035, 0.04, 9.00, -9.34, 3.76, matLedBorderOpening, facadeDecorGroup);
+  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the East Guest Cabin Front Wall (by = -13.40, bx = 6.00..12.00)
+  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 6.50 + i*0.45, -13.62, 3.55, matWalnut, facadeDecorGroup);
+  addBoxMesh(5.80, 0.035, 0.04, 9.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
   [-4.40, -0.80].forEach(ex => {
     const a = createModernArabicArchGroup(2.20, 3.05, 0.09, { infillMode: 'mashrabiya', hasLed: true, isOpening: true, pointed: 0.15 });
     a.position.copy(bPos(ex, -5.14, 0.15));
@@ -2892,20 +2894,20 @@ function rebuildOpenings() {
   openingsGroup.add(wWin);
   snapOpeningToNearestWall(wWin, -6.00, 2.50);
 
-  // 5. East Guest Cabin Arched Door on the Cabin West Wall (X=6.00, Y=-7.05) facing Left (-bx) toward the Main House!
+  // 5. East Guest Cabin Arched Door on the Cabin West Wall (X=6.00, Y=-11.30) facing Left (-bx) toward the Main House!
   const cabinDoor = createArchedDoorAssembly(1.18, 2.55, 0.28, false, 0.14);
   cabinDoor.userData.labelEn = 'Guest Cabin Arched Door (Facing Left)';
   cabinDoor.userData.labelAr = 'باب مقصورة الضيوف المقوس';
   openingsGroup.add(cabinDoor);
-  snapOpeningToNearestWall(cabinDoor, 6.00, -7.05);
+  snapOpeningToNearestWall(cabinDoor, 6.00, -11.30);
 
-  // 6. East Guest Cabin Front Arched Window on the Cabin South Wall (X=9.00, Y=-9.20) overlooking the New Cabin Terrace & Sofa Lesehan!
+  // 6. East Guest Cabin Front Arched Window on the Cabin South Wall (X=9.00, Y=-13.40) overlooking the New Cabin Terrace & Sofa Lesehan!
   const cabinWin = createArchedWindowAssembly(1.32, 2.05, 0.28, p);
   cabinWin.userData.sillHeight = 1.08;
   cabinWin.userData.labelEn = 'Guest Cabin Front Arched Window';
   cabinWin.userData.labelAr = 'شباك مقصورة الضيوف الأمامي المقوس';
   openingsGroup.add(cabinWin);
-  snapOpeningToNearestWall(cabinWin, 9.00, -9.20);
+  snapOpeningToNearestWall(cabinWin, 9.00, -13.40);
 }
 
 
@@ -4418,16 +4420,16 @@ async function buildStaticPolyHavenDecor() {
   //    (Built synchronously first so 3D grass blades appear immediately at t=0s)
   // ==========================================================================
   const neatGrassGroup = new THREE.Group();
-  // 3A. Along North & South manicured grass beds of the Horizontal Leg of the Letter-L Walkway (by = -10.26 and by = -12.64)
+  // 3A. Along North & South manicured grass beds of the Extended Horizontal Leg of the Letter-L Walkway (bx = -10.40..+3.45, by = -10.26 and by = -12.64)
   let hIdx = 0;
-  for (let gx = -6.15; gx <= 0.50; gx += 0.62) {
+  for (let gx = -10.40; gx <= 0.50; gx += 0.62) {
     const jitterY = ((hIdx % 3) - 1) * 0.05;
     const tuftN = createSpikyGrassTuft(0.32, 0.24 + (hIdx % 3) * 0.04, 54, gx * 3.1 + 10.26);
     tuftN.position.copy(bPos(gx, -10.26 + jitterY, -0.455));
     neatGrassGroup.add(tuftN);
     hIdx++;
   }
-  for (let gx = -6.15; gx <= 3.90; gx += 0.62) {
+  for (let gx = -10.40; gx <= 3.45; gx += 0.62) {
     const jitterY = ((hIdx % 3) - 1) * 0.05;
     const tuftS = createSpikyGrassTuft(0.32, 0.24 + (hIdx % 3) * 0.04, 54, gx * 2.7 + 12.64);
     tuftS.position.copy(bPos(gx, -12.64 + jitterY, -0.455));
@@ -4455,20 +4457,20 @@ async function buildStaticPolyHavenDecor() {
     neatGrassGroup.add(tPoolS);
   });
 
-  // Spiky 3D grass tufts around the 11 front potted olive trees stretching from the Swimming Pool (bx = -12.00m) to the New Cabin Front Terrace (bx = +12.00m)
-  for (let bx = -12.00; bx <= 12.05; bx += 0.58) {
+  // Spiky 3D grass tufts around the 11 shifted front potted olive trees (by = -19.00m) stretching from the Swimming Pool (bx = -10.40m) to the New Cabin Front Terrace (bx = +11.85m)
+  for (let bx = -10.40; bx <= 11.90; bx += 0.58) {
     const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
-    tuftFront.position.copy(bPos(bx, -14.68, -0.455));
+    tuftFront.position.copy(bPos(bx, -18.48, -0.455));
     neatGrassGroup.add(tuftFront);
 
     const tuftBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(bx * 7)) % 3) * 0.035, 52, -bx * 2.9 + 23.0);
-    tuftBack.position.copy(bPos(bx, -15.72, -0.455));
+    tuftBack.position.copy(bPos(bx, -19.52, -0.455));
     neatGrassGroup.add(tuftBack);
   }
-  // Taller spiky ornamental grass clusters between each of the 11 potted olive trees along bx = -11.60 .. +11.60
-  [-10.44, -8.12, -5.80, -3.48, -1.16, 1.16, 3.48, 5.80, 8.12, 10.44].forEach((mx, idx) => {
+  // Taller spiky ornamental grass clusters between each of the 11 potted olive trees along bx = -10.00 .. +11.50 (by = -19.00m)
+  [-8.92, -6.77, -4.62, -2.47, -0.32, 1.83, 3.98, 6.13, 8.28, 10.43].forEach((mx, idx) => {
     const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
-    tallTuft.position.copy(bPos(mx, -15.20, -0.455));
+    tallTuft.position.copy(bPos(mx, -19.00, -0.455));
     neatGrassGroup.add(tallTuft);
   });
 
@@ -4482,18 +4484,17 @@ async function buildStaticPolyHavenDecor() {
     registerDraggable(mw, 'Ornate Gilded Hammam Mirror', 'مرآة الحمام المذهبة');
     g.add(mw);
   }
-  // POINT 4 (PART A): Interior & Relocated Poolside Potted Plants
-  // The 6 outdoor flower pots are relocated from the Left Terrace to the left (West) side of the Family Swimming Pool (bx = -13.15m),
-  // distributed evenly from front to back (by = -6.60, -5.20, -3.80, -2.40, -1.00, +0.40, bz = -0.465m)!
+  // POINT 3: Interior & Relocated Rooftop Potted Flower Plants ("hapus bunga dan potnya dari kolam, pindahkan ke roof")
+  // The 6 outdoor flower pots are removed from the poolside and placed along the 2nd Floor Rooftop South Parapet (by = -4.25m, bx = -4.80..+3.20m, bz = 3.79m)!
   const plants = [
-    ['potted_plant_02', [5.32, 4.20, 0.02], 1.35],
-    ['potted_plant_01', [1.65, -0.65, 0.02], 1.15],
-    ['potted_plant_02', [-13.15, -6.60, -0.465], 1.48],
-    ['potted_plant_04', [-13.15, -5.20, -0.465], 1.38],
-    ['potted_plant_01', [-13.15, -3.80, -0.465], 1.32],
-    ['potted_plant_02', [-13.15, -2.40, -0.465], 1.62],
-    ['potted_plant_04', [-13.15, -1.00, -0.465], 1.35],
-    ['potted_plant_01', [-13.15,  0.40, -0.465], 1.38]
+    ['potted_plant_02', [ 5.32,  4.20, 0.02], 1.35],
+    ['potted_plant_01', [ 1.65, -0.65, 0.02], 1.15],
+    ['potted_plant_02', [-4.80, -4.25, 3.79], 1.48],
+    ['potted_plant_04', [-3.20, -4.25, 3.79], 1.38],
+    ['potted_plant_01', [-1.60, -4.25, 3.79], 1.32],
+    ['potted_plant_02', [ 0.00, -4.25, 3.79], 1.62],
+    ['potted_plant_04', [ 1.60, -4.25, 3.79], 1.35],
+    ['potted_plant_01', [ 3.20, -4.25, 3.79], 1.38]
   ];
   window.leftTerracePots = [];
   for (const [id, pos, h] of plants) {
@@ -4501,21 +4502,25 @@ async function buildStaticPolyHavenDecor() {
     if (pm) {
       const pw = fitAndPlaceModel(pm, null, h, 0);
       pw.position.copy(bPos(pos[0], pos[1], pos[2]));
-      const isPoolsidePot = (pos[0] < -10.0);
+      const isRoofPot = (pos[2] > 2.5);
       attachNpcTargetWorld(
         pw,
-        isPoolsidePot ? bPos(pos[0] + 0.78, pos[1], -0.41) : bPos(pos[0], pos[1] - 0.76, pos[2]),
+        isRoofPot ? bPos(pos[0], pos[1] + 0.78, 3.78) : bPos(pos[0], pos[1] - 0.76, pos[2]),
         bPos(pos[0], pos[1], pos[2])
       );
       pw.userData.npcActivityId = 'WATER_LEFT_POTS';
-      if (isPoolsidePot) {
+      if (isRoofPot) {
         window.leftTerracePots.push(pw);
       }
-      if (Math.abs(pos[0] - (-13.15)) < 0.1 && Math.abs(pos[1] - (-3.80)) < 0.1) {
+      if (isRoofPot && Math.abs(pos[0] - (-1.60)) < 0.1) {
         window.activeWaterPot = pw;
       }
       registerDraggable(pw, 'Mediterranean Potted Plant', 'نبتة متوسطية طبيعية');
-      g.add(pw);
+      if (isRoofPot) {
+        roofGroup.add(pw);
+      } else {
+        g.add(pw);
+      }
     }
   }
 
@@ -4661,15 +4666,15 @@ async function buildStaticPolyHavenDecor() {
   g.add(bigOliveGroup);
 
   // ==========================================================================
-  // 2. ELEVEN SMALL POTTED OLIVE TREES (~1.5m Scale) DISTRIBUTED ALONG THE FRONT
-  //    FROM THE SWIMMING POOL (bx = -11.60m) TO THE NEW CABIN FRONT TERRACE (bx = +11.60m)
+  // 2. ELEVEN SMALL POTTED OLIVE TREES (~1.5m Scale) SHIFTED FORWARD TO by = -19.00m
+  //    DISTRIBUTED FROM THE SWIMMING POOL (bx = -10.00m) TO THE NEW CABIN FRONT TERRACE (bx = +11.50m)
   // ==========================================================================
-  const smallOliveX = [-11.60, -9.28, -6.96, -4.64, -2.32, 0.00, 2.32, 4.64, 6.96, 9.28, 11.60];
+  const smallOliveX = [-10.00, -7.85, -5.70, -3.55, -1.40, 0.75, 2.90, 5.05, 7.20, 9.35, 11.50];
   window.smallOliveTrees = [];
   for (let i = 0; i < smallOliveX.length; i++) {
     const ox = smallOliveX[i];
     const smallOliveGroup = new THREE.Group();
-    smallOliveGroup.position.copy(bPos(ox, -15.20, -0.455));
+    smallOliveGroup.position.copy(bPos(ox, -19.00, -0.455));
 
     // Rustic Wooden Planter Box (planter_box_01) or Terracotta Pot (planter_pot_clay)
     const useWoodenBox = (i % 2 === 0);
@@ -4720,8 +4725,8 @@ async function buildStaticPolyHavenDecor() {
     smallOliveGroup.rotation.y = (i * 0.45) - 0.5;
     attachNpcTargetWorld(
       smallOliveGroup,
-      bPos(ox, -14.28, -0.50),
-      bPos(ox, -15.20, -0.50)
+      bPos(ox, -18.08, -0.50),
+      bPos(ox, -19.00, -0.50)
     );
     smallOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
     window.smallOliveTrees.push(smallOliveGroup);
@@ -5651,6 +5656,7 @@ const EXTRA_PHYSICAL_WALLS = [
   // Interior Kitchen Divider Wall (bx = 1.40, by = -1.60 .. -5.00)
   { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22, groundOnly: true },
   // Physical Courtyard Walls on the Right Arched Terrace (cabin_west, cabin_south, cabin_east, cabin_north are in WALL_DEFS with automatic door portal carving!)
+  { axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24 },
   { axis: 'x', fixed: -9.20, min: 3.42, max: 6.00, thick: 0.24 },
   { axis: 'y', fixed: 1.40, min: -9.20, max: -7.10, thick: 0.24 },
   // Left Exterior Staircase Safety Balustrade Wall (bx = -7.42, by = -5.05 .. +0.68) & Top Landing North Return Wall (by = +0.65, bx = -7.42 .. -6.02)
@@ -5772,8 +5778,8 @@ function updateWalkAndOpenings(dt) {
     } else if (walkState.pos.y > 4.20 && wz >= -5.05 && wz <= 5.05 && wx >= -6.10 && wx <= 6.00) {
       // Walking on the 2nd Floor Rooftop after turning right from the top of the Left Staircase!
       groundY = 3.78;
-    } else if (wx >= -12.15 && wx <= -8.25 && wz >= -0.85 && wz <= 7.05) {
-      // Inside the Family Swimming Pool (submerged to upper stomach!)
+    } else if (wx >= -10.15 && wx <= -8.25 && wz >= -0.85 && wz <= 7.05) {
+      // Inside the Half-Width Family Swimming Pool (bx = -10.20..-8.20m, submerged to upper stomach!)
       groundY = -1.50;
     } else if (wz >= -5.00 && wz <= 5.05 && wx >= -6.00 && wx <= 6.00) {
       groundY = 0.00;
@@ -5781,11 +5787,11 @@ function updateWalkAndOpenings(dt) {
       // Main Entrance steps ramp (0.00m <-> -0.25m)
       const tRamp = (wz - 5.05) / 0.70;
       groundY = -0.25 * tRamp;
-    } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 12.00) {
-      // Right Arched Terrace & East Guest Cabin Interior (bz = -0.25m)
+    } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
+      // Right Arched Terrace (bz = -0.25m)
       groundY = -0.25;
-    } else if (wz > 9.25 && wz <= 12.35 && wx >= 6.00 && wx <= 12.00) {
-      // New Cabin Front Terrace (bz = -0.25m)
+    } else if (wz > 9.20 && wz <= 16.55 && wx >= 6.00 && wx <= 12.00) {
+      // Shifted East Guest Cabin Interior (by = -9.20..-13.40) & New Cabin Front Terrace (by = -13.40..-16.50, bz = -0.25m)
       groundY = -0.25;
     } else if (wx >= 1.25 && wx <= 3.55 && wz > 9.25 && wz <= 9.98) {
       // Welcome Arch steps ramp (-0.25m <-> -0.50m)
@@ -6274,11 +6280,13 @@ const MAHER_WAYPOINTS = {
   BED_HALL:          [-1.55, -0.55,  0.00],
   ARCH_GATE:         [2.38,  -9.85, -0.50],
   LEFT_ENTRY:        [1.40,  -6.05, -0.25],
-  LEFT_TERRACE_WEST: [-5.85, -6.05, -0.25], // West edge of Left Terrace where stepping-stone walkway to Pool starts
+  LEFT_TERRACE_WEST: [-5.85, -6.05, -0.25], // West edge of Left Terrace where stepping-stone walkway to Pool & Left Staircase starts
   POOL_WALKWAY:      [-7.65, -6.05, -0.45], // Poolside edge at stepping-stone walkway leading to Left Terrace
   POOL_STEPS_IN:     [-8.70, -6.05, -1.48], // Underwater SE pool entry/exit steps aligned with walkway
-  POOL_SOUTH_EAST:   [-7.85, -7.45, -0.45], // South-East pool corner promenade
-  POOL_SOUTH_WEST:   [-12.42, -7.45, -0.41] // South-West pool corner promenade leading to relocated flower pots
+  LEFT_STAIR_BASE:   [-6.75, -5.00, -0.25], // Base of Left Exterior Diagonal Staircase
+  LEFT_STAIR_MID:    [-6.75, -2.70,  1.78], // Mid-slope of Left Exterior Diagonal Staircase
+  LEFT_STAIR_TOP:    [-6.75, -0.35,  3.78], // Top landing of Left Exterior Diagonal Staircase
+  ROOF_ENTRY:        [-5.25,  0.05,  3.78]  // Right-turn (+bx) entry portal onto the 2nd Floor Rooftop
 };
 
 // All autonomous activities for Maître Maher (Note: in Three.js MakeHuman GLB, ry=0 faces South/-by, ry=Math.PI faces North/+by, ry=Math.PI/2 faces East/+bx, ry=-Math.PI/2 faces West/-bx)
@@ -6308,7 +6316,7 @@ const MAHER_ACTIVITIES = {
   SWIM_POOL: {
     id: 'SWIM_POOL',
     zone: 'pool',
-    bx: -10.10, by: -3.40, bz: -1.52, // Submerged to upper stomach (-0.44m water surface - (-1.52m feet) = 1.08m submerged!)
+    bx: -9.20, by: -3.40, bz: -1.52, // Submerged to upper stomach (-0.44m water surface - (-1.52m feet) = 1.08m submerged!)
     ry: 0,
     clip: 'Stand_Idle',
     prop: null,
@@ -6318,14 +6326,14 @@ const MAHER_ACTIVITIES = {
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
-    zone: 'pool_west',
-    bx: -12.37, by: -3.80, bz: -0.41,
-    ry: -Math.PI / 2, // Faces West (-bx) toward the relocated potted plants at bx=-13.15!
+    zone: 'roof',
+    bx: -1.60, by: -3.47, bz: 3.78,
+    ry: 0, // Faces South (-by) toward the relocated potted flowers on the 2nd Floor Rooftop (by = -4.25m)!
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [50, 70], // 5x duration
-    en: 'Watering Potted Flowers along West Poolside',
-    ar: 'يسقي المحابس والنوار بجانب المسبح الغربي'
+    en: 'Watering Potted Flowers on 2nd Floor Rooftop',
+    ar: 'يسقي المحابس والنوار في السطح (الطابق الثاني)'
   },
   COOK_KITCHEN: {
     id: 'COOK_KITCHEN',
@@ -6401,7 +6409,7 @@ const maherNpcState = {
   currentAct: MAHER_ACTIVITIES.GRILL_TERRACE,
   currentZone: 'terrace_right',
   pathQueue: [],
-  swimTargetPos: new THREE.Vector3(-10.10, -1.52, 3.40),
+  swimTargetPos: new THREE.Vector3(-9.20, -1.52, 3.40),
   swimSubTimer: 5.5,
   swimSpeed: 0.74,
   timer: 65.0,
@@ -6416,17 +6424,17 @@ function pickRandomPoolSwimTarget(isWife = false) {
   const swimY = isWife ? -1.46 : -1.52;
   const otherState = isWife ? maherNpcState : wifeNpcState;
   for (let attempt = 0; attempt < 10; attempt++) {
-    const bx = -11.45 + Math.random() * 2.55; // [-11.45 .. -8.90]
-    const by = -6.25 + Math.random() * 6.35;  // [-6.25 .. +0.10]
+    const bx = -9.75 + Math.random() * 1.10; // [-9.75 .. -8.65] inside the 2.0m-wide pool (bx = -10.20 .. -8.20)
+    const by = -6.25 + Math.random() * 6.35; // [-6.25 .. +0.10]
     const wx = bx;
     const wz = -by;
     if (otherState && otherState.root && otherState.currentZone === 'pool') {
       const dOther = Math.hypot(wx - otherState.root.position.x, wz - otherState.root.position.z);
-      if (dOther < 1.15 && attempt < 9) continue;
+      if (dOther < 1.05 && attempt < 9) continue;
     }
     return new THREE.Vector3(wx, swimY, wz);
   }
-  return new THREE.Vector3(isWife ? -10.85 : -9.45, swimY, isWife ? 1.85 : 4.25);
+  return new THREE.Vector3(isWife ? -9.55 : -8.85, swimY, isWife ? 1.85 : 4.25);
 }
 
 // Procedural treading-water / floating arm & hand animation ("menggerakkan tangan seperti berusaha mengambang")
@@ -6565,10 +6573,13 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
       MAHER_WAYPOINTS.LEFT_TERRACE_WEST
     );
     effFrom = 'terrace_left';
-  } else if (effFrom === 'pool_west') {
+  } else if (effFrom === 'roof') {
+    // Point 3: Descending from the 2nd Floor Roof walks down the Left Exterior Diagonal Staircase to the Left Terrace!
     prefixPts.push(
-      MAHER_WAYPOINTS.POOL_SOUTH_WEST,
-      MAHER_WAYPOINTS.POOL_SOUTH_EAST,
+      MAHER_WAYPOINTS.ROOF_ENTRY,
+      MAHER_WAYPOINTS.LEFT_STAIR_TOP,
+      MAHER_WAYPOINTS.LEFT_STAIR_MID,
+      MAHER_WAYPOINTS.LEFT_STAIR_BASE,
       MAHER_WAYPOINTS.LEFT_TERRACE_WEST
     );
     effFrom = 'terrace_left';
@@ -6581,11 +6592,14 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
       MAHER_WAYPOINTS.POOL_STEPS_IN
     );
     effTo = 'terrace_left';
-  } else if (effTo === 'pool_west') {
+  } else if (effTo === 'roof') {
+    // Point 3: Ascending to the 2nd Floor Roof walks up the Left Exterior Diagonal Staircase from the Left Terrace ("jalan lewat tangga ke atas, tidak spawn lagi")!
     suffixPts.push(
       MAHER_WAYPOINTS.LEFT_TERRACE_WEST,
-      MAHER_WAYPOINTS.POOL_SOUTH_EAST,
-      MAHER_WAYPOINTS.POOL_SOUTH_WEST
+      MAHER_WAYPOINTS.LEFT_STAIR_BASE,
+      MAHER_WAYPOINTS.LEFT_STAIR_MID,
+      MAHER_WAYPOINTS.LEFT_STAIR_TOP,
+      MAHER_WAYPOINTS.ROOF_ENTRY
     );
     effTo = 'terrace_left';
   }
@@ -6699,11 +6713,8 @@ const _tmpSmokeWorld = new THREE.Vector3();
 function getZoneFromWorldPos(wx, wy, wz) {
   if (wy > 2.0) return 'roof';
   // Note: wx = bx, wz = -by (so by = -wz)
-  if (wx <= -8.15 && wx >= -12.22 && wz >= -0.95 && wz <= 7.15 && wy < -0.55) {
+  if (wx <= -8.15 && wx >= -10.25 && wz >= -0.95 && wz <= 7.15 && wy < -0.55) {
     return 'pool';
-  }
-  if (wx < -12.15) {
-    return 'pool_west';
   }
   if (wx >= -6.05 && wx <= 6.05 && wz >= -5.05 && wz <= 5.05) {
     if (wx < -1.80 && wz < 1.15) return 'inside_bedroom';
@@ -6893,10 +6904,9 @@ function startMaherActivity(actKey, immediateSpawn = false) {
 
   const dynTarget = getDynamicActivityTarget(act.id);
 
-  // Rule requested by user: "d roof (spawn saja khusus d roof)" -> Whenever moving to or from the 2nd floor roof, spawn directly!
-  // Exception: when leaving the swimming pool (prevZone === 'pool' && !immediateSpawn), ALWAYS climb out onto the poolside walkway first!
-  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn) && !(prevZone === 'pool' && !immediateSpawn);
-  if (isRoofTransition) {
+  // Point 3: Rooftop activities now walk up/down the Left Exterior Diagonal Staircase ("kegiatan NPC d roof kini tidak spawn lagi tapi jalan lewat tangga ke atas")!
+  // Only spawn immediately when immediateSpawn === true (initial startup or explicit teleport).
+  if (immediateSpawn) {
     maherNpcState.pathQueue = [];
     maherNpcState.mode = 'PERFORMING';
     maherNpcState.currentZone = dynTarget.zone;
@@ -6908,7 +6918,7 @@ function startMaherActivity(actKey, immediateSpawn = false) {
     return;
   }
 
-  // Otherwise on the ground floor (including entering/exiting the swimming pool via the stepping-stone walkway!), walk naturally along waypoints:
+  // Otherwise (including ground floor, swimming pool walkway, and Left Staircase to/from the 2nd Floor Roof!), walk naturally along waypoints:
   const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
   maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
   maherNpcState.pathQueue.push(dynTarget.pos.clone());
@@ -6924,10 +6934,7 @@ window.setMaherActivity = function(actKey, immediate = true) {
 };
 
 function pickNextRandomMaherActivity() {
-  // When finishing SWIM_POOL, always transition to a ground-floor activity so he climbs out onto the poolside stepping-stone walkway toward the Left Terrace!
-  const leavingPool = (maherNpcState.currentAct && maherNpcState.currentAct.id === 'SWIM_POOL');
   const keys = Object.keys(MAHER_ACTIVITIES).filter(k => {
-    if (leavingPool && MAHER_ACTIVITIES[k].zone === 'roof') return false;
     return state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof';
   });
   const others = keys.filter(k => k !== maherNpcState.currentAct.id);
@@ -6945,7 +6952,7 @@ const WIFE_ACTIVITIES = {
   WATER_FRONT_OLIVES: {
     id: 'WATER_FRONT_OLIVES',
     zone: 'front_yard',
-    bx: -11.60, by: -14.28, bz: -0.50,
+    bx: -10.00, by: -18.08, bz: -0.50,
     ry: 0,
     clip: 'Water_Plants',
     prop: 'watering_can',
@@ -6956,20 +6963,20 @@ const WIFE_ACTIVITIES = {
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
-    zone: 'pool_west',
-    bx: -12.37, by: -5.20, bz: -0.41,
-    ry: -Math.PI / 2,
+    zone: 'roof',
+    bx: -3.20, by: -3.47, bz: 3.78,
+    ry: 0,
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [16, 23], // 3x faster per pot than Maître Maher's [50, 70]s!
     seqCount: 6,
-    en: 'Watering Flower Pots along West Poolside',
-    ar: 'تسقي محابس النوار بجانب المسبح الغربي بالتساوي'
+    en: 'Watering Flower Pots on 2nd Floor Rooftop',
+    ar: 'تسقي محابس النوار في السطح (الطابق الثاني) بالتساوي'
   },
   SWIM_POOL: {
     id: 'SWIM_POOL',
     zone: 'pool',
-    bx: -10.85, by: -2.20, bz: -1.46, // Submerged to upper stomach (-0.44m water surface - (-1.46m feet) = 1.02m submerged!)
+    bx: -9.55, by: -2.20, bz: -1.46, // Submerged to upper stomach (-0.44m water surface - (-1.46m feet) = 1.02m submerged!)
     ry: 0,
     clip: 'Stand_Idle',
     prop: null,
@@ -7109,7 +7116,7 @@ const wifeNpcState = {
   subIndex: 0,
   subTimer: 16.0,
   pathQueue: [],
-  swimTargetPos: new THREE.Vector3(-10.85, -1.46, 2.20),
+  swimTargetPos: new THREE.Vector3(-9.55, -1.46, 2.20),
   swimSubTimer: 5.2,
   swimSpeed: 0.70,
   timer: 85.0,
@@ -7281,9 +7288,9 @@ function startWifeActivity(actKey, immediateSpawn = false) {
   if (!wifeNpcState.root) return;
 
   const dynTarget = getDynamicActivityTarget(act.id, true);
-  // Exception: when leaving the swimming pool (prevZone === 'pool' && !immediateSpawn), ALWAYS climb out onto the poolside walkway first!
-  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn) && !(prevZone === 'pool' && !immediateSpawn);
-  if (isRoofTransition) {
+  // Point 3: Rooftop activities now walk up/down the Left Exterior Diagonal Staircase ("kegiatan NPC d roof kini tidak spawn lagi tapi jalan lewat tangga ke atas")!
+  // Only spawn immediately when immediateSpawn === true (initial startup or explicit teleport).
+  if (immediateSpawn) {
     wifeNpcState.pathQueue = [];
     wifeNpcState.mode = 'PERFORMING';
     wifeNpcState.currentZone = dynTarget.zone;
@@ -7309,10 +7316,7 @@ window.setWifeActivity = function(actKey, immediate = true) {
 };
 
 function pickNextRandomWifeActivity() {
-  // When finishing SWIM_POOL, always transition to a ground-floor activity so she climbs out onto the poolside stepping-stone walkway toward the Left Terrace!
-  const leavingPool = (wifeNpcState.currentAct && wifeNpcState.currentAct.id === 'SWIM_POOL');
   const keys = Object.keys(WIFE_ACTIVITIES).filter(k => {
-    if (leavingPool && WIFE_ACTIVITIES[k].zone === 'roof') return false;
     return state.roofVisible || WIFE_ACTIVITIES[k].zone !== 'roof';
   });
   const others = keys.filter(k => k !== wifeNpcState.currentAct.id);
@@ -7577,7 +7581,7 @@ function updateMaherNpcAndParticles(dt) {
           r.baseScale = 0.68;
           r.maxOpacity = 0.62;
         } else {
-          const rbx = -11.65 + Math.random() * 2.90;
+          const rbx = -9.85 + Math.random() * 1.30;
           const rby = -6.55 + Math.random() * 6.90;
           r.mesh.position.x = rbx;
           r.mesh.position.z = -rby;
@@ -7595,8 +7599,8 @@ function updateMaherNpcAndParticles(dt) {
 
   // 1. Update Maître Maher NPC state machine & animation mixer
   if (maherNpcState.loaded && maherNpcState.root && maherNpcState.mixer) {
-    // Hide rooftop NPC only when viewing 1st-floor cutaway top view or when roof is hidden
-    if (maherNpcState.currentZone === 'roof' && (viewMode === 'top1' || !state.roofVisible)) {
+    // Hide rooftop NPC only when actually on the 2nd floor (> 2.2m) and viewing 1st-floor cutaway top view or when roof is hidden
+    if (maherNpcState.root.position.y > 2.2 && (viewMode === 'top1' || !state.roofVisible)) {
       maherNpcGroup.visible = false;
     } else {
       maherNpcGroup.visible = true;
@@ -7623,7 +7627,8 @@ function updateMaherNpcAndParticles(dt) {
         } else {
           pos.x += (dx / dist) * step;
           pos.z += (dz / dist) * step;
-          pos.y += (target.y - pos.y) * Math.min(1.0, dt * 8.0);
+          // Linear height interpolation along horizontal step progress so ascending/descending the 18 diagonal steps matches the exact staircase slope!
+          pos.y += (target.y - pos.y) * Math.min(1.0, step / dist);
           // Smoothly rotate character to face walking/swimming direction (+Z is forward in MakeHuman GLB)
           const targetYaw = Math.atan2(dx, dz);
           let diff = targetYaw - maherNpcState.root.rotation.y;
@@ -7676,19 +7681,13 @@ function updateMaherNpcAndParticles(dt) {
       const pos = maherNpcState.root.position;
       const distToTarget = Math.hypot(dynTarget.pos.x - pos.x, dynTarget.pos.z - pos.z);
       if (!isDraggingObject && distToTarget > 0.14) {
-        if (dynTarget.zone === 'roof' || maherNpcState.currentZone === 'roof') {
-          maherNpcState.currentZone = dynTarget.zone;
-          pos.copy(dynTarget.pos);
-          maherNpcState.root.rotation.y = dynTarget.ry;
-        } else {
-          const wps = computeGroundFloorWaypoints(maherNpcState.currentZone, dynTarget.zone);
-          maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
-          maherNpcState.pathQueue.push(dynTarget.pos.clone());
-          maherNpcState.currentZone = dynTarget.zone;
-          maherNpcState.mode = 'WALKING';
-          setMaherProp(null);
-          playMaherClip('Walk_Cycle', 0.20);
-        }
+        const wps = computeGroundFloorWaypoints(maherNpcState.currentZone, dynTarget.zone);
+        maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+        maherNpcState.pathQueue.push(dynTarget.pos.clone());
+        maherNpcState.currentZone = dynTarget.zone;
+        maherNpcState.mode = 'WALKING';
+        setMaherProp(null);
+        playMaherClip('Walk_Cycle', 0.20);
       } else if (!isDraggingObject) {
         pos.lerp(dynTarget.pos, Math.min(1.0, dt * 12.0));
         let diff = dynTarget.ry - maherNpcState.root.rotation.y;
@@ -7769,7 +7768,7 @@ function updateMaherNpcAndParticles(dt) {
 
   // 3B. Update Mme Maher (Wife) NPC state machine, sequential plant/olive watering, 4-zone sweeping, bed making, co-seating & swimming!
   if (wifeNpcState.loaded && wifeNpcState.root && wifeNpcState.mixer) {
-    if (wifeNpcState.currentZone === 'roof' && (viewMode === 'top1' || !state.roofVisible)) {
+    if (wifeNpcState.root.position.y > 2.2 && (viewMode === 'top1' || !state.roofVisible)) {
       wifeNpcGroup.visible = false;
     } else {
       wifeNpcGroup.visible = true;
@@ -7795,7 +7794,7 @@ function updateMaherNpcAndParticles(dt) {
         } else {
           pos.x += (dx / dist) * step;
           pos.z += (dz / dist) * step;
-          pos.y += (target.y - pos.y) * Math.min(1.0, dt * 8.0);
+          pos.y += (target.y - pos.y) * Math.min(1.0, step / dist);
           const targetYaw = Math.atan2(dx, dz);
           let diff = targetYaw - wifeNpcState.root.rotation.y;
           while (diff > Math.PI) diff -= Math.PI * 2;
@@ -7843,19 +7842,13 @@ function updateMaherNpcAndParticles(dt) {
       const pos = wifeNpcState.root.position;
       const distToTarget = Math.hypot(wDynTarget.pos.x - pos.x, wDynTarget.pos.z - pos.z);
       if (!isDraggingObject && distToTarget > 0.14) {
-        if (wDynTarget.zone === 'roof' || wifeNpcState.currentZone === 'roof') {
-          wifeNpcState.currentZone = wDynTarget.zone;
-          pos.copy(wDynTarget.pos);
-          wifeNpcState.root.rotation.y = wDynTarget.ry;
-        } else {
-          const wps = computeGroundFloorWaypoints(wifeNpcState.currentZone, wDynTarget.zone);
-          wifeNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
-          wifeNpcState.pathQueue.push(wDynTarget.pos.clone());
-          wifeNpcState.currentZone = wDynTarget.zone;
-          wifeNpcState.mode = 'WALKING';
-          setWifeProp(null);
-          playWifeClip('Walk_Cycle', 0.20);
-        }
+        const wps = computeGroundFloorWaypoints(wifeNpcState.currentZone, wDynTarget.zone);
+        wifeNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+        wifeNpcState.pathQueue.push(wDynTarget.pos.clone());
+        wifeNpcState.currentZone = wDynTarget.zone;
+        wifeNpcState.mode = 'WALKING';
+        setWifeProp(null);
+        playWifeClip('Walk_Cycle', 0.20);
       } else if (!isDraggingObject) {
         pos.lerp(wDynTarget.pos, Math.min(1.0, dt * 12.0));
         let diff = wDynTarget.ry - wifeNpcState.root.rotation.y;
