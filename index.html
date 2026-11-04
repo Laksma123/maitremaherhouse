@@ -196,6 +196,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="./maitre_maher_npc_data.js"></script>
+<script src="./maher_wife_npc_data.js"></script>
 </head>
 <body>
 
@@ -1706,12 +1707,24 @@ function buildStaticArchitecture() {
     metalness: 0.04,
     envMapIntensity: 0.95
   });
-  const extGroundGeo = new THREE.BoxGeometry(64.0, 0.24, 64.0);
-  const extGround = new THREE.Mesh(extGroundGeo, extSoilMat);
-  // Top face sits at exact bz = -0.50m (-0.62 + 0.12 = -0.50)
-  extGround.position.copy(bPos(0.0, -4.5, -0.62));
-  extGround.receiveShadow = true;
-  archRoot.add(extGround);
+  const addSoilGroundSlab = (w, d, bx, by) => {
+    const geo = new THREE.BoxGeometry(w, 0.24, d);
+    // Use 1/64 world UV scale because soilDiffTex already has repeat(14, 14) over 64m!
+    applyWorldBoxUVs(geo, 1.0 / 64.0);
+    const m = new THREE.Mesh(geo, extSoilMat);
+    m.position.copy(bPos(bx, by, -0.62));
+    m.receiveShadow = true;
+    archRoot.add(m);
+  };
+  // Split Exterior Ground (top at bz = -0.50m) into 4 seamless slabs around the Recessed Family Swimming Pool (bx = -12.20..-8.20, by = -7.10..+0.90)
+  // 1) East Main Ground Slab (bx = -8.20 .. +32.0, width 40.20m, center bx = 11.90, by = -36.5 .. +27.5, center by = -4.5)
+  addSoilGroundSlab(40.20, 64.0, 11.90, -4.50);
+  // 2) West Ground Slab (bx = -32.0 .. -12.20, width 19.80m, center bx = -22.10, by = -36.5 .. +27.5, center by = -4.5)
+  addSoilGroundSlab(19.80, 64.0, -22.10, -4.50);
+  // 3) South Pool-Strip Ground Slab (bx = -12.20 .. -8.20, width 4.00m, by = -36.5 .. -7.10, depth 29.40m, center by = -21.80)
+  addSoilGroundSlab(4.00, 29.40, -10.20, -21.80);
+  // 4) North Pool-Strip Ground Slab (bx = -12.20 .. -8.20, width 4.00m, by = +0.90 .. +27.5, depth 26.60m, center by = +14.20)
+  addSoilGroundSlab(4.00, 26.60, -10.20, 14.20);
 
   // Ray-Traced Style Specular Rainwater Puddles on Exterior Soil (bz = -0.496m)
   const wetRingMat = new THREE.MeshStandardMaterial({
@@ -1742,9 +1755,9 @@ function buildStaticArchitecture() {
   });
   window.matRainPuddle = puddleWaterMat;
   const puddleSpecs = [
-    [-4.35, -9.20, 3.10, 2.15, 0.25],
-    [-2.10, -11.45, 3.40, 2.25, -0.40],
-    [4.85, -11.45, 3.30, 2.20, 0.38],
+    [-4.35, -8.75, 2.80, 1.85, 0.25],
+    [-2.10, -13.85, 3.10, 1.85, -0.32],
+    [5.15, -11.45, 2.80, 1.95, 0.38],
     [-2.65, -17.40, 3.60, 2.30, 0.12],
     [3.10, -17.60, 3.30, 2.15, -0.35]
   ];
@@ -1778,7 +1791,7 @@ function buildStaticArchitecture() {
   addBoxMesh(4.60, 0.24, 4.40, 3.70, -7.10, -0.37, matCourtyardFloor, archRoot, true);
   addBoxMesh(4.70, 0.04, 4.48, 3.70, -7.10, -0.295, matArchTrim, archRoot, true);
 
-  // New Left Concrete Terrace (along left of house to modified left wall: bx = -6.00..+1.40, depth = half left wall: by = -5.00..-7.10, top at bz = -0.25m)
+  // Left Concrete Terrace (bx = -6.00..+1.40, by = -5.00..-7.10, top at bz = -0.25m; leaves bx = -6.00..-7.79 open for the Pool Stepping-Stone Walkway!)
   const matConcreteTerrace = new THREE.MeshStandardMaterial({
     color: 0xd8d3c8,
     map: concreteDiffTex || courtyardDiffTex,
@@ -1791,10 +1804,117 @@ function buildStaticArchitecture() {
   });
   addBoxMesh(7.40, 0.24, 2.10, -2.30, -6.05, -0.37, matConcreteTerrace, archRoot, true);
   addBoxMesh(7.48, 0.04, 2.18, -2.30, -6.05, -0.295, matArchTrim, archRoot, true);
-  // Subtle step from Left Concrete Terrace (-0.25m) down to Exterior Soil (-0.50m)
+  // Dedicated Staircase Bottom Landing Pad (bx = -7.45..-6.00, by = -4.67..-5.03, top at bz = -0.25m)
+  addBoxMesh(1.45, 0.24, 0.36, -6.725, -4.85, -0.37, matConcreteTerrace, archRoot, true);
+  addBoxMesh(1.51, 0.04, 0.42, -6.725, -4.85, -0.295, matArchTrim, archRoot, true);
+  // Subtle steps from Left Concrete Terrace (-0.25m) down to Exterior Soil (-0.50m) at South & West (into the Pool Stepping-Stone Walkway!)
   addBoxMesh(2.20, 0.125, 0.36, -2.30, -7.26, -0.4375, matConcreteTerrace, archRoot, true);
+  addBoxMesh(0.26, 0.125, 1.02, -6.12, -6.05, -0.4375, matMainFloor, archRoot, true);
 
-  // Manicured Lawn Beds & Stepping Stone Avenue at Arched Terrace Entrance + Around 5 Front Olive Trees
+  // ==========================================================================
+  // POINT 1: LEFT EXTERIOR DIAGONAL STAIRCASE TO ROOFTOP (TANGGA NAIK KE ROOF DI SAMPING KIRI RUMAH)
+  //   - Ascends diagonally along the West exterior wall (bx = -6.12 .. -7.42m)
+  //   - Starts at the front of the house (by = -4.95m, bz = -0.25m) and reaches halfway along the left wall (by = -0.45m, bz = 3.78m)
+  //   - Continuous diagonal sloped outer safety wall/balustrade along the staircase + top landing return wall so nobody falls
+  //   - Turns right (+bx, East) from the top landing (by = -0.45 .. +0.65m) onto the 2nd floor rooftop!
+  // ==========================================================================
+  const leftRoofStairGroup = new THREE.Group();
+  const numRoofSteps = 18;
+  const stairStartBy = -4.95;
+  const stairEndBy = -0.45;
+  const stairStartBz = -0.25;
+  const stairEndBz = 3.78;
+  const stepRun = (stairEndBy - stairStartBy) / numRoofSteps; // 0.25m per step
+  const stepRise = (stairEndBz - stairStartBz) / numRoofSteps; // 0.2239m per step
+
+  for (let i = 0; i < numRoofSteps; i++) {
+    const sBy = stairStartBy + (i + 0.5) * stepRun;
+    const stepTopBz = stairStartBz + (i + 1) * stepRise;
+    const stepBaseBz = -0.50;
+    const pillarH = stepTopBz - stepBaseBz;
+    // Solid plastered masonry support beneath each step (bx = -6.70, width = 1.22m)
+    addBoxMesh(1.22, pillarH, stepRun + 0.03, -6.70, sBy, stepBaseBz + pillarH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+    // Crisp Carthage marble / travertine stair tread nosing
+    addBoxMesh(1.26, 0.048, stepRun + 0.06, -6.70, sBy, stepTopBz - 0.024, matMainFloor, leftRoofStairGroup, true);
+    if (i % 3 === 0) {
+      addBoxMesh(1.14, 0.016, 0.02, -6.70, sBy - stepRun * 0.48, stepTopBz - 0.048, matLedBorderOpening, leftRoofStairGroup, false);
+    }
+  }
+
+  // Smooth Diagonal Sloped Outer Safety Wall ("dinding di sepanjang tangga agar tidak jatuh") along bx = -7.40m
+  // Built as a clean polygon profile in (wz, wy) space and extruded 0.18m along X so its top edge is a sleek diagonal ramp (zero stair-tooth artifacts!)
+  const stairParapetShape = new THREE.Shape();
+  // Note: wz = -by, so stairStartBy = -4.95 -> wz = +4.95; stairEndBy = -0.45 -> wz = +0.45; landing North = +0.68 -> wz = -0.68
+  stairParapetShape.moveTo(5.05, -0.50);
+  stairParapetShape.lineTo(5.05, 0.72);
+  stairParapetShape.lineTo(0.45, 4.74);
+  stairParapetShape.lineTo(-0.68, 4.74);
+  stairParapetShape.lineTo(-0.68, -0.50);
+  stairParapetShape.closePath();
+  const stairParapetGeo = new THREE.ExtrudeGeometry(stairParapetShape, { depth: 0.18, bevelEnabled: false });
+  stairParapetGeo.rotateY(Math.PI / 2); // local X becomes Z (-wz?! Wait: rotateY(-Math.PI/2): local X -> +Z, local Y -> +Y, depth Z -> -X!)
+  // Let's use explicit vertex transform so X is [-7.49 .. -7.31], Y is wy, Z is wz!
+  const spPos = stairParapetGeo.attributes.position;
+  // Reset and build directly with exact world coordinates:
+  const stairWallShape = new THREE.Shape();
+  stairWallShape.moveTo(-5.05, -0.50); // x = by, y = bz
+  stairWallShape.lineTo(-5.05, 0.72);
+  stairWallShape.lineTo(-0.45, 4.74);
+  stairWallShape.lineTo(0.68, 4.74);
+  stairWallShape.lineTo(0.68, -0.50);
+  stairWallShape.closePath();
+  const stairWallGeo = new THREE.ExtrudeGeometry(stairWallShape, { depth: 0.18, bevelEnabled: false });
+  // Map shape (by, bz, depth) -> Three.js world (-7.49 + depth, bz, -by)
+  const swAttr = stairWallGeo.attributes.position;
+  for (let vi = 0; vi < swAttr.count; vi++) {
+    const byVal = swAttr.getX(vi);
+    const bzVal = swAttr.getY(vi);
+    const dVal = swAttr.getZ(vi);
+    swAttr.setXYZ(vi, -7.49 + dVal, bzVal, -byVal);
+  }
+  stairWallGeo.computeVertexNormals();
+  applyWorldBoxUVs(stairWallGeo, 0.35);
+  const stairSafetyWallMesh = new THREE.Mesh(stairWallGeo, wallMaterials.south_ext);
+  stairSafetyWallMesh.castShadow = true;
+  stairSafetyWallMesh.receiveShadow = true;
+  leftRoofStairGroup.add(stairSafetyWallMesh);
+
+  // Diagonal Golden Stone Coping Trim & Inner Walnut Handrail along the sloped safety wall
+  const railLen = Math.hypot(stairEndBy - (-5.05), 4.74 - 0.72);
+  const railPitch = Math.atan2(4.74 - 0.72, stairEndBy - (-5.05));
+  const stairDiagonalCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.065, railLen + 0.08), matArchTrim);
+  stairDiagonalCoping.position.copy(bPos(-7.40, (-5.05 + stairEndBy) * 0.5, (0.72 + 4.74) * 0.5 + 0.02));
+  stairDiagonalCoping.rotation.x = railPitch;
+  stairDiagonalCoping.castShadow = true;
+  leftRoofStairGroup.add(stairDiagonalCoping);
+
+  const stairHandrail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.065, railLen), matWalnut);
+  stairHandrail.position.copy(bPos(-7.26, (-5.05 + stairEndBy) * 0.5, (0.72 + 4.74) * 0.5 - 0.08));
+  stairHandrail.rotation.x = railPitch;
+  stairHandrail.castShadow = true;
+  leftRoofStairGroup.add(stairHandrail);
+
+  // Top Stair Landing at the middle of the Left Wall (by = -0.45 .. +0.65m, bz = 3.78m) turning RIGHT (+bx) into the Rooftop!
+  const landingBaseBz = -0.50;
+  const landingH = stairEndBz - landingBaseBz;
+  // Supporting masonry pier under the top landing
+  addBoxMesh(1.38, landingH, 1.12, -6.78, 0.10, landingBaseBz + landingH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+  // Top landing floor slab extending East (-5.88) to meet the rooftop floor seamlessly when turning right
+  addBoxMesh(1.62, 0.06, 1.14, -6.70, 0.10, 3.75, matCourtyardFloor, leftRoofStairGroup, true);
+  addBoxMesh(1.68, 0.05, 1.20, -6.70, 0.10, 3.68, matArchTrim, leftRoofStairGroup, true);
+  // Horizontal coping on top of the West landing safety wall (bx = -7.40m, by = -0.45 .. +0.68m)
+  addBoxMesh(0.24, 0.065, 1.18, -7.40, 0.11, 4.76, matArchTrim, leftRoofStairGroup, true);
+  // North return safety wall at the back of the top landing (by = +0.65m, bx = -7.42 .. -6.02m) guiding user to turn right onto the roof!
+  addBoxMesh(1.44, 0.96, 0.18, -6.72, 0.65, 3.78 + 0.48, wallMaterials.south_ext, leftRoofStairGroup, true);
+  addBoxMesh(1.50, 0.065, 0.24, -6.72, 0.65, 4.76, matArchTrim, leftRoofStairGroup, true);
+  archRoot.add(leftRoofStairGroup);
+
+  // ==========================================================================
+  // POINT 2: LETTER-L ENTRANCE WALKWAY WITH MANICURED GRASS (JALAN SETAPAK LETTER L)
+  //   - Starts from the left side of the house along the Left Terrace (bx = -6.35 .. +2.38 at by = -11.45m)
+  //   - Turns 90° North at bx = 2.38m (by = -11.45 .. -9.92m) into the Arched Terrace Entrance (Welcome Arch)
+  //   - Complete with manicured grass strips (matLawnBed) & border trims (matArchTrim) flanking the entire L!
+  // ==========================================================================
   const matLawnBed = new THREE.MeshStandardMaterial({
     color: 0x5c8543,
     map: texManicuredLawn,
@@ -1807,20 +1927,330 @@ function buildStaticArchitecture() {
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -1
   });
-  // Left & Right manicured grass strips flanking the entrance walkway (by = -9.85 .. -14.35)
-  addBoxMesh(0.95, 0.054, 4.50, 1.12, -12.10, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(1.03, 0.038, 4.58, 1.12, -12.10, -0.481, matArchTrim, archRoot, false);
-  addBoxMesh(0.95, 0.054, 4.50, 3.64, -12.10, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(1.03, 0.038, 4.58, 3.64, -12.10, -0.481, matArchTrim, archRoot, false);
 
-  // Travertine stepping pavers along entrance walkway from 5 olive trees up to welcome arch
-  [-10.25, -11.15, -12.05, -12.95, -13.85].forEach(py => {
-    addBoxMesh(1.38, 0.048, 0.62, 2.38, py, -0.474, matMainFloor, archRoot, true);
+  // 1) Horizontal West-to-East Leg of Letter-L Walkway (bx = -6.35 .. +2.38, centered at by = -11.45m)
+  // North inner grass strip along horizontal leg (bx = -6.35 .. +0.65, center bx = -2.85, by = -10.26)
+  addBoxMesh(7.00, 0.054, 0.92, -2.85, -10.26, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(7.08, 0.038, 1.00, -2.85, -10.26, -0.481, matArchTrim, archRoot, false);
+  // South outer grass strip along horizontal leg + corner (bx = -6.35 .. +4.10, center bx = -1.125, by = -12.64)
+  addBoxMesh(10.45, 0.054, 0.92, -1.125, -12.64, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(10.53, 0.038, 1.00, -1.125, -12.64, -0.481, matArchTrim, archRoot, false);
+
+  // 2) Vertical South-to-North Turn of Letter-L into the Welcome Arch (bx = 2.38, by = -11.45 .. -9.85)
+  // West inner corner grass strip flanking the turn (bx = 1.12, by = -9.85 .. -10.72, center by = -10.285)
+  addBoxMesh(0.95, 0.054, 0.88, 1.12, -10.285, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.03, 0.038, 0.96, 1.12, -10.285, -0.481, matArchTrim, archRoot, false);
+  // East outer grass strip flanking the turn (bx = 3.64, by = -9.85 .. -12.18, center by = -11.015)
+  addBoxMesh(0.95, 0.054, 2.34, 3.64, -11.015, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.03, 0.038, 2.42, 3.64, -11.015, -0.481, matArchTrim, archRoot, false);
+
+  // Travertine stepping pavers along the Horizontal Leg of the Letter-L (bx = -5.90 .. +1.50 at by = -11.45)
+  [-5.90, -4.98, -4.06, -3.14, -2.22, -1.30, -0.38, 0.54, 1.46].forEach(px => {
+    addBoxMesh(0.64, 0.048, 1.38, px, -11.45, -0.474, matMainFloor, archRoot, true);
   });
+  // Corner & North-turn stepping pavers leading straight into the Welcome Arch steps at bx = 2.38
+  addBoxMesh(1.38, 0.048, 1.38, 2.38, -11.45, -0.474, matMainFloor, archRoot, true);
+  addBoxMesh(1.38, 0.048, 0.64, 2.38, -10.35, -0.474, matMainFloor, archRoot, true);
 
   // Continuous manicured grass border bed around the 5 front potted olive trees (by = -15.20, bx = -5.45..+5.45)
   addBoxMesh(11.20, 0.054, 1.55, 0.0, -15.20, -0.468, matLawnBed, archRoot, false);
   addBoxMesh(11.32, 0.038, 1.65, 0.0, -15.20, -0.481, matArchTrim, archRoot, false);
+
+  // ==========================================================================
+  // POINT 3: FAMILY SWIMMING POOL (3–5 PEOPLE) LEFT OF STAIRCASE + DEEP REFLECTIVE WATER + RIPPLES + WALKWAY
+  //   - Positioned to the left (West) of the staircase: bx = -12.20m .. -8.20m (width = 4.00m)
+  //   - Stretches from left of Left Terrace (by = -7.10m) to middle-back of house (by = +0.90m, length = 8.00m)
+  //   - True 3D recessed deep basin (floor at bz = -1.85m, water surface at bz = -0.44m)
+  //   - Stepping-stone walkway with manicured grass from Left Terrace straight to the pool (by = -6.05m)
+  // ==========================================================================
+  const familyPoolGroup = new THREE.Group();
+  const poolTileDiff = zelligeDiffTex;
+  const poolTileNor = zelligeNorTex;
+  const matPoolZellige = new THREE.MeshStandardMaterial({
+    color: 0x1c7ea6,
+    map: poolTileDiff,
+    normalMap: poolTileNor,
+    normalScale: new THREE.Vector2(0.95, 0.95),
+    roughness: 0.18,
+    metalness: 0.06,
+    envMapIntensity: 1.15
+  });
+
+  // Recessed Pool Floor (bz = -1.85m) & 4 Inner Zellige Pool Walls (bz = -1.85m .. -0.40m)
+  addBoxMesh(4.16, 0.16, 8.16, -10.20, -3.10, -1.93, matPoolZellige, familyPoolGroup, true);
+  // East & West inner pool walls
+  addBoxMesh(0.18, 1.48, 8.16, -8.19, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(0.18, 1.48, 8.16, -12.21, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
+  // South & North inner pool walls
+  addBoxMesh(4.16, 1.48, 0.18, -10.20, -7.11, -1.14, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(4.16, 1.48, 0.18, -10.20, 0.91, -1.14, matPoolZellige, familyPoolGroup, true);
+
+  // Underwater Pool Steps at South-East Entry Corner (bx = -8.28 .. -9.18, by = -6.55 .. -5.55) aligned with Left Terrace Walkway!
+  [0, 1, 2, 3].forEach((si) => {
+    const stepW = 0.24 * (si + 1);
+    const stepTop = -0.62 - si * 0.28;
+    const stepH = stepTop - (-1.85);
+    addBoxMesh(stepW, stepH, 1.12, -8.28 - stepW * 0.5, -6.05, -1.85 + stepH * 0.5, matPoolZellige, familyPoolGroup, true);
+    addBoxMesh(stepW + 0.02, 0.03, 1.14, -8.28 - stepW * 0.5, -6.05, stepTop - 0.015, matMainFloor, familyPoolGroup, true);
+  });
+
+  // Wide Travertine & Carthage Marble Pool Coping Rim framing all 4 sides of the pool (top at bz = -0.41m)
+  addBoxMesh(0.46, 0.14, 8.84, -8.02, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(0.46, 0.14, 8.84, -12.38, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(4.82, 0.14, 0.46, -10.20, -7.29, -0.48, matMainFloor, familyPoolGroup, true);
+  addBoxMesh(4.82, 0.14, 0.46, -10.20, 1.09, -0.48, matMainFloor, familyPoolGroup, true);
+  // Subtle outer coping trim
+  addBoxMesh(0.52, 0.06, 8.92, -8.02, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(0.52, 0.06, 8.92, -12.38, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(4.90, 0.06, 0.52, -10.20, -7.29, -0.49, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(4.90, 0.06, 0.52, -10.20, 1.09, -0.49, matArchTrim, familyPoolGroup, true);
+
+  // West Poolside Stone Promenade Slab (bx = -13.65 .. -12.60, by = -7.30 .. +1.10) where the 6 Mediterranean flower pots sit!
+  addBoxMesh(1.05, 0.04, 8.40, -13.12, -3.10, -0.485, matConcreteTerrace, familyPoolGroup, true);
+
+  // Underwater Warm LED Pool Lights along East & West inner walls
+  [-5.60, -3.10, -0.60].forEach((ly) => {
+    addBoxMesh(0.03, 0.08, 0.36, -8.29, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
+    addBoxMesh(0.03, 0.08, 0.36, -12.11, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
+  });
+
+  // Procedural Animated Wave Normal Map for Deep Pool Water Reflection
+  const poolWaveCanvas = document.createElement('canvas');
+  poolWaveCanvas.width = 256; poolWaveCanvas.height = 256;
+  const pwCtx = poolWaveCanvas.getContext('2d');
+  const pwImg = pwCtx.createImageData(256, 256);
+  for (let y = 0; y < 256; y++) {
+    for (let x = 0; x < 256; x++) {
+      const u = (x / 256) * Math.PI * 2;
+      const v = (y / 256) * Math.PI * 2;
+      const nx = Math.cos(u * 3 + Math.sin(v * 2)) * 0.35 + Math.sin(u * 5 - v * 4) * 0.25;
+      const ny = Math.sin(v * 3 + Math.cos(u * 2)) * 0.35 + Math.cos(v * 5 + u * 3) * 0.25;
+      const idx = (y * 256 + x) * 4;
+      pwImg.data[idx] = Math.floor((nx * 0.5 + 0.5) * 255);
+      pwImg.data[idx + 1] = Math.floor((ny * 0.5 + 0.5) * 255);
+      pwImg.data[idx + 2] = 245;
+      pwImg.data[idx + 3] = 255;
+    }
+  }
+  pwCtx.putImageData(pwImg, 0, 0);
+  const poolWaveNorTex = new THREE.CanvasTexture(poolWaveCanvas);
+  poolWaveNorTex.wrapS = poolWaveNorTex.wrapT = THREE.RepeatWrapping;
+  poolWaveNorTex.repeat.set(4, 8);
+  window.poolWaveNorTex = poolWaveNorTex;
+
+  // Layer 1: Deep Optical Absorption Water Volume (bz = -0.98m) giving true deep-water optical richness ("airnya dalam")
+  const matPoolDeepAbsorption = new THREE.MeshStandardMaterial({
+    color: 0x073b54,
+    roughness: 0.14,
+    metalness: 0.12,
+    envMapIntensity: 0.95,
+    transparent: true,
+    opacity: 0.56,
+    depthWrite: false
+  });
+  const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(3.96, 7.96), matPoolDeepAbsorption);
+  poolDeepLayer.rotation.x = -Math.PI / 2;
+  poolDeepLayer.position.copy(bPos(-10.20, -3.10, -0.98));
+  poolDeepLayer.raycast = () => {};
+  familyPoolGroup.add(poolDeepLayer);
+
+  // Layer 2: Specular Reflective Top Water Surface (bz = -0.44m) using the same HDRI mirror reflection technique as puddleWaterMat!
+  const matPoolSurfaceReflect = new THREE.MeshStandardMaterial({
+    color: 0x126482,
+    normalMap: poolWaveNorTex,
+    normalScale: new THREE.Vector2(0.24, 0.24),
+    roughness: 0.045,
+    metalness: 0.24,
+    envMapIntensity: 1.65,
+    transparent: true,
+    opacity: 0.74,
+    depthWrite: false
+  });
+  window.matPoolWater = matPoolSurfaceReflect;
+  const poolSurfGeo = new THREE.PlaneGeometry(3.96, 7.96, 24, 48);
+  const poolWaterMesh = new THREE.Mesh(poolSurfGeo, matPoolSurfaceReflect);
+  poolWaterMesh.rotation.x = -Math.PI / 2;
+  poolWaterMesh.position.copy(bPos(-10.20, -3.10, -0.44));
+  poolWaterMesh.receiveShadow = true;
+  poolWaterMesh.userData.npcActivityId = 'SWIM_POOL';
+  window.poolWaterMesh = poolWaterMesh;
+  familyPoolGroup.add(poolWaterMesh);
+
+  // Random Animated Water Ripples ("riak-riak air random") on the pool surface (bz = -0.434m)
+  const texRippleRing = (function() {
+    const c = document.createElement('canvas');
+    c.width = 128; c.height = 128;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(64, 64, 8, 64, 64, 60);
+    g.addColorStop(0.0, 'rgba(255,255,255,0.0)');
+    g.addColorStop(0.32, 'rgba(210,248,255,0.55)');
+    g.addColorStop(0.48, 'rgba(255,255,255,0.08)');
+    g.addColorStop(0.68, 'rgba(220,250,255,0.85)');
+    g.addColorStop(0.86, 'rgba(180,240,255,0.35)');
+    g.addColorStop(1.0, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(c);
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  })();
+  window.poolRippleRings = [];
+  const rippleGeo = new THREE.PlaneGeometry(0.55, 0.55);
+  for (let ri = 0; ri < 18; ri++) {
+    const rMat = new THREE.MeshBasicMaterial({
+      map: texRippleRing,
+      color: 0xd8f6ff,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -2,
+      polygonOffsetUnits: -2
+    });
+    const rMesh = new THREE.Mesh(rippleGeo, rMat);
+    rMesh.rotation.x = -Math.PI / 2;
+    const initBx = -11.75 + Math.random() * 3.10;
+    const initBy = -6.60 + Math.random() * 7.00;
+    rMesh.position.copy(bPos(initBx, initBy, -0.434));
+    rMesh.raycast = () => {};
+    familyPoolGroup.add(rMesh);
+    window.poolRippleRings.push({
+      mesh: rMesh,
+      age: Math.random() * 2.4,
+      maxAge: 1.8 + Math.random() * 1.4,
+      baseScale: 0.45 + Math.random() * 0.55,
+      maxOpacity: 0.42 + Math.random() * 0.25
+    });
+  }
+  archRoot.add(familyPoolGroup);
+
+  // Stepping-Stone Walkway with Manicured Grass from Left Terrace straight to the Pool (by = -6.05m, bx = -6.00 .. -7.79m)
+  // Matches the signature Mediterranean stepping-stone + flanked grass strip + wood-trim border design!
+  addBoxMesh(1.74, 0.056, 0.36, -6.90, -5.32, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.78, 0.038, 0.42, -6.90, -5.32, -0.474, matArchTrim, archRoot, false);
+  addBoxMesh(1.74, 0.056, 0.36, -6.90, -6.78, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.78, 0.038, 0.42, -6.90, -6.78, -0.474, matArchTrim, archRoot, false);
+  [-6.54, -7.02, -7.50].forEach(px => {
+    addBoxMesh(0.36, 0.038, 0.96, px, -6.05, -0.468, matMainFloor, archRoot, true);
+  });
+
+  // ==========================================================================
+  // POINT 4 (PART B): TUNISIAN POST-SWIM FLOOR LOUNGE ON LEFT TERRACE (LESEHAN TUNISIA UNTUK BERSANTAI SELEPAS BERENANG)
+  //   - Replaces the old row of flower pots on the Left Concrete Terrace (bx = -2.45, by = -5.85, bz = -0.25)
+  // ==========================================================================
+  const leftTerraceLesehanGroup = new THREE.Group();
+  const matLesehanAzure = new THREE.MeshStandardMaterial({
+    color: 0x1b5e7a,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.80, 0.80),
+    roughness: 0.76,
+    metalness: 0.03,
+    envMapIntensity: 0.48,
+    userData: { customEnvIntensity: 0.48 }
+  });
+  const matLesehanCoral = new THREE.MeshStandardMaterial({
+    color: 0xa8382b,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.80, 0.80),
+    roughness: 0.76,
+    metalness: 0.03,
+    envMapIntensity: 0.48,
+    userData: { customEnvIntensity: 0.48 }
+  });
+  const matLesehanCream = new THREE.MeshStandardMaterial({
+    color: 0xf0e6d2,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.70, 0.70),
+    roughness: 0.80,
+    metalness: 0.02,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matLesehanGold = new THREE.MeshStandardMaterial({
+    color: 0xd8a144,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.75, 0.75),
+    roughness: 0.70,
+    metalness: 0.08,
+    envMapIntensity: 0.52,
+    userData: { customEnvIntensity: 0.52 }
+  });
+
+  const lxCenter = -2.45, lyCenter = -5.92;
+  // Large Woven Tunisian Mergoum / Kilim Carpet on Left Terrace (bz = -0.242m)
+  addBoxMesh(3.75, 0.012, 1.68, lxCenter, lyCenter, -0.244, matLesehanGold, leftTerraceLesehanGroup);
+  addBoxMesh(3.58, 0.015, 1.54, lxCenter, lyCenter, -0.240, matLesehanAzure, leftTerraceLesehanGroup);
+  addBoxMesh(3.10, 0.017, 1.18, lxCenter, lyCenter, -0.237, matLesehanCream, leftTerraceLesehanGroup);
+
+  // Low Tunisian Lesehan Floor Mattresses (Mtarba) along the North side (by = -5.45) + Left/Right wings (U-shaped lesehan!)
+  addBoxMesh(3.08, 0.08, 0.68, lxCenter, -5.46, -0.20, matWalnut, leftTerraceLesehanGroup);
+  [-1.12, -0.37, 0.37, 1.12].forEach((dx, idx) => {
+    const cx = lxCenter + dx;
+    addBoxMesh(0.72, 0.14, 0.66, cx, -5.46, -0.09, idx % 2 === 0 ? matLesehanAzure : matLesehanCoral, leftTerraceLesehanGroup);
+    addBoxMesh(0.64, 0.02, 0.58, cx, -5.46, -0.015, matLesehanCream, leftTerraceLesehanGroup);
+    // Plush angled backrest pillows against the South house wall
+    const bPil = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.36, 0.16), idx % 2 === 0 ? matLesehanCoral : matLesehanGold);
+    bPil.position.copy(bPos(cx, -5.20, 0.14));
+    bPil.rotation.x = 0.16;
+    bPil.castShadow = true;
+    bPil.receiveShadow = true;
+    leftTerraceLesehanGroup.add(bPil);
+  });
+
+  // Left & Right Cylindrical Takaya Bolsters on the Lesehan
+  [-1.40, 1.40].forEach((dx) => {
+    const bol = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.62, 18), matLesehanGold);
+    bol.rotation.x = Math.PI / 2;
+    bol.position.copy(bPos(lxCenter + dx, -5.46, 0.07));
+    bol.castShadow = true;
+    leftTerraceLesehanGroup.add(bol);
+  });
+
+  // Two Round Tunisian Floor Poufs on the West & East sides of the Lesehan carpet
+  [-1.35, 1.35].forEach((dx, idx) => {
+    const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.32, 0.22, 24), idx === 0 ? matLesehanCoral : matLesehanAzure);
+    pouf.position.copy(bPos(lxCenter + dx, -6.28, -0.13));
+    pouf.castShadow = true;
+    pouf.receiveShadow = true;
+    leftTerraceLesehanGroup.add(pouf);
+    const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.03, 20), matLesehanGold);
+    poufTop.position.copy(bPos(lxCenter + dx, -6.28, -0.01));
+    leftTerraceLesehanGroup.add(poufTop);
+  });
+
+  // Low Carved Walnut & Hammered Brass Lesehan Table (Midat) + Mint Tea Service + Folded Tunisian Fouta Pool Towels
+  addBoxMesh(0.96, 0.18, 0.54, lxCenter, -6.22, -0.15, matWalnut, leftTerraceLesehanGroup);
+  const lesehanTray = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.26, 0.03, 24), matBrass);
+  lesehanTray.position.copy(bPos(lxCenter - 0.16, -6.22, -0.045));
+  lesehanTray.castShadow = true;
+  leftTerraceLesehanGroup.add(lesehanTray);
+  // Traditional Brass Berrad Teapot & 3 Mint Tea Glasses
+  const teapot = new THREE.Mesh(new THREE.SphereGeometry(0.065, 14, 14), matBrass);
+  teapot.scale.set(1.0, 1.25, 1.0);
+  teapot.position.copy(bPos(lxCenter - 0.16, -6.22, 0.03));
+  leftTerraceLesehanGroup.add(teapot);
+  [[-0.09, -0.06], [0.09, -0.06], [0.0, 0.08]].forEach(([gx, gy]) => {
+    const gl = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.020, 0.068, 12), matGlass);
+    gl.position.copy(bPos(lxCenter - 0.16 + gx, -6.22 + gy, 0.005));
+    leftTerraceLesehanGroup.add(gl);
+  });
+  // Stack of folded striped Tunisian Fouta pool towels ready for relaxing after swimming
+  addBoxMesh(0.34, 0.045, 0.24, lxCenter + 0.26, -6.22, -0.038, matLesehanCream, leftTerraceLesehanGroup);
+  addBoxMesh(0.32, 0.042, 0.22, lxCenter + 0.26, -6.22, 0.005, matLesehanAzure, leftTerraceLesehanGroup);
+
+  archRoot.add(leftTerraceLesehanGroup);
+  attachNpcTargetWorld(
+    leftTerraceLesehanGroup,
+    bPos(lxCenter, -5.62, -0.25),
+    bPos(lxCenter, -6.62, -0.25)
+  );
+  leftTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
+  window.leftTerraceLesehanObj = leftTerraceLesehanGroup;
+  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge (Lesehan)', 'جلسة تونسية أرضية للاستجمام بعد السباحة');
 
   // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable, raised cleanly above 0.00m floor)
   const rugBed = addBoxMesh(3.40, 0.014, 3.10, -4.20, 2.50, 0.011, matRug, archRoot, false);
@@ -2133,15 +2563,18 @@ function buildStaticArchitecture() {
   // Kitchen Interior Divider Wall
   addBoxMesh(0.22, H, 3.40, 1.40, -3.30, H/2, wallMaterials.bath_kitchen);
 
-  // Courtyard Boundary Walls (Left wall lowered to 1.15m height, matching Right wall exactly!)
-  addBoxMesh(0.24, 1.15, 4.20, 1.40, -7.10, 0.325, wallMaterials.courtyard);
-  addBoxMesh(0.30, 0.06, 4.28, 1.40, -7.10, 0.93, matArchTrim);
+  // Courtyard Boundary Walls:
+  // 1) Left Terrace Wall (bx = 1.40): shortened to by = -7.10..-9.20 (length 2.10m, center by = -8.15) so by = -5.00..-7.10 is 100% open to Left Terrace; height lowered to match Terrace Grill counter top (bz = +0.635m)
+  addBoxMesh(0.24, 0.825, 2.10, 1.40, -8.15, 0.1625, wallMaterials.courtyard);
+  addBoxMesh(0.30, 0.06, 2.18, 1.40, -8.15, 0.605, matArchTrim);
 
-  addBoxMesh(0.24, 1.15, 4.20, 6.00, -7.10, 0.325, wallMaterials.courtyard);
-  addBoxMesh(0.30, 0.06, 4.28, 6.00, -7.10, 0.93, matArchTrim);
+  // 2) Right Terrace Wall (bx = 6.00, by = -7.10, length 4.20m): raised to match main house / rooftop floor level (bz = +3.78m, total height 4.03m from bz = -0.25m)
+  addBoxMesh(0.24, 4.03, 4.20, 6.00, -7.10, 1.765, wallMaterials.courtyard);
+  addBoxMesh(0.30, 0.06, 4.28, 6.00, -7.10, 3.81, matArchTrim);
 
-  addBoxMesh(2.65, 1.15, 0.24, 4.68, -9.20, 0.325, wallMaterials.courtyard);
-  addBoxMesh(2.73, 0.06, 0.30, 4.68, -9.20, 0.93, matArchTrim);
+  // 3) Front Terrace Wall (bx = 4.68, by = -9.20, length 2.65m): lowered to match Terrace Grill counter top (bz = +0.635m, total height 0.885m from bz = -0.25m)
+  addBoxMesh(2.65, 0.825, 0.24, 4.68, -9.20, 0.1625, wallMaterials.courtyard);
+  addBoxMesh(2.73, 0.06, 0.30, 4.68, -9.20, 0.605, matArchTrim);
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -2232,11 +2665,14 @@ function rebuildFacadeDecor() {
   }
   addBoxMesh(12.30, 1.05, 0.22, 0.0, 5.04, 4.26, wallMaterials.south_ext, facadeDecorGroup);
   addBoxMesh(12.30, 1.05, 0.22, 0.0, -5.04, 4.26, wallMaterials.south_ext, facadeDecorGroup);
-  addBoxMesh(0.22, 1.05, 10.30, -6.04, 0.0, 4.26, wallMaterials.south_ext, facadeDecorGroup);
+  // West Roof Parapet split at by = -0.45 .. +0.65m so the top of the Left Exterior Staircase turns right (+bx) directly onto the rooftop!
+  addBoxMesh(0.22, 1.05, 4.70, -6.04, -2.80, 4.26, wallMaterials.south_ext, facadeDecorGroup);
+  addBoxMesh(0.22, 1.05, 4.50, -6.04, 2.90, 4.26, wallMaterials.south_ext, facadeDecorGroup);
   addBoxMesh(0.22, 1.05, 10.30, 6.04, 0.0, 4.26, wallMaterials.south_ext, facadeDecorGroup);
   addBoxMesh(12.42, 0.08, 0.30, 0.0, 5.04, 4.82, matArchTrim, facadeDecorGroup);
   addBoxMesh(12.42, 0.08, 0.30, 0.0, -5.04, 4.82, matArchTrim, facadeDecorGroup);
-  addBoxMesh(0.30, 0.08, 10.42, -6.04, 0.0, 4.82, matArchTrim, facadeDecorGroup);
+  addBoxMesh(0.30, 0.08, 4.76, -6.04, -2.80, 4.82, matArchTrim, facadeDecorGroup);
+  addBoxMesh(0.30, 0.08, 4.56, -6.04, 2.90, 4.82, matArchTrim, facadeDecorGroup);
   addBoxMesh(0.30, 0.08, 10.42, 6.04, 0.0, 4.82, matArchTrim, facadeDecorGroup);
   addBoxMesh(12.20, 0.035, 0.04, 0.0, -5.17, 4.76, matLedBorderOpening, facadeDecorGroup);
   addBoxMesh(0.04, 0.035, 10.20, 6.17, 0.0, 4.76, matLedBorderOpening, facadeDecorGroup);
@@ -2287,12 +2723,12 @@ function rebuildOpenings() {
   openingsGroup.add(sWin);
   snapOpeningToNearestWall(sWin, 4.70, -5.00);
 
-  // 4. West Bedroom Arched Window (X=-6.00, Y=0.00)
+  // 4. West Bedroom Arched Window (centered at X=-6.00, Y=2.50 in the Master Bedroom so it clears the Left Exterior Staircase landing at Y=0.0!)
   const wWin = createArchedWindowAssembly(1.40, 2.05, 0.30, p);
   wWin.userData.labelEn = 'West Bedroom Arched Window';
   wWin.userData.labelAr = 'شباك بيت النوم الغربي المقوس';
   openingsGroup.add(wWin);
-  snapOpeningToNearestWall(wWin, -6.00, 0.00);
+  snapOpeningToNearestWall(wWin, -6.00, 2.50);
 }
 
 
@@ -3173,6 +3609,13 @@ async function rebuildCategory(cat) {
     if (m) {
       const w = fitAndPlaceModel(m, [cfg.sx, cfg.sy, cfg.sz], null, Math.PI/2, cfg.tint);
       w.position.copy(bPos(-4.55, 2.50, 0.02));
+      attachNpcTargetWorld(
+        w,
+        bPos(-3.28, 2.50, 0.00),
+        bPos(-4.55, 2.50, 0.00)
+      );
+      w.userData.npcActivityId = 'MAKE_BED';
+      window.masterBedObj = w;
       registerDraggable(w, cfg.en, cfg.ar);
       g.add(w);
     }
@@ -3217,6 +3660,7 @@ async function rebuildCategory(cat) {
     }
   } else if (cat === 'majlis') {
     const cfg = FURNITURE_CATEGORIES.majlis.items[state.furnitureChoice.majlis];
+    window.majlisSofas = [];
     const s1 = await loadPHModel(cfg.asset);
     if (s1) {
       // South Sofa rotated by Math.PI so it faces North toward the coffee table & TV
@@ -3229,6 +3673,7 @@ async function rebuildCategory(cat) {
       );
       w1.userData.npcActivityId = 'WATCH_TV_MAJLIS';
       window.activeMajlisSofa = w1;
+      window.majlisSofas.push(w1);
       registerDraggable(w1, cfg.en + ' (South)', cfg.ar + ' (جنوب)');
       g.add(w1);
     }
@@ -3243,6 +3688,7 @@ async function rebuildCategory(cat) {
         bPos(3.74, 1.85, 0.02)
       );
       w2.userData.npcActivityId = 'WATCH_TV_MAJLIS';
+      window.majlisSofas.push(w2);
       registerDraggable(w2, cfg.en + ' (East)', cfg.ar + ' (شرق)');
       g.add(w2);
     }
@@ -3789,6 +4235,69 @@ function createSpikyGrassTuft(tuftRadius = 0.28, tuftHeight = 0.28, bladeCount =
 
 async function buildStaticPolyHavenDecor() {
   const g = furnGroups.staticDecor;
+
+  // ==========================================================================
+  // 3. SPIKY 3D GRASS TUFTS ALONG LETTER-L WALKWAY, POOL WALKWAY & AROUND 5 OLIVES
+  //    (Built synchronously first so 3D grass blades appear immediately at t=0s)
+  // ==========================================================================
+  const neatGrassGroup = new THREE.Group();
+  // 3A. Along North & South manicured grass beds of the Horizontal Leg of the Letter-L Walkway (by = -10.26 and by = -12.64)
+  let hIdx = 0;
+  for (let gx = -6.15; gx <= 0.50; gx += 0.62) {
+    const jitterY = ((hIdx % 3) - 1) * 0.05;
+    const tuftN = createSpikyGrassTuft(0.32, 0.24 + (hIdx % 3) * 0.04, 54, gx * 3.1 + 10.26);
+    tuftN.position.copy(bPos(gx, -10.26 + jitterY, -0.455));
+    neatGrassGroup.add(tuftN);
+    hIdx++;
+  }
+  for (let gx = -6.15; gx <= 3.90; gx += 0.62) {
+    const jitterY = ((hIdx % 3) - 1) * 0.05;
+    const tuftS = createSpikyGrassTuft(0.32, 0.24 + (hIdx % 3) * 0.04, 54, gx * 2.7 + 12.64);
+    tuftS.position.copy(bPos(gx, -12.64 + jitterY, -0.455));
+    neatGrassGroup.add(tuftS);
+    hIdx++;
+  }
+  // 3B. Along the Vertical North-Turn of the Letter-L Walkway into the Welcome Arch (bx = 1.12 and bx = 3.64)
+  for (const gy of [-9.98, -10.52]) {
+    const tuftW = createSpikyGrassTuft(0.31, 0.25, 52, 1.12 * 3.7 + gy * 1.9);
+    tuftW.position.copy(bPos(1.12, gy, -0.455));
+    neatGrassGroup.add(tuftW);
+  }
+  for (const gy of [-9.98, -10.60, -11.25, -11.90]) {
+    const tuftE = createSpikyGrassTuft(0.32, 0.25, 54, 3.64 * 3.7 + gy * 1.9);
+    tuftE.position.copy(bPos(3.64, gy, -0.455));
+    neatGrassGroup.add(tuftE);
+  }
+  // 3C. Along the Left Terrace-to-Swimming-Pool Walkway grass strips (by = -5.32 and by = -6.78, bx = -6.22 .. -7.60)
+  [-6.22, -6.68, -7.14, -7.60].forEach((px, pIdx) => {
+    const tPoolN = createSpikyGrassTuft(0.26, 0.22 + (pIdx % 2) * 0.03, 48, px * 4.1 + 5.32);
+    tPoolN.position.copy(bPos(px, -5.32, -0.452));
+    neatGrassGroup.add(tPoolN);
+    const tPoolS = createSpikyGrassTuft(0.26, 0.22 + (pIdx % 2) * 0.03, 48, px * 4.1 + 6.78);
+    tPoolS.position.copy(bPos(px, -6.78, -0.452));
+    neatGrassGroup.add(tPoolS);
+  });
+
+  // Spiky 3D grass tufts around the 5 front potted olive trees (by = -14.68, -15.20, -15.72)
+  for (let bx = -5.25; bx <= 5.30; bx += 0.58) {
+    const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
+    tuftFront.position.copy(bPos(bx, -14.68, -0.455));
+    neatGrassGroup.add(tuftFront);
+
+    const tuftBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(bx * 7)) % 3) * 0.035, 52, -bx * 2.9 + 23.0);
+    tuftBack.position.copy(bPos(bx, -15.72, -0.455));
+    neatGrassGroup.add(tuftBack);
+  }
+  // Taller spiky ornamental grass clusters between the 5 potted olive trees
+  [-3.60, -1.20, 1.20, 3.60].forEach((mx, idx) => {
+    const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
+    tallTuft.position.copy(bPos(mx, -15.20, -0.455));
+    neatGrassGroup.add(tallTuft);
+  });
+
+  freezeStaticMeshes(neatGrassGroup);
+  archRoot.add(neatGrassGroup);
+
   const mir = await loadPHModel('ornate_mirror_01');
   if (mir) {
     const mw = fitAndPlaceModel(mir, null, 1.25, 0);
@@ -3796,29 +4305,36 @@ async function buildStaticPolyHavenDecor() {
     registerDraggable(mw, 'Ornate Gilded Hammam Mirror', 'مرآة الحمام المذهبة');
     g.add(mw);
   }
-  // Interior & Left Concrete Terrace Potted Plants (default outdoor pots placed on the Left Concrete Terrace behind the courtyard wall at bz = -0.25m)
+  // POINT 4 (PART A): Interior & Relocated Poolside Potted Plants
+  // The 6 outdoor flower pots are relocated from the Left Terrace to the left (West) side of the Family Swimming Pool (bx = -13.15m),
+  // distributed evenly from front to back (by = -6.60, -5.20, -3.80, -2.40, -1.00, +0.40, bz = -0.465m)!
   const plants = [
     ['potted_plant_02', [5.32, 4.20, 0.02], 1.35],
     ['potted_plant_01', [1.65, -0.65, 0.02], 1.15],
-    ['potted_plant_02', [-5.20, -5.55, -0.25], 1.48],
-    ['potted_plant_04', [-4.15, -5.55, -0.25], 1.38],
-    ['potted_plant_01', [-3.10, -5.55, -0.25], 1.32],
-    ['potted_plant_02', [-2.05, -5.55, -0.25], 1.62],
-    ['potted_plant_04', [-1.05, -5.55, -0.25], 1.35],
-    ['potted_plant_01', [-0.15, -5.58, -0.25], 1.38]
+    ['potted_plant_02', [-13.15, -6.60, -0.465], 1.48],
+    ['potted_plant_04', [-13.15, -5.20, -0.465], 1.38],
+    ['potted_plant_01', [-13.15, -3.80, -0.465], 1.32],
+    ['potted_plant_02', [-13.15, -2.40, -0.465], 1.62],
+    ['potted_plant_04', [-13.15, -1.00, -0.465], 1.35],
+    ['potted_plant_01', [-13.15,  0.40, -0.465], 1.38]
   ];
+  window.leftTerracePots = [];
   for (const [id, pos, h] of plants) {
     const pm = await loadPHModel(id);
     if (pm) {
       const pw = fitAndPlaceModel(pm, null, h, 0);
       pw.position.copy(bPos(pos[0], pos[1], pos[2]));
+      const isPoolsidePot = (pos[0] < -10.0);
       attachNpcTargetWorld(
         pw,
-        bPos(pos[0], pos[1] - 0.76, pos[2]),
+        isPoolsidePot ? bPos(pos[0] + 0.78, pos[1], -0.41) : bPos(pos[0], pos[1] - 0.76, pos[2]),
         bPos(pos[0], pos[1], pos[2])
       );
       pw.userData.npcActivityId = 'WATER_LEFT_POTS';
-      if (Math.abs(pos[0] - (-2.05)) < 0.1 && Math.abs(pos[1] - (-5.55)) < 0.1) {
+      if (isPoolsidePot) {
+        window.leftTerracePots.push(pw);
+      }
+      if (Math.abs(pos[0] - (-13.15)) < 0.1 && Math.abs(pos[1] - (-3.80)) < 0.1) {
         window.activeWaterPot = pw;
       }
       registerDraggable(pw, 'Mediterranean Potted Plant', 'نبتة متوسطية طبيعية');
@@ -3972,6 +4488,7 @@ async function buildStaticPolyHavenDecor() {
   //    (~5m in front of the Arched Wall: by = -15.20, bx = [-4.8, -2.4, 0.0, 2.4, 4.8])
   // ==========================================================================
   const smallOliveX = [-4.80, -2.40, 0.00, 2.40, 4.80];
+  window.smallOliveTrees = [];
   for (let i = 0; i < smallOliveX.length; i++) {
     const ox = smallOliveX[i];
     const smallOliveGroup = new THREE.Group();
@@ -4026,10 +4543,11 @@ async function buildStaticPolyHavenDecor() {
     smallOliveGroup.rotation.y = (i * 0.45) - 0.5;
     attachNpcTargetWorld(
       smallOliveGroup,
-      bPos(ox, -16.15, -0.50),
+      bPos(ox, -14.28, -0.50),
       bPos(ox, -15.20, -0.50)
     );
     smallOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+    window.smallOliveTrees.push(smallOliveGroup);
     registerDraggable(
       smallOliveGroup,
       `Potted Olive Tree #${i + 1} (1.5m)`,
@@ -4038,44 +4556,8 @@ async function buildStaticPolyHavenDecor() {
     g.add(smallOliveGroup);
   }
 
-  // ==========================================================================
-  // 3. SPIKY 3D GRASS TUFTS ALONG ARCHED TERRACE WALKWAY & AROUND 5 OLIVES
-  //    (True pointed 3D grass blades — zero radish/turnip "lobak" domes)
-  // ==========================================================================
-  const neatGrassGroup = new THREE.Group();
-  // Along both sides of the Arched Terrace entrance pathway (bx = 1.12 and bx = 3.64, by = -9.95 .. -14.25)
-  for (const gx of [1.12, 3.64]) {
-    let idx = 0;
-    for (let gy = -9.95; gy >= -14.25; gy -= 0.62) {
-      const jitterX = ((idx % 3) - 1) * 0.06;
-      const tuft = createSpikyGrassTuft(0.32, 0.24 + (idx % 3) * 0.04, 56, gx * 3.7 + gy * 1.9);
-      tuft.position.copy(bPos(gx + jitterX, gy, -0.455));
-      neatGrassGroup.add(tuft);
-      idx++;
-    }
-  }
-
-  // Spiky 3D grass tufts around the 5 front potted olive trees (by = -14.68, -15.20, -15.72)
-  for (let bx = -5.25; bx <= 5.30; bx += 0.58) {
-    const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
-    tuftFront.position.copy(bPos(bx, -14.68, -0.455));
-    neatGrassGroup.add(tuftFront);
-
-    const tuftBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(bx * 7)) % 3) * 0.035, 52, -bx * 2.9 + 23.0);
-    tuftBack.position.copy(bPos(bx, -15.72, -0.455));
-    neatGrassGroup.add(tuftBack);
-  }
-  // Taller spiky ornamental grass clusters between the 5 potted olive trees
-  [-3.60, -1.20, 1.20, 3.60].forEach((mx, idx) => {
-    const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
-    tallTuft.position.copy(bPos(mx, -15.20, -0.455));
-    neatGrassGroup.add(tallTuft);
-  });
-
-  freezeStaticMeshes(neatGrassGroup);
-  archRoot.add(neatGrassGroup);
-
   // Rooftop Sofas (all facing inward toward Rooftop Coffee Table at bPos(2.65, 1.40, 3.78)), Table, Stone BBQ Fire Pit & Barstools
+  window.roofSofas = [];
   const r1 = await loadPHModel('sofa_03');
   if (r1) {
     const rw1 = fitAndPlaceModel(r1, [3.20, 0.95, 0.85], null, 0);
@@ -4086,6 +4568,7 @@ async function buildStaticPolyHavenDecor() {
       bPos(2.85, 2.18, 3.80)
     );
     rw1.userData.npcActivityId = 'ROOF_LOUNGE';
+    window.roofSofas.push(rw1);
     registerDraggable(rw1, 'Rooftop Lounge Sofa (North)', 'أريكة جلسة السطح (شمال)');
     roofGroup.add(rw1);
   }
@@ -4099,6 +4582,7 @@ async function buildStaticPolyHavenDecor() {
       bPos(3.18, 1.40, 3.80)
     );
     rwe.userData.npcActivityId = 'ROOF_LOUNGE';
+    window.roofSofas.push(rwe);
     registerDraggable(rwe, 'Rooftop Lounge Sofa (East)', 'أريكة جلسة السطح (شرق)');
     roofGroup.add(rwe);
   }
@@ -4113,6 +4597,7 @@ async function buildStaticPolyHavenDecor() {
     );
     rw2.userData.npcActivityId = 'ROOF_LOUNGE';
     window.activeRoofSofa = rw2;
+    window.roofSofas.push(rw2);
     registerDraggable(rw2, 'Rooftop Lounge Sofa (South)', 'أريكة جلسة السطح (جنوب)');
     roofGroup.add(rw2);
   }
@@ -4528,6 +5013,9 @@ function toggleRoof() {
   // Point 8: When Open Roof is ON (roof hidden: !state.roofVisible), skip/exit any roof activity immediately!
   if (!state.roofVisible && window.maherNpcState && window.maherNpcState.currentZone === 'roof') {
     startMaherActivity('GRILL_TERRACE', true);
+  }
+  if (!state.roofVisible && window.wifeNpcState && window.wifeNpcState.currentZone === 'roof') {
+    startWifeActivity('SWEEP_INSIDE', true);
   }
   requestShadowUpdate();
   updateStaticUIStrings();
@@ -4984,21 +5472,27 @@ window.addEventListener('keyup', (e) => {
 // ============================================================================
 const EXTRA_PHYSICAL_WALLS = [
   // Interior Kitchen Divider Wall (bx = 1.40, by = -1.60 .. -5.00)
-  { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22 },
-  // Physical 1.15m Courtyard Walls on the Right Arched Terrace (leaving Grand Welcome Arch at bx = 1.40..3.38, by = -9.20 & Left Concrete Terrace 100% open!)
+  { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22, groundOnly: true },
+  // Physical Courtyard Walls on the Right Arched Terrace (leaving Grand Welcome Arch at bx = 1.40..3.38, by = -9.20 & Left Concrete Terrace passage by = -5.00..-7.10 100% open!)
   { axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24 },
   { axis: 'x', fixed: -9.20, min: 3.42, max: 6.00, thick: 0.24 },
-  { axis: 'y', fixed: 1.40, min: -9.20, max: -6.35, thick: 0.24 }
+  { axis: 'y', fixed: 1.40, min: -9.20, max: -7.10, thick: 0.24 },
+  // Left Exterior Staircase Safety Balustrade Wall (bx = -7.42, by = -5.05 .. +0.68) & Top Landing North Return Wall (by = +0.65, bx = -7.42 .. -6.02)
+  { axis: 'y', fixed: -7.42, min: -5.05, max: 0.68, thick: 0.20 },
+  { axis: 'x', fixed: 0.65, min: -7.42, max: -6.02, thick: 0.20 }
 ];
 
 function resolveWalkCollisions(px, pz) {
-  // Generous exterior yard bounds so player can walk freely around the entire villa, terraces, 3m olive tree & 5 front olive trees
+  // Generous exterior yard bounds so player can walk freely around the entire villa, terraces, pool, 3m olive tree & 5 front olive trees
   px = Math.max(-24.0, Math.min(24.0, px));
   pz = Math.max(-18.0, Math.min(26.0, pz));
   const playerRadius = 0.22;
+  const isAtRoofLevel = (walkState.pos.y > 4.20);
 
   // 1. Push out smoothly from WALL_DEFS segments (doors carve wide pass-through portals compensating for capsule endpoint radius)
   for (const w of WALL_DEFS) {
+    // When on the 2nd floor rooftop, interior 1st-floor partition walls do not block movement
+    if (isAtRoofLevel && (w.id === 'bath_east' || w.id === 'bath_north')) continue;
     const doors = openingsGroup.children
       .filter(op => op.userData && op.userData.isDoor && op.userData.wallId === w.id)
       .sort((a, b) => a.userData.wallCoord - b.userData.wallCoord);
@@ -5014,6 +5508,12 @@ function resolveWalkCollisions(px, pz) {
       cur = Math.max(cur, dEnd);
     }
     if (w.max > cur + 0.04) segments.push([cur, w.max]);
+
+    // When at rooftop level, carve out the West roof parapet portal (by = -0.45 .. +0.65) so player can turn right from the staircase top landing onto the roof!
+    if (isAtRoofLevel && w.id === 'west') {
+      segments.length = 0;
+      segments.push([-5.00, -0.45], [0.65, 5.00]);
+    }
 
     for (const [u0, u1] of segments) {
       let cx, cz;
@@ -5035,8 +5535,9 @@ function resolveWalkCollisions(px, pz) {
     }
   }
 
-  // 2. Push out smoothly from physical interior kitchen divider & 1.15m courtyard walls (Welcome Arch & Left Terrace remain open)
+  // 2. Push out smoothly from physical interior kitchen divider, courtyard walls & staircase safety walls
   for (const ew of EXTRA_PHYSICAL_WALLS) {
+    if (isAtRoofLevel && ew.groundOnly) continue;
     const minDist = ew.thick * 0.5 + playerRadius;
     let cx, cz;
     if (ew.axis === 'x') {
@@ -5081,11 +5582,24 @@ function updateWalkAndOpenings(dt) {
       walkState.pos.x = resolved.x;
       walkState.pos.z = resolved.z;
     }
-    // Smooth 3-tier elevation eye height with stepped ramp interpolation:
-    // House (0.00m -> 1.68m), Terraces (-0.25m -> 1.43m), Exterior Yard Soil (-0.50m -> 1.18m)
+    // Multi-tier elevation eye height with stepped ramp interpolation (including Left Exterior Staircase to Rooftop & Family Swimming Pool):
     const wx = walkState.pos.x, wz = walkState.pos.z;
     let groundY = -0.50;
-    if (wz >= -5.00 && wz <= 5.05 && wx >= -6.00 && wx <= 6.00) {
+    if (wx >= -7.38 && wx <= -6.08 && wz >= -0.65 && wz <= 5.02) {
+      // Ascending/descending the Left Exterior Diagonal Staircase (by = -4.95 -> -0.45, landing by = -0.45 .. +0.65)
+      if (wz <= 0.45) {
+        groundY = 3.78;
+      } else {
+        const tStair = Math.max(0.0, Math.min(1.0, (4.95 - wz) / 4.50));
+        groundY = -0.25 + 4.03 * tStair;
+      }
+    } else if (walkState.pos.y > 4.20 && wz >= -5.05 && wz <= 5.05 && wx >= -6.10 && wx <= 6.00) {
+      // Walking on the 2nd Floor Rooftop after turning right from the top of the Left Staircase!
+      groundY = 3.78;
+    } else if (wx >= -12.15 && wx <= -8.25 && wz >= -0.85 && wz <= 7.05) {
+      // Inside the Family Swimming Pool (submerged to upper stomach!)
+      groundY = -1.50;
+    } else if (wz >= -5.00 && wz <= 5.05 && wx >= -6.00 && wx <= 6.00) {
       groundY = 0.00;
     } else if (wx >= 1.50 && wx <= 3.70 && wz > 5.05 && wz <= 5.75) {
       // Main Entrance steps ramp (0.00m <-> -0.25m)
@@ -5097,9 +5611,9 @@ function updateWalkAndOpenings(dt) {
       // Welcome Arch steps ramp (-0.25m <-> -0.50m)
       const tRamp = (wz - 9.25) / 0.73;
       groundY = -0.25 - 0.25 * tRamp;
-    } else if (wz > 5.05 && wz <= 7.15 && wx >= -6.00 && wx < 1.40) {
+    } else if (wz > 5.05 && wz <= 7.15 && wx >= -7.45 && wx < 1.40) {
       groundY = -0.25;
-    } else if (wz > 7.15 && wz <= 7.65 && wx >= -6.00 && wx < 1.40) {
+    } else if (wz > 7.15 && wz <= 7.65 && wx >= -7.45 && wx < 1.40) {
       // Left Concrete Terrace south edge step-down (-0.25m <-> -0.50m)
       const tRamp = (wz - 7.15) / 0.50;
       groundY = -0.25 - 0.25 * tRamp;
@@ -5162,21 +5676,28 @@ function updateWalkAndOpenings(dt) {
       }
     }
 
-    // Also automatically swing doors open when Maître Maher NPC walks through them!
-    if (op.userData.isDoor && !doorHeldByActor && window.maherNpcState && window.maherNpcState.root && window.maherNpcState.root.position.y < 1.5) {
-      const ndx = window.maherNpcState.root.position.x - op.position.x;
-      const ndz = window.maherNpcState.root.position.z - op.position.z;
-      const cosR = Math.cos(-op.rotation.y);
-      const sinR = Math.sin(-op.rotation.y);
-      const localX = ndx * cosR - ndz * sinR;
-      const localZ = ndx * sinR + ndz * cosR;
-      if (Math.abs(localX) < op.userData.openingWidth * 1.05 && Math.abs(localZ) < 2.10) {
-        doorHeldByActor = true;
-        if (!op.userData._walkHolding) {
-          op.userData._walkHolding = true;
-          op.userData._walkPushSign = localZ >= 0 ? -1 : 1;
+    // Also automatically swing doors open when Maître Maher or his Wife NPC walks through them!
+    if (op.userData.isDoor && !doorHeldByActor) {
+      const npcStates = [window.maherNpcState, window.wifeNpcState];
+      for (let ni = 0; ni < npcStates.length; ni++) {
+        const ns = npcStates[ni];
+        if (ns && ns.root && ns.root.position.y < 1.5) {
+          const ndx = ns.root.position.x - op.position.x;
+          const ndz = ns.root.position.z - op.position.z;
+          const cosR = Math.cos(-op.rotation.y);
+          const sinR = Math.sin(-op.rotation.y);
+          const localX = ndx * cosR - ndz * sinR;
+          const localZ = ndx * sinR + ndz * cosR;
+          if (Math.abs(localX) < op.userData.openingWidth * 1.05 && Math.abs(localZ) < 2.10) {
+            doorHeldByActor = true;
+            if (!op.userData._walkHolding) {
+              op.userData._walkHolding = true;
+              op.userData._walkPushSign = localZ >= 0 ? -1 : 1;
+            }
+            targetAngle = op.userData._walkPushSign * 1.48;
+            break;
+          }
         }
-        targetAngle = op.userData._walkPushSign * 1.48;
       }
     }
 
@@ -5258,6 +5779,7 @@ function updateStaticUIStrings() {
   setText('cam-courtyard', t('camCourtyard'));
   setText('cam-rooftop', t('camRooftop'));
   if (typeof updateMaherFloatingBadge === 'function') updateMaherFloatingBadge();
+  if (typeof updateWifeFloatingBadge === 'function') updateWifeFloatingBadge();
 
   setText('ui-loading-text', t('loadingText'));
   setText('ps-title', t('psTitle'));
@@ -5287,9 +5809,10 @@ async function startPhotoshootRender() {
   if (statusEl) statusEl.textContent = t('psRendering');
   if (fillEl) fillEl.style.width = '4%';
 
-  // Temporarily hide selection highlight and floating NPC badge during render
+  // Temporarily hide selection highlight and floating NPC badges during render
   if (selectedObject) setSelectionHighlight(selectedObject, false);
   if (window.maherBadgeSprite) window.maherBadgeSprite.visible = false;
+  if (window.wifeBadgeSprite) window.wifeBadgeSprite.visible = false;
 
   const w = renderer.domElement.width;
   const h = renderer.domElement.height;
@@ -5356,6 +5879,7 @@ async function startPhotoshootRender() {
   scene.remove(giBounce1, giBounce2);
   if (selectedObject) setSelectionHighlight(selectedObject, true);
   if (window.maherBadgeSprite) window.maherBadgeSprite.visible = true;
+  if (window.wifeBadgeSprite) window.wifeBadgeSprite.visible = true;
   if (composer) composer.render();
   else renderer.render(scene, activeCamera);
 
@@ -5420,7 +5944,7 @@ function saveDesign() {
     z: o.position.z,
     ry: o.rotation.y
   }));
-  localStorage.setItem('tunisia_modern_arabic_villa_v7', JSON.stringify({
+  localStorage.setItem('tunisia_modern_arabic_villa_v8', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     customPositions
@@ -5429,6 +5953,7 @@ function saveDesign() {
 }
 
 function resetDesign() {
+  localStorage.removeItem('tunisia_modern_arabic_villa_v8');
   localStorage.removeItem('tunisia_modern_arabic_villa_v7');
   localStorage.removeItem('tunisia_modern_arabic_villa_v6');
   localStorage.removeItem('tunisia_modern_arabic_villa_v5');
@@ -5499,7 +6024,7 @@ const matWaterDrop = new THREE.MeshStandardMaterial({
   opacity: 0.82
 });
 const waterDropGeo = new THREE.SphereGeometry(0.014, 6, 6);
-for (let i = 0; i < 28; i++) {
+for (let i = 0; i < 52; i++) {
   const m = new THREE.Mesh(waterDropGeo, matWaterDrop);
   m.scale.set(0.8, 1.7, 0.8);
   m.visible = false;
@@ -5563,11 +6088,17 @@ function spawnWaterDroplet(worldX, worldY, worldZ, dirX, dirZ) {
 
 // Waypoint coordinates in Floorplan (bx, by, bz) -> converted via bPos(bx, by, bz)
 const MAHER_WAYPOINTS = {
-  DOOR_OUT:  [2.60, -5.85, -0.25],
-  DOOR_IN:   [2.60, -4.15,  0.00],
-  HALL_MID:  [1.85, -1.65,  0.00],
-  ARCH_GATE: [2.38, -9.85, -0.50],
-  LEFT_ENTRY:[0.40, -6.20, -0.25]
+  DOOR_OUT:          [2.60,  -5.85, -0.25],
+  DOOR_IN:           [2.60,  -4.15,  0.00],
+  HALL_MID:          [1.85,  -1.65,  0.00],
+  BED_HALL:          [-1.55, -0.55,  0.00],
+  ARCH_GATE:         [2.38,  -9.85, -0.50],
+  LEFT_ENTRY:        [1.40,  -6.05, -0.25],
+  LEFT_TERRACE_WEST: [-5.85, -6.05, -0.25], // West edge of Left Terrace where stepping-stone walkway to Pool starts
+  POOL_WALKWAY:      [-7.65, -6.05, -0.45], // Poolside edge at stepping-stone walkway leading to Left Terrace
+  POOL_STEPS_IN:     [-8.70, -6.05, -1.48], // Underwater SE pool entry/exit steps aligned with walkway
+  POOL_SOUTH_EAST:   [-7.85, -7.45, -0.45], // South-East pool corner promenade
+  POOL_SOUTH_WEST:   [-12.42, -7.45, -0.41] // South-West pool corner promenade leading to relocated flower pots
 };
 
 // All autonomous activities for Maître Maher (Note: in Three.js MakeHuman GLB, ry=0 faces South/-by, ry=Math.PI faces North/+by, ry=Math.PI/2 faces East/+bx, ry=-Math.PI/2 faces West/-bx)
@@ -5594,16 +6125,27 @@ const MAHER_ACTIVITIES = {
     en: 'Relaxing on Tunisian Floor Sofa under the Window',
     ar: 'مرتاح على الجلسة التونسية الأرضية تحت الشباك'
   },
+  SWIM_POOL: {
+    id: 'SWIM_POOL',
+    zone: 'pool',
+    bx: -10.10, by: -3.40, bz: -1.52, // Submerged to upper stomach (-0.44m water surface - (-1.52m feet) = 1.08m submerged!)
+    ry: 0,
+    clip: 'Stand_Idle',
+    prop: null,
+    duration: [55, 80],
+    en: 'Swimming & Floating in Family Pool',
+    ar: 'يعوم ويطفو في المسبح العائلي'
+  },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
-    zone: 'terrace_left',
-    bx: -2.05, by: -6.32, bz: -0.25,
-    ry: Math.PI, // Stands directly in front of the potted plants at by=-5.55 facing North (+by) toward the pots!
+    zone: 'pool_west',
+    bx: -12.37, by: -3.80, bz: -0.41,
+    ry: -Math.PI / 2, // Faces West (-bx) toward the relocated potted plants at bx=-13.15!
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [50, 70], // 5x duration
-    en: 'Watering Potted Flowers on Left Concrete Terrace',
-    ar: 'يسقي المحابس والنوار في التراس الغربي'
+    en: 'Watering Potted Flowers along West Poolside',
+    ar: 'يسقي المحابس والنوار بجانب المسبح الغربي'
   },
   COOK_KITCHEN: {
     id: 'COOK_KITCHEN',
@@ -5661,6 +6203,7 @@ const MAHER_ACTIVITIES = {
     ar: 'مرتاح في جلسة السطح تحت البرغولا'
   }
 };
+window.MAHER_ACTIVITIES = MAHER_ACTIVITIES;
 
 const maherNpcState = {
   loaded: false,
@@ -5669,6 +6212,7 @@ const maherNpcState = {
   actions: {},
   activeAction: null,
   handBoneR: null,
+  swimBones: {},
   propSpatula: null,
   propWateringCan: null,
   spoutTip: null,
@@ -5677,6 +6221,9 @@ const maherNpcState = {
   currentAct: MAHER_ACTIVITIES.GRILL_TERRACE,
   currentZone: 'terrace_right',
   pathQueue: [],
+  swimTargetPos: new THREE.Vector3(-10.10, -1.52, 3.40),
+  swimSubTimer: 5.5,
+  swimSpeed: 0.74,
   timer: 65.0,
   walkSpeed: 1.48,
   smokeAccum: 0,
@@ -5684,6 +6231,77 @@ const maherNpcState = {
   shadowTick: 0
 };
 window.maherNpcState = maherNpcState;
+
+function pickRandomPoolSwimTarget(isWife = false) {
+  const swimY = isWife ? -1.46 : -1.52;
+  const otherState = isWife ? maherNpcState : wifeNpcState;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const bx = -11.45 + Math.random() * 2.55; // [-11.45 .. -8.90]
+    const by = -6.25 + Math.random() * 6.35;  // [-6.25 .. +0.10]
+    const wx = bx;
+    const wz = -by;
+    if (otherState && otherState.root && otherState.currentZone === 'pool') {
+      const dOther = Math.hypot(wx - otherState.root.position.x, wz - otherState.root.position.z);
+      if (dOther < 1.15 && attempt < 9) continue;
+    }
+    return new THREE.Vector3(wx, swimY, wz);
+  }
+  return new THREE.Vector3(isWife ? -10.85 : -9.45, swimY, isWife ? 1.85 : 4.25);
+}
+
+// Procedural treading-water / floating arm & hand animation ("menggerakkan tangan seperti berusaha mengambang")
+function applyNpcSwimTreadPose(npcState, tSec, isWife = false) {
+  const sb = npcState.swimBones;
+  if (!sb) return;
+  const ph = tSec * 3.45 + (isWife ? 1.85 : 0.0);
+  // Raise both upper arms & forearms near the water surface and sweep outward/inward in a floating sculling motion
+  if (sb.upperArmL) {
+    sb.upperArmL.rotation.set(
+      -0.62 + Math.sin(ph) * 0.24,
+      0.20 * Math.cos(ph),
+      0.52 + Math.sin(ph * 0.85) * 0.18
+    );
+  }
+  if (sb.foreArmL) {
+    sb.foreArmL.rotation.set(
+      -0.82 + Math.cos(ph) * 0.28,
+      0.26 * Math.sin(ph),
+      0.16
+    );
+  }
+  if (sb.handL) {
+    sb.handL.rotation.set(
+      0.32 * Math.sin(ph * 1.4),
+      0.18 * Math.cos(ph),
+      0.26 * Math.cos(ph * 1.4)
+    );
+  }
+  if (sb.upperArmR) {
+    sb.upperArmR.rotation.set(
+      -0.62 + Math.sin(ph + Math.PI) * 0.24,
+      -0.20 * Math.cos(ph + Math.PI),
+      -0.52 - Math.sin(ph * 0.85 + Math.PI) * 0.18
+    );
+  }
+  if (sb.foreArmR) {
+    sb.foreArmR.rotation.set(
+      -0.82 + Math.cos(ph + Math.PI) * 0.28,
+      -0.26 * Math.sin(ph + Math.PI),
+      -0.16
+    );
+  }
+  if (sb.handR) {
+    sb.handR.rotation.set(
+      0.32 * Math.sin(ph * 1.4 + Math.PI),
+      -0.18 * Math.cos(ph + Math.PI),
+      -0.26 * Math.cos(ph * 1.4 + Math.PI)
+    );
+  }
+  if (sb.upLegL) sb.upLegL.rotation.set(-0.26 + Math.sin(ph * 1.1) * 0.24, 0, 0.05);
+  if (sb.lowLegL) sb.lowLegL.rotation.set(0.40 + Math.max(0, Math.cos(ph * 1.1)) * 0.32, 0, 0);
+  if (sb.upLegR) sb.upLegR.rotation.set(-0.26 + Math.sin(ph * 1.1 + Math.PI) * 0.24, 0, -0.05);
+  if (sb.lowLegR) sb.lowLegR.rotation.set(0.40 + Math.max(0, Math.cos(ph * 1.1 + Math.PI)) * 0.32, 0, 0);
+}
 
 function buildMaherHandheldProps(handBone) {
   // 1. Stainless Steel & Walnut BBQ/Kitchen Spatula
@@ -5754,46 +6372,92 @@ function setMaherProp(propType) {
 
 function computeGroundFloorWaypoints(fromZone, toZone) {
   if (fromZone === toZone) return [];
-  const insideZones = ['inside_kitchen', 'inside_majlis'];
-  const fromIn = insideZones.includes(fromZone);
-  const toIn = insideZones.includes(toZone);
+  const prefixPts = [];
+  const suffixPts = [];
+  let effFrom = fromZone;
+  let effTo = toZone;
+
+  // Task 5: Exiting the Swimming Pool ALWAYS climbs out onto the poolside edge at the stepping-stone walkway leading to the Left Terrace!
+  if (effFrom === 'pool') {
+    prefixPts.push(
+      MAHER_WAYPOINTS.POOL_STEPS_IN,
+      MAHER_WAYPOINTS.POOL_WALKWAY,
+      MAHER_WAYPOINTS.LEFT_TERRACE_WEST
+    );
+    effFrom = 'terrace_left';
+  } else if (effFrom === 'pool_west') {
+    prefixPts.push(
+      MAHER_WAYPOINTS.POOL_SOUTH_WEST,
+      MAHER_WAYPOINTS.POOL_SOUTH_EAST,
+      MAHER_WAYPOINTS.LEFT_TERRACE_WEST
+    );
+    effFrom = 'terrace_left';
+  }
+
+  if (effTo === 'pool') {
+    suffixPts.push(
+      MAHER_WAYPOINTS.LEFT_TERRACE_WEST,
+      MAHER_WAYPOINTS.POOL_WALKWAY,
+      MAHER_WAYPOINTS.POOL_STEPS_IN
+    );
+    effTo = 'terrace_left';
+  } else if (effTo === 'pool_west') {
+    suffixPts.push(
+      MAHER_WAYPOINTS.LEFT_TERRACE_WEST,
+      MAHER_WAYPOINTS.POOL_SOUTH_EAST,
+      MAHER_WAYPOINTS.POOL_SOUTH_WEST
+    );
+    effTo = 'terrace_left';
+  }
+
+  if (effFrom === effTo) {
+    return prefixPts.concat(suffixPts);
+  }
+
+  const insideZones = ['inside_kitchen', 'inside_majlis', 'inside_bedroom'];
+  const fromIn = insideZones.includes(effFrom);
+  const toIn = insideZones.includes(effTo);
   const pts = [];
 
   if (fromIn && toIn) {
+    if (effFrom === 'inside_bedroom') pts.push(MAHER_WAYPOINTS.BED_HALL);
     pts.push(MAHER_WAYPOINTS.HALL_MID);
-    return pts;
+    if (effTo === 'inside_bedroom') pts.push(MAHER_WAYPOINTS.BED_HALL);
+    return prefixPts.concat(pts, suffixPts);
   }
   if (fromIn && !toIn) {
+    if (effFrom === 'inside_bedroom') pts.push(MAHER_WAYPOINTS.BED_HALL);
     pts.push(MAHER_WAYPOINTS.HALL_MID, MAHER_WAYPOINTS.DOOR_IN, MAHER_WAYPOINTS.DOOR_OUT);
-    if (toZone === 'terrace_left') {
+    if (effTo === 'terrace_left') {
       pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
-    } else if (toZone === 'front_yard') {
+    } else if (effTo === 'front_yard') {
       pts.push(MAHER_WAYPOINTS.ARCH_GATE);
     }
-    return pts;
+    return prefixPts.concat(pts, suffixPts);
   }
   if (!fromIn && toIn) {
-    if (fromZone === 'front_yard') {
+    if (effFrom === 'front_yard') {
       pts.push(MAHER_WAYPOINTS.ARCH_GATE);
-    } else if (fromZone === 'terrace_left') {
+    } else if (effFrom === 'terrace_left') {
       pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
     }
     pts.push(MAHER_WAYPOINTS.DOOR_OUT, MAHER_WAYPOINTS.DOOR_IN, MAHER_WAYPOINTS.HALL_MID);
-    return pts;
+    if (effTo === 'inside_bedroom') pts.push(MAHER_WAYPOINTS.BED_HALL);
+    return prefixPts.concat(pts, suffixPts);
   }
-  // Exterior to exterior
-  if (fromZone === 'terrace_right' && toZone === 'terrace_left') {
-    pts.push(MAHER_WAYPOINTS.DOOR_OUT, MAHER_WAYPOINTS.LEFT_ENTRY);
-  } else if (fromZone === 'terrace_left' && toZone === 'terrace_right') {
-    pts.push(MAHER_WAYPOINTS.LEFT_ENTRY, MAHER_WAYPOINTS.DOOR_OUT);
-  } else if (toZone === 'front_yard') {
-    if (fromZone === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+  // Exterior to exterior (Left Terrace <-> Front/Right Terrace connects through the open by = -5.00..-7.10 passage)
+  if (effFrom === 'terrace_right' && effTo === 'terrace_left') {
+    pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+  } else if (effFrom === 'terrace_left' && effTo === 'terrace_right') {
+    pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+  } else if (effTo === 'front_yard') {
+    if (effFrom === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
     pts.push(MAHER_WAYPOINTS.ARCH_GATE);
-  } else if (fromZone === 'front_yard') {
+  } else if (effFrom === 'front_yard') {
     pts.push(MAHER_WAYPOINTS.ARCH_GATE);
-    if (toZone === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
+    if (effTo === 'terrace_left') pts.push(MAHER_WAYPOINTS.LEFT_ENTRY);
   }
-  return pts;
+  return prefixPts.concat(pts, suffixPts);
 }
 
 const maherBadgeCanvas = document.createElement('canvas');
@@ -5854,39 +6518,170 @@ const _tmpSmokeWorld = new THREE.Vector3();
 
 function getZoneFromWorldPos(wx, wy, wz) {
   if (wy > 2.0) return 'roof';
-  // Note: wx = bx, wz = -by
+  // Note: wx = bx, wz = -by (so by = -wz)
+  if (wx <= -8.15 && wx >= -12.22 && wz >= -0.95 && wz <= 7.15 && wy < -0.55) {
+    return 'pool';
+  }
+  if (wx < -12.15) {
+    return 'pool_west';
+  }
   if (wx >= -6.05 && wx <= 6.05 && wz >= -5.05 && wz <= 5.05) {
+    if (wx < -1.80 && wz < 1.15) return 'inside_bedroom';
     if (wx < 1.45 && wz >= 1.0) return 'inside_kitchen';
     return 'inside_majlis';
   }
   if (wx >= 1.35 && wx <= 6.25 && wz > 5.05 && wz <= 9.35) {
     return 'terrace_right';
   }
-  if (wx >= -6.25 && wx < 1.35 && wz > 5.05 && wz <= 7.25) {
+  if (wx >= -7.85 && wx < 1.35 && wz > 4.95 && wz <= 7.25) {
     return 'terrace_left';
   }
   return 'front_yard';
 }
 
-function getDynamicActivityTarget(actId) {
-  const act = MAHER_ACTIVITIES[actId] || MAHER_ACTIVITIES.GRILL_TERRACE;
+function getDynamicActivityTarget(actId, isWife = false) {
+  const actDict = isWife ? WIFE_ACTIVITIES : MAHER_ACTIVITIES;
+  const act = actDict[actId] || (isWife ? WIFE_ACTIVITIES.WATER_FRONT_OLIVES : MAHER_ACTIVITIES.GRILL_TERRACE);
   let targetObj = null;
-  if (actId === 'GRILL_TERRACE') targetObj = window.terraceGrillObj;
-  else if (actId === 'RELAX_FLOOR_SOFA') targetObj = window.tunisianFloorSofaObj;
-  else if (actId === 'WATER_LEFT_POTS') targetObj = window.activeWaterPot;
-  else if (actId === 'WATER_OLIVE_GARDEN') targetObj = window.activeOliveTree;
-  else if (actId === 'COOK_KITCHEN') targetObj = window.activeKitchenObj || window.kitchenStoveObj || window.kitchenCounterObj;
-  else if (actId === 'WATCH_TV_MAJLIS') targetObj = window.activeMajlisSofa;
-  else if (actId === 'ROOF_BBQ') targetObj = window.roofBbqObj;
-  else if (actId === 'ROOF_LOUNGE') targetObj = window.activeRoofSofa;
+
+  if (actId === 'SWIM_POOL') {
+    const swimState = isWife ? wifeNpcState : maherNpcState;
+    return {
+      pos: swimState.swimTargetPos.clone(),
+      ry: act.ry,
+      zone: 'pool'
+    };
+  }
+
+  if (isWife) {
+    if (actId === 'WATER_FRONT_OLIVES' && window.smallOliveTrees && window.smallOliveTrees.length > 0) {
+      const idx = (wifeNpcState.subIndex || 0) % window.smallOliveTrees.length;
+      targetObj = window.smallOliveTrees[idx];
+    } else if (actId === 'WATER_LEFT_POTS' && window.leftTerracePots && window.leftTerracePots.length > 0) {
+      let idx = (wifeNpcState.subIndex || 0) % window.leftTerracePots.length;
+      targetObj = window.leftTerracePots[idx];
+      if (maherNpcState.currentAct && maherNpcState.currentAct.id === 'WATER_LEFT_POTS' && window.activeWaterPot === targetObj && window.leftTerracePots.length > 1) {
+        idx = (idx + 1) % window.leftTerracePots.length;
+        targetObj = window.leftTerracePots[idx];
+      }
+    } else if (actId === 'MAKE_BED') {
+      targetObj = window.masterBedObj;
+    } else if (actId === 'WATCH_TV_MAJLIS') {
+      if (window.majlisSofas && window.majlisSofas.length > 1) {
+        const maherSofa = (maherNpcState.currentAct && maherNpcState.currentAct.id === 'WATCH_TV_MAJLIS') ? window.activeMajlisSofa : null;
+        targetObj = window.majlisSofas.find(s => s !== maherSofa) || window.majlisSofas[1] || window.activeMajlisSofa;
+      } else {
+        targetObj = window.activeMajlisSofa;
+      }
+    } else if (actId === 'RELAX_FLOOR_SOFA') {
+      targetObj = window.tunisianFloorSofaObj;
+    } else if (actId === 'ROOF_LOUNGE') {
+      if (window.roofSofas && window.roofSofas.length > 1) {
+        const maherRoofSofa = (maherNpcState.currentAct && maherNpcState.currentAct.id === 'ROOF_LOUNGE') ? window.activeRoofSofa : null;
+        targetObj = window.roofSofas.find(s => s !== maherRoofSofa) || window.roofSofas[1] || window.activeRoofSofa;
+      } else {
+        targetObj = window.activeRoofSofa;
+      }
+    } else if (act.patrolPts && act.patrolPts.length > 0) {
+      const pt = act.patrolPts[(wifeNpcState.subIndex || 0) % act.patrolPts.length];
+      const pWorld = bPos(pt[0], pt[1], pt[2]);
+      return {
+        pos: pWorld,
+        ry: pt[3] !== undefined ? pt[3] : act.ry,
+        zone: act.zone
+      };
+    }
+  } else {
+    if (actId === 'GRILL_TERRACE') targetObj = window.terraceGrillObj;
+    else if (actId === 'RELAX_FLOOR_SOFA') targetObj = window.tunisianFloorSofaObj;
+    else if (actId === 'WATER_LEFT_POTS') targetObj = window.activeWaterPot;
+    else if (actId === 'WATER_OLIVE_GARDEN') targetObj = window.activeOliveTree;
+    else if (actId === 'COOK_KITCHEN') targetObj = window.activeKitchenObj || window.kitchenStoveObj || window.kitchenCounterObj;
+    else if (actId === 'WATCH_TV_MAJLIS') targetObj = window.activeMajlisSofa;
+    else if (actId === 'ROOF_BBQ') targetObj = window.roofBbqObj;
+    else if (actId === 'ROOF_LOUNGE') targetObj = window.activeRoofSofa;
+  }
 
   if (targetObj && targetObj.userData && targetObj.userData.npcStandNode && targetObj.userData.npcLookNode) {
     targetObj.updateMatrixWorld(true);
     targetObj.userData.npcStandNode.getWorldPosition(_tmpStandWorld);
     targetObj.userData.npcLookNode.getWorldPosition(_tmpLookWorld);
+
+    // Obstacle-Aware Dynamic Standing Adjustment for Terrace Grill (GRILL_TERRACE):
+    // Automatically detects if the Front Terrace Wall (by = -9.20, bx = 3.35..6.00) or Left Terrace Wall (bx = 1.40, by = -7.10..-9.20)
+    // sits between the grill and the NPC's cooking position when the grill is moved/rotated.
+    if (!isWife && actId === 'GRILL_TERRACE') {
+      const gx = _tmpLookWorld.x;
+      const gy = -_tmpLookWorld.z;
+      let sx = _tmpStandWorld.x;
+      let sy = -_tmpStandWorld.z;
+      const openDx = sx - gx;
+      const openDy = sy - gy;
+
+      // 1. Check Front Terrace Wall (by = -9.20, bx = 3.35 .. 6.00)
+      const nearFrontWallX = (gx >= 3.15 && gx <= 6.20) || (sx >= 3.15 && sx <= 6.20);
+      if (nearFrontWallX) {
+        // Condition A: Grill is placed outside/behind the Front Terrace Wall (gy < -9.20) and its open cooking side faces toward the wall / into the terrace (openDy > 0.15)
+        if (gy < -9.20 && gy >= -10.85 && openDy > 0.15) {
+          sx = Math.max(3.52, Math.min(5.72, sx));
+          sy = Math.max(-8.72, sy);
+          _tmpStandWorld.set(sx, -0.25, -sy);
+        }
+        // Reverse across Front Wall: Grill is inside terrace close to Front Wall (gy >= -9.20 && gy < -8.35) with open side facing South across the wall (openDy < -0.15 && sy <= -8.88)
+        else if (gy >= -9.20 && gy < -8.35 && openDy < -0.15 && sy <= -8.88) {
+          sx = Math.max(3.45, Math.min(5.85, sx));
+          sy = Math.min(-9.68, sy);
+          _tmpStandWorld.set(sx, -0.50, -sy);
+        }
+        // Prevent standing inside the physical wall thickness (-9.58 .. -8.82)
+        else if (sy > -9.58 && sy < -8.82 && sx >= 3.25 && sx <= 6.10) {
+          if (gy < -9.20) {
+            sy = -9.68;
+            _tmpStandWorld.set(sx, -0.50, -sy);
+          } else {
+            sy = -8.72;
+            _tmpStandWorld.set(sx, -0.25, -sy);
+          }
+        }
+      }
+
+      // 2. Check Left Terrace Wall (bx = 1.40, by = -7.10 .. -9.20)
+      const nearLeftWallY = (gy >= -9.35 && gy <= -7.05) || (sy >= -9.35 && sy <= -7.05);
+      if (nearLeftWallY) {
+        // Condition A (Left Wall): Grill is outside the Left Terrace Wall (gx < 1.40) and its open cooking side faces East into the terrace (openDx > 0.15)
+        if (gx < 1.40 && gx >= -0.25 && openDx > 0.15) {
+          sx = Math.max(1.88, sx);
+          sy = Math.max(-8.75, Math.min(-7.15, sy));
+          _tmpStandWorld.set(sx, -0.25, -sy);
+        }
+        // Reverse across Left Wall: Grill is inside terrace close to Left Wall with open side facing West across the wall
+        else if (gx >= 1.40 && gx < 2.25 && openDx < -0.15 && sx <= 1.72 && sy < -7.05) {
+          sx = Math.min(0.92, sx);
+          _tmpStandWorld.set(sx, -0.50, -sy);
+        }
+      }
+
+      const prelimZone = getZoneFromWorldPos(_tmpStandWorld.x, _tmpStandWorld.y, _tmpStandWorld.z);
+      if (prelimZone === 'front_yard') _tmpStandWorld.y = -0.50;
+      else if (prelimZone === 'terrace_right' || prelimZone === 'terrace_left') _tmpStandWorld.y = -0.25;
+      else if (prelimZone.startsWith('inside_')) _tmpStandWorld.y = 0.00;
+    }
+
     const dx = _tmpLookWorld.x - _tmpStandWorld.x;
     const dz = _tmpLookWorld.z - _tmpStandWorld.z;
-    const ry = (Math.hypot(dx, dz) > 0.0001) ? Math.atan2(dx, dz) : act.ry;
+    const distLook = Math.hypot(dx, dz);
+    const ry = (distLook > 0.0001) ? Math.atan2(dx, dz) : act.ry;
+
+    // Anti-collision side-by-side co-seating on Tunisian Floor Sofa (RELAX_FLOOR_SOFA):
+    // When both Maître Maher and his Wife sit on the 2.20m Tunisian Floor Sofa, offset them laterally along the cushion so they sit side by side without clipping!
+    if (actId === 'RELAX_FLOOR_SOFA' && distLook > 0.0001) {
+      const rightX = -dz / distLook;
+      const rightZ = dx / distLook;
+      const sideOffset = isWife ? 0.42 : -0.36;
+      _tmpStandWorld.x += rightX * sideOffset;
+      _tmpStandWorld.z += rightZ * sideOffset;
+    }
+
     const zone = getZoneFromWorldPos(_tmpStandWorld.x, _tmpStandWorld.y, _tmpStandWorld.z);
     return {
       pos: _tmpStandWorld.clone(),
@@ -5908,6 +6703,10 @@ function startMaherActivity(actKey, immediateSpawn = false) {
   const prevZone = maherNpcState.currentZone;
   maherNpcState.currentAct = act;
   maherNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
+  if (act.id === 'SWIM_POOL') {
+    maherNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(false));
+    maherNpcState.swimSubTimer = 5.5 + Math.random() * 3.5;
+  }
   updateMaherFloatingBadge();
 
   if (!maherNpcState.root) return;
@@ -5915,7 +6714,8 @@ function startMaherActivity(actKey, immediateSpawn = false) {
   const dynTarget = getDynamicActivityTarget(act.id);
 
   // Rule requested by user: "d roof (spawn saja khusus d roof)" -> Whenever moving to or from the 2nd floor roof, spawn directly!
-  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn);
+  // Exception: when leaving the swimming pool (prevZone === 'pool' && !immediateSpawn), ALWAYS climb out onto the poolside walkway first!
+  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn) && !(prevZone === 'pool' && !immediateSpawn);
   if (isRoofTransition) {
     maherNpcState.pathQueue = [];
     maherNpcState.mode = 'PERFORMING';
@@ -5928,7 +6728,7 @@ function startMaherActivity(actKey, immediateSpawn = false) {
     return;
   }
 
-  // Otherwise on the ground floor, walk naturally along waypoints through doors & terraces to the live object's target pose!
+  // Otherwise on the ground floor (including entering/exiting the swimming pool via the stepping-stone walkway!), walk naturally along waypoints:
   const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
   maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
   maherNpcState.pathQueue.push(dynTarget.pos.clone());
@@ -5944,11 +6744,512 @@ window.setMaherActivity = function(actKey, immediate = true) {
 };
 
 function pickNextRandomMaherActivity() {
-  // Point 8: When Open Roof toggle is ON (!state.roofVisible, roof is hidden), skip all roof activities!
-  const keys = Object.keys(MAHER_ACTIVITIES).filter(k => state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof');
+  // When finishing SWIM_POOL, always transition to a ground-floor activity so he climbs out onto the poolside stepping-stone walkway toward the Left Terrace!
+  const leavingPool = (maherNpcState.currentAct && maherNpcState.currentAct.id === 'SWIM_POOL');
+  const keys = Object.keys(MAHER_ACTIVITIES).filter(k => {
+    if (leavingPool && MAHER_ACTIVITIES[k].zone === 'roof') return false;
+    return state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof';
+  });
   const others = keys.filter(k => k !== maherNpcState.currentAct.id);
   const nextKey = others[Math.floor(Math.random() * others.length)];
   startMaherActivity(nextKey, false);
+}
+
+// ============================================================================
+// MME MAHER (WIFE OF MAÎTRE MAHER — HIJABI REALISTIC FEMALE NPC & ACTIVITIES)
+// ============================================================================
+const wifeNpcGroup = new THREE.Group();
+scene.add(wifeNpcGroup);
+
+const WIFE_ACTIVITIES = {
+  WATER_FRONT_OLIVES: {
+    id: 'WATER_FRONT_OLIVES',
+    zone: 'front_yard',
+    bx: -4.80, by: -14.28, bz: -0.50,
+    ry: 0,
+    clip: 'Water_Plants',
+    prop: 'watering_can',
+    duration: [15, 21], // 3x faster per tree than Maître Maher's [45, 65]s!
+    seqCount: 5,
+    en: 'Watering the 5 Small Olive Trees in Front Yard',
+    ar: 'تسقي شجيرات الزيتون الخمس أمام الدار'
+  },
+  WATER_LEFT_POTS: {
+    id: 'WATER_LEFT_POTS',
+    zone: 'pool_west',
+    bx: -12.37, by: -5.20, bz: -0.41,
+    ry: -Math.PI / 2,
+    clip: 'Water_Plants',
+    prop: 'watering_can',
+    duration: [16, 23], // 3x faster per pot than Maître Maher's [50, 70]s!
+    seqCount: 6,
+    en: 'Watering Flower Pots along West Poolside',
+    ar: 'تسقي محابس النوار بجانب المسبح الغربي بالتساوي'
+  },
+  SWIM_POOL: {
+    id: 'SWIM_POOL',
+    zone: 'pool',
+    bx: -10.85, by: -2.20, bz: -1.46, // Submerged to upper stomach (-0.44m water surface - (-1.46m feet) = 1.02m submerged!)
+    ry: 0,
+    clip: 'Stand_Idle',
+    prop: null,
+    duration: [55, 80],
+    en: 'Swimming & Floating in Family Pool',
+    ar: 'تعوم وتطفو في المسبح العائلي'
+  },
+  SWEEP_INSIDE: {
+    id: 'SWEEP_INSIDE',
+    zone: 'inside_majlis',
+    bx: 1.85, by: -1.10, bz: 0.00,
+    ry: Math.PI,
+    clip: 'Sweep_Floor',
+    prop: 'broom',
+    duration: [55, 75], // Same loop duration as Maître Maher
+    patrolPts: [
+      [1.85, -1.10, 0.00, Math.PI],
+      [2.65,  1.55, 0.00, Math.PI / 2],
+      [0.25, -2.15, 0.00, 0],
+      [-1.15, 0.85, 0.00, -Math.PI / 2]
+    ],
+    en: 'Sweeping Inside the Villa (Salon & Hall)',
+    ar: 'تكنس وسط الدار والصالة'
+  },
+  SWEEP_OUTSIDE: {
+    id: 'SWEEP_OUTSIDE',
+    zone: 'front_yard',
+    bx: -4.20, by: -11.45, bz: -0.48,
+    ry: Math.PI / 2,
+    clip: 'Sweep_Floor',
+    prop: 'broom',
+    duration: [50, 70],
+    patrolPts: [
+      [-4.20, -11.45, -0.48, Math.PI / 2],
+      [-0.80, -11.45, -0.48, Math.PI / 2],
+      [ 2.38, -11.45, -0.48, Math.PI],
+      [ 2.38, -10.25, -0.48, Math.PI]
+    ],
+    en: 'Sweeping the Letter-L Garden Walkway',
+    ar: 'تكنس الممر الحجري والجنينة الأمامية'
+  },
+  SWEEP_TERRACE: {
+    id: 'SWEEP_TERRACE',
+    zone: 'terrace_right',
+    bx: 2.65, by: -6.55, bz: -0.25,
+    ry: 0,
+    clip: 'Sweep_Floor',
+    prop: 'broom',
+    duration: [50, 70],
+    patrolPts: [
+      [2.65, -6.55, -0.25, 0],
+      [3.55, -7.75, -0.25, Math.PI / 2],
+      [2.35, -8.25, -0.25, Math.PI]
+    ],
+    en: 'Sweeping the Front Courtyard Terrace',
+    ar: 'تكنس السقيفة قدام الباب الرئيسي'
+  },
+  SWEEP_ROOF: {
+    id: 'SWEEP_ROOF',
+    zone: 'roof',
+    bx: 1.25, by: 1.35, bz: 3.78,
+    ry: 0,
+    clip: 'Sweep_Floor',
+    prop: 'broom',
+    duration: [50, 70],
+    patrolPts: [
+      [1.25,  1.35, 3.78, 0],
+      [1.25, -1.15, 3.78, Math.PI],
+      [-1.75, 0.85, 3.78, -Math.PI / 2]
+    ],
+    en: 'Sweeping the 2nd Floor Rooftop Terrace',
+    ar: 'تكنس السطح الفوقاني (الطابق الثاني)'
+  },
+  MAKE_BED: {
+    id: 'MAKE_BED',
+    zone: 'inside_bedroom',
+    bx: -3.28, by: 2.50, bz: 0.00,
+    ry: -Math.PI / 2,
+    clip: 'Make_Bed',
+    prop: null,
+    duration: [45, 65],
+    en: 'Tidying & Making the Master Bed',
+    ar: 'ترتب الفرش في بيت النوم الرئيسية'
+  },
+  WATCH_TV_MAJLIS: {
+    id: 'WATCH_TV_MAJLIS',
+    zone: 'inside_majlis',
+    bx: 4.74, by: 1.85, bz: 0.02,
+    ry: -Math.PI / 2,
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [55, 80],
+    en: 'Sitting on Salon Sofa & Watching TV',
+    ar: 'قاعدة في الصالة تتفرج في التلفزة'
+  },
+  RELAX_FLOOR_SOFA: {
+    id: 'RELAX_FLOOR_SOFA',
+    zone: 'terrace_right',
+    bx: 5.07, by: -5.65, bz: -0.215,
+    ry: 0,
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [50, 70],
+    en: 'Relaxing on Tunisian Floor Sofa on Terrace',
+    ar: 'مرتاحة على الجلسة التونسية في السقيفة'
+  },
+  ROOF_LOUNGE: {
+    id: 'ROOF_LOUNGE',
+    zone: 'roof',
+    bx: 4.18, by: 1.40, bz: 3.80,
+    ry: -Math.PI / 2,
+    clip: 'Seated_Idle',
+    prop: null,
+    duration: [50, 70],
+    en: 'Relaxing on Rooftop Lounge Sofa (2nd Floor)',
+    ar: 'مرتاحة في جلسة السطح (الطابق الثاني)'
+  }
+};
+window.WIFE_ACTIVITIES = WIFE_ACTIVITIES;
+
+const wifeNpcState = {
+  loaded: false,
+  root: null,
+  mixer: null,
+  actions: {},
+  activeAction: null,
+  handBoneR: null,
+  swimBones: {},
+  propWateringCan: null,
+  propBroom: null,
+  broomBristleTip: null,
+  spoutTip: null,
+  spoutWorldPos: new THREE.Vector3(),
+  mode: 'PERFORMING',
+  currentAct: WIFE_ACTIVITIES.WATER_FRONT_OLIVES,
+  currentZone: 'front_yard',
+  subIndex: 0,
+  subTimer: 16.0,
+  pathQueue: [],
+  swimTargetPos: new THREE.Vector3(-10.85, -1.46, 2.20),
+  swimSubTimer: 5.2,
+  swimSpeed: 0.70,
+  timer: 85.0,
+  walkSpeed: 1.42,
+  waterAccum: 0
+};
+window.wifeNpcState = wifeNpcState;
+
+const wifeBadgeCanvas = document.createElement('canvas');
+wifeBadgeCanvas.width = 512;
+wifeBadgeCanvas.height = 96;
+const wifeBadgeTex = new THREE.CanvasTexture(wifeBadgeCanvas);
+wifeBadgeTex.encoding = THREE.sRGBEncoding;
+const wifeBadgeMat = new THREE.SpriteMaterial({
+  map: wifeBadgeTex,
+  transparent: true,
+  depthTest: false,
+  depthWrite: false
+});
+const wifeBadgeSprite = new THREE.Sprite(wifeBadgeMat);
+wifeBadgeSprite.scale.set(0.96, 0.18, 1.0);
+wifeBadgeSprite.position.set(0, 1.82, 0);
+wifeBadgeSprite.renderOrder = 999;
+wifeBadgeSprite.raycast = () => {};
+window.wifeBadgeSprite = wifeBadgeSprite;
+
+function updateWifeFloatingBadge() {
+  if (!wifeNpcState || !wifeNpcState.currentAct) return;
+  const ctx = wifeBadgeCanvas.getContext('2d');
+  ctx.clearRect(0, 0, 512, 96);
+  ctx.fillStyle = 'rgba(18, 14, 28, 0.84)';
+  ctx.strokeStyle = 'rgba(236, 172, 198, 0.88)';
+  ctx.lineWidth = 3;
+  const r = 24;
+  ctx.beginPath();
+  ctx.moveTo(12 + r, 10);
+  ctx.lineTo(500 - r, 10);
+  ctx.quadraticCurveTo(500, 10, 500, 10 + r);
+  ctx.lineTo(500, 86 - r);
+  ctx.quadraticCurveTo(500, 86, 500 - r, 86);
+  ctx.lineTo(12 + r, 86);
+  ctx.quadraticCurveTo(12, 86, 12, 86 - r);
+  ctx.lineTo(12, 10 + r);
+  ctx.quadraticCurveTo(12, 10, 12 + r, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fbcfe8';
+  ctx.font = 'bold 23px Outfit, sans-serif';
+  ctx.fillText(state.lang === 'ar' ? 'حرم الأستاذ ماهر' : 'Mme Maher (Wife)', 256, 42);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '500 17px Outfit, sans-serif';
+  const actText = state.lang === 'ar' ? wifeNpcState.currentAct.ar : wifeNpcState.currentAct.en;
+  ctx.fillText(actText, 256, 70);
+  wifeBadgeTex.needsUpdate = true;
+}
+
+function buildWifeHandheldProps(handBone) {
+  // 1. Copper & Brass Garden Watering Can (same design as Maître Maher's watering can)
+  const canGrp = new THREE.Group();
+  canGrp.position.set(0, -0.075, -0.02);
+  canGrp.rotation.x = 1.32;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.080, 0.090, 0.18, 16), matCopper);
+  body.position.set(0, -0.10, 0.06);
+  canGrp.add(body);
+  const topHandle = new THREE.Mesh(new THREE.TorusGeometry(0.070, 0.009, 8, 16, Math.PI * 1.25), matBrass);
+  topHandle.rotation.y = Math.PI / 2;
+  topHandle.position.set(0, 0.0, 0.04);
+  canGrp.add(topHandle);
+  const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.020, 0.23, 10), matCopper);
+  spout.rotation.x = Math.PI * 0.36;
+  spout.position.set(0, -0.06, 0.19);
+  canGrp.add(spout);
+  const rose = new THREE.Mesh(new THREE.ConeGeometry(0.030, 0.026, 12), matBrass);
+  rose.rotation.x = -Math.PI * 0.64;
+  rose.position.set(0, -0.01, 0.30);
+  rose.name = 'WifeWateringSpoutTip';
+  canGrp.add(rose);
+  canGrp.visible = false;
+  handBone.add(canGrp);
+  wifeNpcState.propWateringCan = canGrp;
+  wifeNpcState.spoutTip = rose;
+
+  // 2. Traditional Tunisian Wooden-Handle & Woven Straw Floor Broom (Sapu)
+  //    Using the same Hand.R local frame as canGrp (rotation.x = 1.32 makes local -Y point straight down to the floor!):
+  const broomGrp = new THREE.Group();
+  broomGrp.position.set(0, -0.02, 0.02);
+  broomGrp.rotation.x = 1.48;
+
+  const matStrawBroom = new THREE.MeshStandardMaterial({
+    color: 0xd2a858,
+    roughness: 0.86,
+    metalness: 0.02
+  });
+  const matBroomBind = new THREE.MeshStandardMaterial({
+    color: 0x8e2420,
+    roughness: 0.65
+  });
+
+  // Long turned walnut broom handle extending along local Y from above the hand (+0.32m) down to the broom head (-0.90m)
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 1.24, 10), matWalnut);
+  shaft.position.set(0, -0.30, 0.0);
+  shaft.castShadow = true;
+  broomGrp.add(shaft);
+
+  // Red woven binding cap & flared natural straw bristles at the bottom of the shaft (local -Y -> touches floor!)
+  const bindCap = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.055, 0.07, 12), matBroomBind);
+  bindCap.position.set(0, -0.86, 0.0);
+  broomGrp.add(bindCap);
+
+  const bristles = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.145, 0.22, 14), matStrawBroom);
+  bristles.scale.set(1.15, 1.0, 0.42);
+  bristles.position.set(0, -0.98, 0.0);
+  bristles.castShadow = true;
+  broomGrp.add(bristles);
+
+  const bristleTip = new THREE.Object3D();
+  bristleTip.position.set(0, -1.09, 0.0);
+  broomGrp.add(bristleTip);
+
+  broomGrp.visible = false;
+  handBone.add(broomGrp);
+  wifeNpcState.propBroom = broomGrp;
+  wifeNpcState.broomBristleTip = bristleTip;
+}
+
+function playWifeClip(clipName, fadeSec = 0.26) {
+  if (!wifeNpcState.loaded) return;
+  const nextAct = wifeNpcState.actions[clipName] || wifeNpcState.actions['Stand_Idle'];
+  if (!nextAct || wifeNpcState.activeAction === nextAct) return;
+  nextAct.enabled = true;
+  nextAct.setEffectiveTimeScale(1.0);
+  nextAct.setEffectiveWeight(1.0);
+  nextAct.reset().play();
+  if (wifeNpcState.activeAction) {
+    wifeNpcState.activeAction.crossFadeTo(nextAct, fadeSec, false);
+  }
+  wifeNpcState.activeAction = nextAct;
+}
+
+function setWifeProp(propType) {
+  if (wifeNpcState.propWateringCan) wifeNpcState.propWateringCan.visible = (propType === 'watering_can');
+  if (wifeNpcState.propBroom) wifeNpcState.propBroom.visible = (propType === 'broom');
+}
+
+function startWifeActivity(actKey, immediateSpawn = false) {
+  const act = WIFE_ACTIVITIES[actKey] || WIFE_ACTIVITIES.WATER_FRONT_OLIVES;
+  const prevZone = wifeNpcState.currentZone;
+  wifeNpcState.currentAct = act;
+  wifeNpcState.subIndex = 0;
+
+  if (act.id === 'WATER_FRONT_OLIVES' || act.id === 'WATER_LEFT_POTS') {
+    const perPlantDur = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
+    wifeNpcState.subTimer = perPlantDur;
+    wifeNpcState.timer = perPlantDur * (act.seqCount || 5);
+  } else {
+    wifeNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
+    wifeNpcState.subTimer = 14.0;
+  }
+  if (act.id === 'SWIM_POOL') {
+    wifeNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(true));
+    wifeNpcState.swimSubTimer = 5.2 + Math.random() * 3.5;
+  }
+  updateWifeFloatingBadge();
+
+  if (!wifeNpcState.root) return;
+
+  const dynTarget = getDynamicActivityTarget(act.id, true);
+  // Exception: when leaving the swimming pool (prevZone === 'pool' && !immediateSpawn), ALWAYS climb out onto the poolside walkway first!
+  const isRoofTransition = (dynTarget.zone === 'roof' || prevZone === 'roof' || immediateSpawn) && !(prevZone === 'pool' && !immediateSpawn);
+  if (isRoofTransition) {
+    wifeNpcState.pathQueue = [];
+    wifeNpcState.mode = 'PERFORMING';
+    wifeNpcState.currentZone = dynTarget.zone;
+    wifeNpcState.root.position.copy(dynTarget.pos);
+    wifeNpcState.root.rotation.y = dynTarget.ry;
+    setWifeProp(act.prop);
+    playWifeClip(act.clip, 0.22);
+    requestShadowUpdate();
+    return;
+  }
+
+  const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
+  wifeNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+  wifeNpcState.pathQueue.push(dynTarget.pos.clone());
+  wifeNpcState.currentZone = dynTarget.zone;
+  wifeNpcState.mode = 'WALKING';
+  setWifeProp(null);
+  playWifeClip('Walk_Cycle', 0.22);
+}
+
+window.setWifeActivity = function(actKey, immediate = true) {
+  startWifeActivity(actKey, immediate);
+};
+
+function pickNextRandomWifeActivity() {
+  // When finishing SWIM_POOL, always transition to a ground-floor activity so she climbs out onto the poolside stepping-stone walkway toward the Left Terrace!
+  const leavingPool = (wifeNpcState.currentAct && wifeNpcState.currentAct.id === 'SWIM_POOL');
+  const keys = Object.keys(WIFE_ACTIVITIES).filter(k => {
+    if (leavingPool && WIFE_ACTIVITIES[k].zone === 'roof') return false;
+    return state.roofVisible || WIFE_ACTIVITIES[k].zone !== 'roof';
+  });
+  const others = keys.filter(k => k !== wifeNpcState.currentAct.id);
+  const nextKey = others[Math.floor(Math.random() * others.length)];
+  startWifeActivity(nextKey, false);
+}
+
+function loadMaherWifeNPC() {
+  loadingActive++; loadingTotal++;
+  updateLoadingUI();
+
+  const onWifeGltfLoaded = (gltf) => {
+    const npcScene = gltf.scene;
+    const armRoot = npcScene.getObjectByName('Maher_Wife') || npcScene;
+
+    armRoot.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.frustumCulled = false;
+        if (ch.material) {
+          const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+          mats.forEach(m => {
+            m.envMapIntensity = 0.52;
+            m.userData = { customEnvIntensity: 0.52 };
+            m.needsUpdate = true;
+          });
+        }
+      }
+      if (ch.isBone) {
+        const bn = ch.name;
+        if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
+          wifeNpcState.handBoneR = ch;
+          wifeNpcState.swimBones.handR = ch;
+        } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L') {
+          wifeNpcState.swimBones.handL = ch;
+        } else if (bn === 'UpperArm.L' || bn === 'UpperArmL') {
+          wifeNpcState.swimBones.upperArmL = ch;
+        } else if (bn === 'ForeArm.L' || bn === 'ForeArmL') {
+          wifeNpcState.swimBones.foreArmL = ch;
+        } else if (bn === 'UpperArm.R' || bn === 'UpperArmR') {
+          wifeNpcState.swimBones.upperArmR = ch;
+        } else if (bn === 'ForeArm.R' || bn === 'ForeArmR') {
+          wifeNpcState.swimBones.foreArmR = ch;
+        } else if (bn === 'UpLeg.L' || bn === 'UpLegL') {
+          wifeNpcState.swimBones.upLegL = ch;
+        } else if (bn === 'LowLeg.L' || bn === 'LowLegL') {
+          wifeNpcState.swimBones.lowLegL = ch;
+        } else if (bn === 'UpLeg.R' || bn === 'UpLegR') {
+          wifeNpcState.swimBones.upLegR = ch;
+        } else if (bn === 'LowLeg.R' || bn === 'LowLegR') {
+          wifeNpcState.swimBones.lowLegR = ch;
+        }
+      }
+    });
+
+    if (wifeNpcState.handBoneR) {
+      buildWifeHandheldProps(wifeNpcState.handBoneR);
+    }
+
+    armRoot.add(wifeBadgeSprite);
+    wifeNpcGroup.add(armRoot);
+    wifeNpcState.root = armRoot;
+    wifeNpcState.mixer = new THREE.AnimationMixer(armRoot);
+
+    (gltf.animations || []).forEach((clip) => {
+      const cleanClip = clip.clone();
+      cleanClip.tracks = cleanClip.tracks.filter(trk => {
+        if (!trk.name.endsWith('.position')) return true;
+        return trk.name.includes('Hips');
+      });
+      for (const baseName of ['Walk_Cycle', 'Stand_Idle', 'Water_Plants', 'Sweep_Floor', 'Make_Bed', 'Seated_Idle']) {
+        if (clip.name.includes(baseName)) {
+          wifeNpcState.actions[baseName] = wifeNpcState.mixer.clipAction(cleanClip);
+        }
+      }
+    });
+
+    wifeNpcState.loaded = true;
+    // Start immediately watering the 5 small potted olive trees in the front yard sequentially!
+    startWifeActivity('WATER_FRONT_OLIVES', true);
+
+    loadingActive--;
+    updateLoadingUI();
+    requestShadowUpdate();
+  };
+
+  const loadWifeFromUrl = () => {
+    const ghFallbackUrl = 'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/maher_wife_npc.glb';
+    const firstUrl = (window.location.protocol === 'file:') ? ghFallbackUrl : './maher_wife_npc.glb';
+    gltfLoader.load(firstUrl, onWifeGltfLoaded, undefined, () => {
+      gltfLoader.load(ghFallbackUrl, onWifeGltfLoaded, undefined, (err) => {
+        console.warn('Could not load maher_wife_npc.glb:', err);
+        loadingActive--;
+        updateLoadingUI();
+      });
+    });
+  };
+
+  if (window.MAHER_WIFE_GLB_B64 && typeof window.MAHER_WIFE_GLB_B64 === 'string') {
+    try {
+      const binStr = window.atob(window.MAHER_WIFE_GLB_B64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binStr.charCodeAt(i);
+      }
+      gltfLoader.parse(bytes.buffer, '', onWifeGltfLoaded, (err) => {
+        console.warn('Wife Base64 parse fallback to URL:', err);
+        loadWifeFromUrl();
+      });
+      return;
+    } catch (e) {
+      console.warn('Wife Base64 decode fallback to URL:', e);
+    }
+  }
+  loadWifeFromUrl();
 }
 
 function loadMaitreMaherNPC() {
@@ -5973,8 +7274,30 @@ function loadMaitreMaherNPC() {
           });
         }
       }
-      if (ch.isBone && (ch.name === 'Hand.R' || ch.name === 'HandR' || ch.name === 'Hand_R')) {
-        maherNpcState.handBoneR = ch;
+      if (ch.isBone) {
+        const bn = ch.name;
+        if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
+          maherNpcState.handBoneR = ch;
+          maherNpcState.swimBones.handR = ch;
+        } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L') {
+          maherNpcState.swimBones.handL = ch;
+        } else if (bn === 'UpperArm.L' || bn === 'UpperArmL') {
+          maherNpcState.swimBones.upperArmL = ch;
+        } else if (bn === 'ForeArm.L' || bn === 'ForeArmL') {
+          maherNpcState.swimBones.foreArmL = ch;
+        } else if (bn === 'UpperArm.R' || bn === 'UpperArmR') {
+          maherNpcState.swimBones.upperArmR = ch;
+        } else if (bn === 'ForeArm.R' || bn === 'ForeArmR') {
+          maherNpcState.swimBones.foreArmR = ch;
+        } else if (bn === 'UpLeg.L' || bn === 'UpLegL') {
+          maherNpcState.swimBones.upLegL = ch;
+        } else if (bn === 'LowLeg.L' || bn === 'LowLegL') {
+          maherNpcState.swimBones.lowLegL = ch;
+        } else if (bn === 'UpLeg.R' || bn === 'UpLegR') {
+          maherNpcState.swimBones.upLegR = ch;
+        } else if (bn === 'LowLeg.R' || bn === 'LowLegR') {
+          maherNpcState.swimBones.lowLegR = ch;
+        }
       }
     });
 
@@ -6046,6 +7369,50 @@ function loadMaitreMaherNPC() {
 }
 
 function updateMaherNpcAndParticles(dt) {
+  const nowSec = performance.now() * 0.001;
+
+  // 0. Animate Pool Water Wave Normal Map & 18 Random 3D Water Ripple Rings (Task 3 & 5)
+  if (window.poolWaveNorTex) {
+    window.poolWaveNorTex.offset.x = (window.poolWaveNorTex.offset.x + dt * 0.048) % 1.0;
+    window.poolWaveNorTex.offset.y = (window.poolWaveNorTex.offset.y + dt * 0.034) % 1.0;
+  }
+  if (window.poolRippleRings && window.poolRippleRings.length > 0) {
+    const maherInPool = maherNpcState.loaded && maherNpcState.root && maherNpcState.root.position.x < -8.12 && maherNpcState.root.position.y < -0.68;
+    const wifeInPool = wifeNpcState.loaded && wifeNpcState.root && wifeNpcState.root.position.x < -8.12 && wifeNpcState.root.position.y < -0.68;
+    for (let i = 0; i < window.poolRippleRings.length; i++) {
+      const r = window.poolRippleRings[i];
+      if (!r || !r.mesh || !r.mesh.material) continue;
+      r.age += dt;
+      if (r.age >= r.maxAge) {
+        r.age = 0;
+        r.maxAge = 1.6 + Math.random() * 1.4;
+        if (maherInPool && i % 4 === 0) {
+          r.mesh.position.x = maherNpcState.root.position.x + (Math.random() - 0.5) * 0.24;
+          r.mesh.position.z = maherNpcState.root.position.z + (Math.random() - 0.5) * 0.24;
+          r.baseScale = 0.72;
+          r.maxOpacity = 0.65;
+        } else if (wifeInPool && i % 4 === 2) {
+          r.mesh.position.x = wifeNpcState.root.position.x + (Math.random() - 0.5) * 0.24;
+          r.mesh.position.z = wifeNpcState.root.position.z + (Math.random() - 0.5) * 0.24;
+          r.baseScale = 0.68;
+          r.maxOpacity = 0.62;
+        } else {
+          const rbx = -11.65 + Math.random() * 2.90;
+          const rby = -6.55 + Math.random() * 6.90;
+          r.mesh.position.x = rbx;
+          r.mesh.position.z = -rby;
+          r.baseScale = 0.45 + Math.random() * 0.55;
+          r.maxOpacity = 0.38 + Math.random() * 0.24;
+        }
+      }
+      const prog = Math.max(0, Math.min(1, r.age / (r.maxAge || 2.0)));
+      const sc = 0.22 + prog * (r.baseScale || 0.6) * 2.6;
+      r.mesh.scale.set(sc, sc, 1);
+      r.mesh.updateMatrix();
+      r.mesh.material.opacity = Math.sin(prog * Math.PI) * (r.maxOpacity || 0.45);
+    }
+  }
+
   // 1. Update Maître Maher NPC state machine & animation mixer
   if (maherNpcState.loaded && maherNpcState.root && maherNpcState.mixer) {
     // Hide rooftop NPC only when viewing 1st-floor cutaway top view or when roof is hidden
@@ -6067,7 +7434,8 @@ function updateMaherNpcAndParticles(dt) {
         const dx = target.x - pos.x;
         const dz = target.z - pos.z;
         const dist = Math.hypot(dx, dz);
-        const step = maherNpcState.walkSpeed * dt;
+        const inWaterNow = (pos.x < -8.12 && pos.y < -0.68);
+        const step = (inWaterNow ? maherNpcState.swimSpeed : maherNpcState.walkSpeed) * dt;
 
         if (dist <= step + 0.04) {
           pos.copy(target);
@@ -6076,7 +7444,7 @@ function updateMaherNpcAndParticles(dt) {
           pos.x += (dx / dist) * step;
           pos.z += (dz / dist) * step;
           pos.y += (target.y - pos.y) * Math.min(1.0, dt * 8.0);
-          // Smoothly rotate character to face walking direction (+Z is forward in MakeHuman GLB)
+          // Smoothly rotate character to face walking/swimming direction (+Z is forward in MakeHuman GLB)
           const targetYaw = Math.atan2(dx, dz);
           let diff = targetYaw - maherNpcState.root.rotation.y;
           while (diff > Math.PI) diff -= Math.PI * 2;
@@ -6091,6 +7459,36 @@ function updateMaherNpcAndParticles(dt) {
         maherNpcState.root.rotation.y = dynTarget.ry;
         setMaherProp(act.prop);
         playMaherClip(act.clip, 0.25);
+      }
+    } else if (act.id === 'SWIM_POOL') {
+      // Task 5: Swimming in Family Pool — body submerged to upper stomach (-1.52m under -0.44m water surface),
+      // moving around randomly inside the pool for the duration of the loop!
+      const pos = maherNpcState.root.position;
+      const target = maherNpcState.swimTargetPos;
+      const dx = target.x - pos.x;
+      const dz = target.z - pos.z;
+      const dist = Math.hypot(dx, dz);
+      const step = maherNpcState.swimSpeed * dt;
+      maherNpcState.swimSubTimer -= dt;
+
+      if (dist <= step + 0.08 || maherNpcState.swimSubTimer <= 0) {
+        maherNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(false));
+        maherNpcState.swimSubTimer = 5.0 + Math.random() * 4.5;
+      } else {
+        pos.x += (dx / dist) * step;
+        pos.z += (dz / dist) * step;
+        const targetYaw = Math.atan2(dx, dz);
+        let diff = targetYaw - maherNpcState.root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 4.5);
+      }
+      // Subtle buoyancy bobbing right at upper-stomach immersion depth (-1.52m)
+      pos.y = -1.52 + Math.sin(nowSec * 2.4) * 0.024;
+
+      maherNpcState.timer -= dt;
+      if (maherNpcState.timer <= 0) {
+        pickNextRandomMaherActivity();
       }
     } else {
       // PERFORMING current activity:
@@ -6126,6 +7524,11 @@ function updateMaherNpcAndParticles(dt) {
     }
 
     maherNpcState.mixer.update(dt);
+    // Apply treading-water / floating hand & arm motion whenever Maître Maher is in the pool water!
+    if ((act.id === 'SWIM_POOL' && maherNpcState.mode === 'PERFORMING') ||
+        (maherNpcState.root.position.x < -8.12 && maherNpcState.root.position.y < -0.68)) {
+      applyNpcSwimTreadPose(maherNpcState, nowSec, false);
+    }
     maherNpcState.shadowTick = (maherNpcState.shadowTick + 1) % 4;
     if (maherNpcState.shadowTick === 0) requestShadowUpdate();
   }
@@ -6168,7 +7571,7 @@ function updateMaherNpcAndParticles(dt) {
     }
   }
 
-  // 3. Spawn pouring water droplets directly from the 3D watering can spout tip when Maître Maher is watering flowers/olive trees!
+  // 3. Spawn pouring water droplets directly from the 3D watering can spout tip when Maître Maher or Mme Maher is watering flowers/olive trees!
   if (maherNpcState.loaded && maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.prop === 'watering_can') {
     maherNpcState.waterAccum += dt;
     if (maherNpcState.waterAccum >= 0.035) {
@@ -6180,6 +7583,160 @@ function updateMaherNpcAndParticles(dt) {
         maherNpcState.spoutTip.getWorldPosition(maherNpcState.spoutWorldPos);
         spawnWaterDroplet(maherNpcState.spoutWorldPos.x, maherNpcState.spoutWorldPos.y, maherNpcState.spoutWorldPos.z, fwdX, fwdZ);
         spawnWaterDroplet(maherNpcState.spoutWorldPos.x, maherNpcState.spoutWorldPos.y, maherNpcState.spoutWorldPos.z, fwdX, fwdZ);
+      }
+    }
+  }
+
+  // 3B. Update Mme Maher (Wife) NPC state machine, sequential plant/olive watering, 4-zone sweeping, bed making, co-seating & swimming!
+  if (wifeNpcState.loaded && wifeNpcState.root && wifeNpcState.mixer) {
+    if (wifeNpcState.currentZone === 'roof' && (viewMode === 'top1' || !state.roofVisible)) {
+      wifeNpcGroup.visible = false;
+    } else {
+      wifeNpcGroup.visible = true;
+    }
+
+    const wAct = wifeNpcState.currentAct;
+    const wDynTarget = getDynamicActivityTarget(wAct.id, true);
+
+    if (wifeNpcState.mode === 'WALKING') {
+      if (wifeNpcState.pathQueue.length > 0) {
+        wifeNpcState.pathQueue[wifeNpcState.pathQueue.length - 1].copy(wDynTarget.pos);
+        const target = wifeNpcState.pathQueue[0];
+        const pos = wifeNpcState.root.position;
+        const dx = target.x - pos.x;
+        const dz = target.z - pos.z;
+        const dist = Math.hypot(dx, dz);
+        const inWaterNow = (pos.x < -8.12 && pos.y < -0.68);
+        const step = (inWaterNow ? wifeNpcState.swimSpeed : wifeNpcState.walkSpeed) * dt;
+
+        if (dist <= step + 0.04) {
+          pos.copy(target);
+          wifeNpcState.pathQueue.shift();
+        } else {
+          pos.x += (dx / dist) * step;
+          pos.z += (dz / dist) * step;
+          pos.y += (target.y - pos.y) * Math.min(1.0, dt * 8.0);
+          const targetYaw = Math.atan2(dx, dz);
+          let diff = targetYaw - wifeNpcState.root.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          wifeNpcState.root.rotation.y += diff * Math.min(1.0, dt * 10.0);
+        }
+      } else {
+        wifeNpcState.mode = 'PERFORMING';
+        wifeNpcState.currentZone = wDynTarget.zone;
+        wifeNpcState.root.position.copy(wDynTarget.pos);
+        wifeNpcState.root.rotation.y = wDynTarget.ry;
+        setWifeProp(wAct.prop);
+        playWifeClip(wAct.clip, 0.25);
+      }
+    } else if (wAct.id === 'SWIM_POOL') {
+      // Task 5: Mme Maher Swimming in Family Pool — submerged to upper stomach (-1.46m under -0.44m water surface),
+      // moving around randomly inside the pool for the duration of the loop!
+      const pos = wifeNpcState.root.position;
+      const target = wifeNpcState.swimTargetPos;
+      const dx = target.x - pos.x;
+      const dz = target.z - pos.z;
+      const dist = Math.hypot(dx, dz);
+      const step = wifeNpcState.swimSpeed * dt;
+      wifeNpcState.swimSubTimer -= dt;
+
+      if (dist <= step + 0.08 || wifeNpcState.swimSubTimer <= 0) {
+        wifeNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(true));
+        wifeNpcState.swimSubTimer = 4.8 + Math.random() * 4.2;
+      } else {
+        pos.x += (dx / dist) * step;
+        pos.z += (dz / dist) * step;
+        const targetYaw = Math.atan2(dx, dz);
+        let diff = targetYaw - wifeNpcState.root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        wifeNpcState.root.rotation.y += diff * Math.min(1.0, dt * 4.5);
+      }
+      pos.y = -1.46 + Math.sin(nowSec * 2.5 + 1.4) * 0.022;
+
+      wifeNpcState.timer -= dt;
+      if (wifeNpcState.timer <= 0) {
+        pickNextRandomWifeActivity();
+      }
+    } else {
+      const pos = wifeNpcState.root.position;
+      const distToTarget = Math.hypot(wDynTarget.pos.x - pos.x, wDynTarget.pos.z - pos.z);
+      if (!isDraggingObject && distToTarget > 0.14) {
+        if (wDynTarget.zone === 'roof' || wifeNpcState.currentZone === 'roof') {
+          wifeNpcState.currentZone = wDynTarget.zone;
+          pos.copy(wDynTarget.pos);
+          wifeNpcState.root.rotation.y = wDynTarget.ry;
+        } else {
+          const wps = computeGroundFloorWaypoints(wifeNpcState.currentZone, wDynTarget.zone);
+          wifeNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
+          wifeNpcState.pathQueue.push(wDynTarget.pos.clone());
+          wifeNpcState.currentZone = wDynTarget.zone;
+          wifeNpcState.mode = 'WALKING';
+          setWifeProp(null);
+          playWifeClip('Walk_Cycle', 0.20);
+        }
+      } else if (!isDraggingObject) {
+        pos.lerp(wDynTarget.pos, Math.min(1.0, dt * 12.0));
+        let diff = wDynTarget.ry - wifeNpcState.root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        wifeNpcState.root.rotation.y += diff * Math.min(1.0, dt * 12.0);
+      }
+
+      // Advance per-plant / per-tree / per-sweep-spot subTimer so she steps sequentially from olive #1..#5, pot #1..#6, or across the floor while sweeping!
+      wifeNpcState.subTimer -= dt;
+      if (wifeNpcState.subTimer <= 0) {
+        if (wAct.id === 'WATER_FRONT_OLIVES' || wAct.id === 'WATER_LEFT_POTS') {
+          wifeNpcState.subIndex = (wifeNpcState.subIndex + 1) % (wAct.seqCount || 5);
+          wifeNpcState.subTimer = wAct.duration[0] + Math.random() * (wAct.duration[1] - wAct.duration[0]);
+        } else if (wAct.patrolPts && wAct.patrolPts.length > 1) {
+          wifeNpcState.subIndex = (wifeNpcState.subIndex + 1) % wAct.patrolPts.length;
+          wifeNpcState.subTimer = 14.0;
+        } else {
+          wifeNpcState.subTimer = 20.0;
+        }
+      }
+
+      wifeNpcState.timer -= dt;
+      if (wifeNpcState.timer <= 0) {
+        pickNextRandomWifeActivity();
+      }
+    }
+
+    wifeNpcState.mixer.update(dt);
+    // Apply treading-water / floating hand & arm motion whenever Mme Maher is in the pool water!
+    if ((wAct.id === 'SWIM_POOL' && wifeNpcState.mode === 'PERFORMING') ||
+        (wifeNpcState.root.position.x < -8.12 && wifeNpcState.root.position.y < -0.68)) {
+      applyNpcSwimTreadPose(wifeNpcState, nowSec, true);
+    }
+
+    // Ensure the broom bristles always touch the floor cleanly when sweeping!
+    if (wifeNpcState.propBroom && wifeNpcState.propBroom.visible && wifeNpcState.broomBristleTip) {
+      wifeNpcState.propBroom.position.y = -0.02;
+      wifeNpcState.root.updateMatrixWorld(true);
+      const handWorldPos = _tmpLookWorld;
+      wifeNpcState.handBoneR.getWorldPosition(handWorldPos);
+      wifeNpcState.broomBristleTip.getWorldPosition(_tmpStandWorld);
+      const floorY = wifeNpcState.root.position.y + 0.015;
+      const errY = _tmpStandWorld.y - floorY;
+      const tipSign = (_tmpStandWorld.y < handWorldPos.y) ? -1.0 : 1.0;
+      wifeNpcState.propBroom.position.y = Math.max(-0.35, Math.min(0.35, -0.02 + tipSign * errY));
+    }
+
+    // Pour water droplets from Wife's watering can spout when she is watering the 5 olive trees or left terrace pots!
+    if (wifeNpcState.mode === 'PERFORMING' && wifeNpcState.currentAct.prop === 'watering_can') {
+      wifeNpcState.waterAccum += dt;
+      if (wifeNpcState.waterAccum >= 0.035) {
+        wifeNpcState.waterAccum = 0;
+        const yaw = wifeNpcState.root.rotation.y + Math.sin(performance.now() * 0.0032) * 0.16;
+        const fwdX = Math.sin(yaw);
+        const fwdZ = Math.cos(yaw);
+        if (wifeNpcState.spoutTip) {
+          wifeNpcState.spoutTip.getWorldPosition(wifeNpcState.spoutWorldPos);
+          spawnWaterDroplet(wifeNpcState.spoutWorldPos.x, wifeNpcState.spoutWorldPos.y, wifeNpcState.spoutWorldPos.z, fwdX, fwdZ);
+          spawnWaterDroplet(wifeNpcState.spoutWorldPos.x, wifeNpcState.spoutWorldPos.y, wifeNpcState.spoutWorldPos.z, fwdX, fwdZ);
+        }
       }
     }
   }
@@ -6225,7 +7782,7 @@ function updateMaherNpcAndParticles(dt) {
 // BOOTSTRAP SCENE
 // ============================================================================
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v7');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v8');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -6249,8 +7806,9 @@ async function initApp() {
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
-  // Load Maître Maher (the single realistic 3D NPC in the villa)
+  // Load Maître Maher & Mme Maher (Wife) 3D NPCs in the villa
   loadMaitreMaherNPC();
+  loadMaherWifeNPC();
 
   await Promise.all([
     rebuildCategory('bed'),
@@ -6275,6 +7833,9 @@ async function initApp() {
     });
     if (maherNpcState.loaded && maherNpcState.currentAct) {
       startMaherActivity(maherNpcState.currentAct.id, true);
+    }
+    if (wifeNpcState.loaded && wifeNpcState.currentAct) {
+      startWifeActivity(wifeNpcState.currentAct.id, true);
     }
   }
   requestShadowUpdate();
