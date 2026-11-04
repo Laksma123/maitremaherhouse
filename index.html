@@ -203,13 +203,6 @@
 
 <div id="top-hud-stack">
   <div id="top-bar">
-    <div class="brand-title">
-      <div class="brand-badge">☪</div>
-      <div class="brand-text">
-        <h1 id="ui-app-title">MODERN ARABIC & TUNISIA VILLA 3D</h1>
-        <p id="ui-app-subtitle">Click once to select object, then drag to move • Doors & windows snap to walls & swing open</p>
-      </div>
-    </div>
     <div class="top-actions">
       <button class="btn-pill btn-photoshoot" id="btn-photoshoot" onclick="startPhotoshootRender()">📸 Photoshoot (Blender Render)</button>
       <button class="btn-pill btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">🇹🇳 العربية التونسية</button>
@@ -231,8 +224,8 @@
     </div>
     <div class="strip-group" id="cam-strip">
       <button class="cam-btn active" id="cam-exterior" onclick="setCamPreset('exterior', this)">🏛️ Facade</button>
-      <button class="cam-btn" id="cam-maher" style="border-color:rgba(232,185,89,0.65); color:#fde68a;" onclick="focusCameraOnMaher(this)">👨‍🦲 Maître Maher (NPC)</button>
-      <button class="cam-btn" id="cam-maher-next" style="border-color:rgba(232,185,89,0.45);" onclick="cycleMaherActivityAndFocus()">🔄 Next NPC Action</button>
+      <button class="cam-btn" id="cam-maher" style="border-color:rgba(232,185,89,0.65); color:#fde68a;" onclick="focusCameraOnMaher(this)">👨‍🦲 Maître Maher</button>
+      <button class="cam-btn" id="cam-maher-next" style="border-color:rgba(232,185,89,0.45);" onclick="cycleMaherActivityAndFocus()">🔄 Next Action</button>
       <button class="cam-btn" id="cam-majlis" onclick="setCamPreset('majlis', this)">🛋️ Salon & TV</button>
       <button class="cam-btn" id="cam-bedroom" onclick="setCamPreset('bedroom', this)">🛏️ Bedroom</button>
       <button class="cam-btn" id="cam-kitchen" onclick="setCamPreset('kitchen', this)">🍳 Kitchen</button>
@@ -317,8 +310,8 @@ const I18N = {
     camKitchen: '🍳 Kitchen',
     camBathroom: '🚿 Bathroom',
     camRooftop: '🔥 Rooftop',
-    camMaher: '👨‍🦲 Maître Maher (NPC)',
-    camMaherNext: '🔄 Next NPC Action',
+    camMaher: '👨‍🦲 Maître Maher',
+    camMaherNext: '🔄 Next Action',
     loadingText: '⏳ Downloading AAA 3D PBR Assets & HDRI Skies...',
     hudDefault: '📌 Click once on any 3D object to select • Drag unselected = rotate camera',
     hudSelected: '🎯 Selected (Drag to Move): ',
@@ -356,8 +349,8 @@ const I18N = {
     camKitchen: '🍳 الكوجينة',
     camBathroom: '🚿 الحمام',
     camRooftop: '🔥 السطح',
-    camMaher: '👨‍🦲 الأستاذ ماهر (NPC)',
-    camMaherNext: '🔄 نشاط ماهر التالي',
+    camMaher: '👨‍🦲 الأستاذ ماهر',
+    camMaherNext: '🔄 النشاط التالي',
     loadingText: '⏳ جاري تحميل مجسمات 3D وخرائط الإضاءة الواقعية...',
     hudDefault: '📌 انقر مرة لتحديد أي مجسم 3D ثم اسحبه • السحب بدون تحديد يدور الكاميرا',
     hudSelected: '🎯 العنصر المحدد (اسحب للتحريك): ',
@@ -1979,7 +1972,7 @@ function buildStaticArchitecture() {
   //    Features glowing charcoal embers, cast-iron grates, 3D grilled fish & beef steaks, and a small pitched roof canopy!
   // ==========================================================================
   const terraceGrillGroup = new THREE.Group();
-  const gx = 4.85, gy = -7.95;
+  const gx = 4.85, gy = -7.55;
 
   // Stone & Travertine Grill Island Plinth + Walnut Doors + Dark Steel Firebox
   addBoxMesh(1.42, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
@@ -3730,12 +3723,12 @@ async function buildStaticPolyHavenDecor() {
   const plants = [
     ['potted_plant_02', [5.32, 4.20, 0.02], 1.35],
     ['potted_plant_01', [1.65, -0.65, 0.02], 1.15],
-    ['potted_plant_02', [-5.15, -5.58, -0.25], 1.48],
-    ['potted_plant_04', [-3.55, -5.58, -0.25], 1.38],
-    ['potted_plant_02', [-1.85, -5.58, -0.25], 1.65],
-    ['potted_plant_01', [-0.15, -5.62, -0.25], 1.38],
-    ['potted_plant_04', [-4.35, -6.58, -0.25], 1.35],
-    ['potted_plant_01', [-2.65, -6.58, -0.25], 1.32]
+    ['potted_plant_02', [-5.20, -5.55, -0.25], 1.48],
+    ['potted_plant_04', [-4.15, -5.55, -0.25], 1.38],
+    ['potted_plant_01', [-3.10, -5.55, -0.25], 1.32],
+    ['potted_plant_02', [-2.05, -5.55, -0.25], 1.62],
+    ['potted_plant_04', [-1.05, -5.55, -0.25], 1.35],
+    ['potted_plant_01', [-0.15, -5.58, -0.25], 1.38]
   ];
   for (const [id, pos, h] of plants) {
     const pm = await loadPHModel(id);
@@ -4405,6 +4398,10 @@ function toggleRoof() {
   roofGroup.visible = state.roofVisible;
   facadeDecorGroup.visible = true;
   furnGroups.lamps.visible = true;
+  // Point 8: When Open Roof is ON (roof hidden: !state.roofVisible), skip/exit any roof activity immediately!
+  if (!state.roofVisible && window.maherNpcState && window.maherNpcState.currentZone === 'roof') {
+    startMaherActivity('GRILL_TERRACE', true);
+  }
   requestShadowUpdate();
   updateStaticUIStrings();
 }
@@ -4548,22 +4545,26 @@ function focusCameraOnMaher(btnEl) {
   const zone = window.maherNpcState.currentZone;
   const pos = window.maherNpcState.root.position;
 
-  // Automatically open roof cutaway if Maître Maher is currently inside the house!
-  if (zone === 'inside_kitchen' || zone === 'inside_majlis') {
-    state.roofVisible = false;
-    roofGroup.visible = false;
-    perspCamera.position.set(pos.x - 2.1, pos.y + 2.3, pos.z + 2.4);
-    controls.target.set(pos.x + 0.3, pos.y + 0.95, pos.z - 0.2);
+  if (zone === 'inside_kitchen') {
+    if (!state.roofVisible) {
+      perspCamera.position.set(pos.x - 1.75, pos.y + 2.25, pos.z + 2.15);
+    } else {
+      perspCamera.position.set(pos.x - 1.35, pos.y + 1.68, pos.z + 1.65);
+    }
+    controls.target.set(pos.x + 0.35, pos.y + 0.95, pos.z - 0.15);
+  } else if (zone === 'inside_majlis') {
+    if (!state.roofVisible) {
+      perspCamera.position.set(pos.x - 1.65, pos.y + 2.25, pos.z - 2.35);
+    } else {
+      perspCamera.position.set(pos.x - 1.35, pos.y + 1.68, pos.z - 2.05);
+    }
+    controls.target.set(pos.x + 0.15, pos.y + 0.85, pos.z - 0.35);
   } else if (zone === 'roof') {
-    state.roofVisible = true;
-    roofGroup.visible = true;
-    perspCamera.position.set(pos.x + 2.6, pos.y + 1.9, pos.z + 2.6);
+    perspCamera.position.set(pos.x + 2.4, pos.y + 1.85, pos.z + 2.4);
     controls.target.set(pos.x, pos.y + 0.95, pos.z);
   } else {
-    state.roofVisible = true;
-    roofGroup.visible = true;
-    perspCamera.position.set(pos.x - 1.6, pos.y + 1.85, pos.z + 3.2);
-    controls.target.set(pos.x + 0.25, pos.y + 0.95, pos.z - 0.2);
+    perspCamera.position.set(pos.x - 1.35, pos.y + 1.80, pos.z + 2.85);
+    controls.target.set(pos.x, pos.y + 0.95, pos.z - 0.35);
   }
   controls.update();
   requestShadowUpdate();
@@ -4572,9 +4573,10 @@ function focusCameraOnMaher(btnEl) {
 
 function cycleMaherActivityAndFocus() {
   if (!window.maherNpcState) return;
-  const keys = Object.keys(MAHER_ACTIVITIES);
-  const curIdx = keys.indexOf(window.maherNpcState.currentAct.id);
-  const nextKey = keys[(curIdx + 1) % keys.length];
+  // Point 8: When Open Roof toggle is ON (!state.roofVisible, roof is hidden), skip all roof activities!
+  const allKeys = Object.keys(MAHER_ACTIVITIES).filter(k => state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof');
+  const curIdx = allKeys.indexOf(window.maherNpcState.currentAct.id);
+  const nextKey = allKeys[(curIdx + 1) % allKeys.length];
   startMaherActivity(nextKey, true);
   focusCameraOnMaher(document.getElementById('cam-maher'));
 }
@@ -5433,38 +5435,38 @@ const MAHER_WAYPOINTS = {
   LEFT_ENTRY:[0.40, -6.20, -0.25]
 };
 
-// All 7 autonomous activities for Maître Maher
+// All autonomous activities for Maître Maher (Note: in Three.js MakeHuman GLB, ry=0 faces South/-by, ry=Math.PI faces North/+by, ry=Math.PI/2 faces East/+bx, ry=-Math.PI/2 faces West/-bx)
 const MAHER_ACTIVITIES = {
   GRILL_TERRACE: {
     id: 'GRILL_TERRACE',
     zone: 'terrace_right',
-    bx: 4.02, by: -7.95, bz: -0.25,
-    ry: Math.PI / 2, // Faces East (+X) toward the Covered Terrace BBQ Grill at bx = 4.85, by = -7.95
+    bx: 4.85, by: -8.36, bz: -0.25,
+    ry: Math.PI, // Stands directly at the open South side of the grill (bx=4.85, by=-7.55) facing North (+by) into the open grill!
     clip: 'Cook_Action',
     prop: 'spatula',
-    duration: [11, 16],
+    duration: [55, 80], // 5x duration
     en: 'Grilling Mediterranean Fish & Beef Steak on Terrace',
     ar: 'يشوي الحوت والستيك في السقيفة'
   },
   RELAX_FLOOR_SOFA: {
     id: 'RELAX_FLOOR_SOFA',
     zone: 'terrace_right',
-    bx: 4.65, by: -5.68, bz: -0.35, // Lowered slightly so Seated_Idle places him comfortably on the low Tunisian floor sofa!
-    ry: Math.PI, // Faces South (+Z in world) toward the terrace grill & courtyard
+    bx: 4.65, by: -5.62, bz: -0.35,
+    ry: 0, // Faces South (-by, away from window/backrest toward the terrace)
     clip: 'Seated_Idle',
     prop: null,
-    duration: [10, 14],
+    duration: [50, 70], // 5x duration
     en: 'Relaxing on Tunisian Floor Sofa under the Window',
     ar: 'مرتاح على الجلسة التونسية الأرضية تحت الشباك'
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
     zone: 'terrace_left',
-    bx: -2.15, by: -6.32, bz: -0.25,
-    ry: 0, // Faces North (-Z in world) toward the row of potted plants on the Left Concrete Terrace
+    bx: -2.05, by: -6.32, bz: -0.25,
+    ry: Math.PI, // Stands directly in front of the potted plants at by=-5.55 facing North (+by) toward the pots!
     clip: 'Water_Plants',
     prop: 'watering_can',
-    duration: [10, 14],
+    duration: [50, 70], // 5x duration
     en: 'Watering Potted Flowers on Left Concrete Terrace',
     ar: 'يسقي المحابس والنوار في التراس الغربي'
   },
@@ -5472,21 +5474,21 @@ const MAHER_ACTIVITIES = {
     id: 'COOK_KITCHEN',
     zone: 'inside_kitchen',
     bx: 0.24, by: -2.50, bz: 0.00,
-    ry: Math.PI / 2, // Faces East (+X) toward the Kitchen Stove & steaming Brass Pot / Skillet at bx = 0.92, by = -2.50
+    ry: Math.PI / 2, // Faces East (+bx) toward the Kitchen Stove & steaming Brass Pot / Skillet at bx = 0.92, by = -2.50
     clip: 'Cook_Action',
     prop: 'spatula',
-    duration: [11, 16],
+    duration: [55, 80], // 5x duration
     en: 'Cooking in the Kitchen (Steaming Pot & Skillet)',
     ar: 'يطيب في الكوجينة مع الدخان طالع من الطنجرة'
   },
   WATCH_TV_MAJLIS: {
     id: 'WATCH_TV_MAJLIS',
     zone: 'inside_majlis',
-    bx: 3.40, by: 0.30, bz: 0.02,
-    ry: 0, // Faces North (-Z in world) sitting on the South Majlis Sofa watching the Live Tunisian News TV!
+    bx: 3.40, by: 0.22, bz: 0.02,
+    ry: Math.PI, // Faces North (+by) sitting on the South Majlis Sofa watching the Live Tunisian News TV on the North wall!
     clip: 'Seated_Idle',
     prop: null,
-    duration: [12, 17],
+    duration: [60, 85], // 5x duration
     en: 'Sitting on Salon Sofa & Watching Tunisian News TV',
     ar: 'قاعد في الصالة يتفرج في الأخبار التونسية'
   },
@@ -5494,10 +5496,10 @@ const MAHER_ACTIVITIES = {
     id: 'WATER_OLIVE_GARDEN',
     zone: 'front_yard',
     bx: -0.05, by: -9.55, bz: -0.50,
-    ry: 0, // Faces North toward the 3m Ancient Olive Tree
+    ry: Math.PI, // Faces North (+by) directly toward the 3m Ancient Olive Tree at bx = -0.05, by = -8.25!
     clip: 'Water_Plants',
     prop: 'watering_can',
-    duration: [9, 13],
+    duration: [45, 65], // 5x duration
     en: 'Watering the Ancient Olive Tree & Garden',
     ar: 'يسقي شجرة الزيتون والجنينة'
   },
@@ -5505,21 +5507,21 @@ const MAHER_ACTIVITIES = {
     id: 'ROOF_BBQ',
     zone: 'roof', // Spawns directly on the 2nd Floor Roof! ("d roof (spawn saja khusus d roof)")
     bx: -3.88, by: 2.65, bz: 3.78,
-    ry: -Math.PI / 2, // Faces West (-X) toward the Rooftop Stone BBQ Fire Pit at bx = -4.65, by = 2.65
+    ry: -Math.PI / 2, // Faces West (-bx) toward the Rooftop Stone BBQ Fire Pit at bx = -4.65, by = 2.65
     clip: 'Cook_Action',
     prop: 'spatula',
-    duration: [10, 14],
+    duration: [50, 70], // 5x duration
     en: 'Grilling at Rooftop BBQ Bar (2nd Floor)',
     ar: 'يشوي في بار ومشواة السطح (الطابق الثاني)'
   },
   ROOF_LOUNGE: {
     id: 'ROOF_LOUNGE',
     zone: 'roof', // Spawns directly on the 2nd Floor Roof!
-    bx: 2.85, by: -0.32, bz: 3.80,
-    ry: 0, // Faces North sitting on the Rooftop Lounge Sofa under the Pergola
+    bx: 2.85, by: -0.38, bz: 3.80,
+    ry: Math.PI, // Faces North (+by) sitting on the South Rooftop Lounge Sofa looking toward the rooftop coffee table!
     clip: 'Seated_Idle',
     prop: null,
-    duration: [10, 14],
+    duration: [50, 70], // 5x duration
     en: 'Relaxing on Rooftop Pergola Lounge (2nd Floor)',
     ar: 'مرتاح في جلسة السطح تحت البرغولا'
   }
@@ -5534,12 +5536,13 @@ const maherNpcState = {
   handBoneR: null,
   propSpatula: null,
   propWateringCan: null,
+  spoutTip: null,
   spoutWorldPos: new THREE.Vector3(),
   mode: 'PERFORMING', // 'WALKING' | 'PERFORMING'
   currentAct: MAHER_ACTIVITIES.GRILL_TERRACE,
   currentZone: 'terrace_right',
   pathQueue: [],
-  timer: 12.0,
+  timer: 65.0,
   walkSpeed: 1.48,
   smokeAccum: 0,
   waterAccum: 0,
@@ -5549,43 +5552,50 @@ window.maherNpcState = maherNpcState;
 
 function buildMaherHandheldProps(handBone) {
   // 1. Stainless Steel & Walnut BBQ/Kitchen Spatula
+  //    In Hand.R local space when the arm is raised (~-86° around X), rotating +1.62 rad (+93°) around X makes +Z point horizontally forward & slightly downward onto the grill/pan!
   const spatulaGrp = new THREE.Group();
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.16, 10), matWalnut);
+  spatulaGrp.position.set(0, -0.045, 0.015);
+  spatulaGrp.rotation.x = 1.36;
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.16, 10), matWalnut);
   handle.rotation.x = Math.PI / 2;
-  handle.position.set(0, 0, 0.08);
+  handle.position.set(0, 0, 0.06);
   spatulaGrp.add(handle);
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.14, 8), matChrome);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.15, 8), matChrome);
   stem.rotation.x = Math.PI / 2;
-  stem.position.set(0, 0, 0.22);
+  stem.position.set(0, 0, 0.21);
   spatulaGrp.add(stem);
-  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.004, 0.11), matChrome);
-  blade.position.set(0, -0.005, 0.32);
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.005, 0.12), matChrome);
+  blade.position.set(0, 0.0, 0.32);
   spatulaGrp.add(blade);
   spatulaGrp.visible = false;
   handBone.add(spatulaGrp);
   maherNpcState.propSpatula = spatulaGrp;
 
   // 2. Traditional Copper & Brass Garden Watering Can
+  //    Rotated +1.32 rad (+76°) around local X so when the arm reaches forward in Water_Plants, the watering can hangs naturally below the handle and tilts its spout forward & downward toward the pots!
   const canGrp = new THREE.Group();
+  canGrp.position.set(0, -0.075, -0.02);
+  canGrp.rotation.x = 1.32;
   const body = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.19, 16), matCopper);
-  body.position.set(0, -0.06, 0.12);
+  body.position.set(0, -0.10, 0.06);
   canGrp.add(body);
   const topHandle = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.010, 8, 16, Math.PI * 1.25), matBrass);
   topHandle.rotation.y = Math.PI / 2;
-  topHandle.position.set(0, 0.03, 0.09);
+  topHandle.position.set(0, 0.0, 0.04);
   canGrp.add(topHandle);
   const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.022, 0.24, 10), matCopper);
-  spout.rotation.x = Math.PI * 0.34;
-  spout.position.set(0, -0.02, 0.26);
+  spout.rotation.x = Math.PI * 0.36;
+  spout.position.set(0, -0.06, 0.20);
   canGrp.add(spout);
   const rose = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.028, 12), matBrass);
-  rose.rotation.x = -Math.PI * 0.66;
-  rose.position.set(0, 0.04, 0.37);
+  rose.rotation.x = -Math.PI * 0.64;
+  rose.position.set(0, -0.01, 0.31);
   rose.name = 'WateringSpoutTip';
   canGrp.add(rose);
   canGrp.visible = false;
   handBone.add(canGrp);
   maherNpcState.propWateringCan = canGrp;
+  maherNpcState.spoutTip = rose;
 }
 
 function playMaherClip(clipName, fadeSec = 0.28) {
@@ -5663,8 +5673,8 @@ const maherBadgeMat = new THREE.SpriteMaterial({
   depthWrite: false
 });
 const maherBadgeSprite = new THREE.Sprite(maherBadgeMat);
-maherBadgeSprite.scale.set(1.55, 0.29, 1.0);
-maherBadgeSprite.position.set(0, 1.96, 0);
+maherBadgeSprite.scale.set(0.96, 0.18, 1.0);
+maherBadgeSprite.position.set(0, 1.88, 0);
 maherBadgeSprite.renderOrder = 999;
 maherBadgeSprite.raycast = () => {};
 window.maherBadgeSprite = maherBadgeSprite;
@@ -5694,7 +5704,7 @@ function updateMaherFloatingBadge() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fde68a';
   ctx.font = 'bold 24px Outfit, sans-serif';
-  ctx.fillText(state.lang === 'ar' ? '👨‍🦲 الأستاذ ماهر (NPC)' : '👨‍🦲 Maître Maher (NPC)', 256, 42);
+  ctx.fillText(state.lang === 'ar' ? 'الأستاذ ماهر' : 'Maître Maher', 256, 42);
 
   ctx.fillStyle = '#e2e8f0';
   ctx.font = '500 18px Outfit, sans-serif';
@@ -5742,7 +5752,8 @@ window.setMaherActivity = function(actKey, immediate = true) {
 };
 
 function pickNextRandomMaherActivity() {
-  const keys = Object.keys(MAHER_ACTIVITIES);
+  // Point 8: When Open Roof toggle is ON (!state.roofVisible, roof is hidden), skip all roof activities!
+  const keys = Object.keys(MAHER_ACTIVITIES).filter(k => state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof');
   const others = keys.filter(k => k !== maherNpcState.currentAct.id);
   const nextKey = others[Math.floor(Math.random() * others.length)];
   startMaherActivity(nextKey, false);
@@ -5802,7 +5813,7 @@ function loadMaitreMaherNPC() {
     maherNpcState.loaded = true;
     // Start immediately on the terrace grilling fish & beef steak under the small grill roof!
     startMaherActivity('GRILL_TERRACE', true);
-    maherNpcState.timer = 22.0; // Stay on the front terrace for 22s initially so the user immediately sees him!
+    maherNpcState.timer = 65.0; // 5x duration on initial startup
 
     loadingActive--;
     updateLoadingUI();
@@ -5845,8 +5856,8 @@ function loadMaitreMaherNPC() {
 function updateMaherNpcAndParticles(dt) {
   // 1. Update Maître Maher NPC state machine & animation mixer
   if (maherNpcState.loaded && maherNpcState.root && maherNpcState.mixer) {
-    // Hide rooftop NPC only when viewing 1st-floor cutaway top view
-    if (maherNpcState.currentZone === 'roof' && viewMode === 'top1') {
+    // Hide rooftop NPC only when viewing 1st-floor cutaway top view or when roof is hidden
+    if (maherNpcState.currentZone === 'roof' && (viewMode === 'top1' || !state.roofVisible)) {
       maherNpcGroup.visible = false;
     } else {
       maherNpcGroup.visible = true;
@@ -5899,7 +5910,7 @@ function updateMaherNpcAndParticles(dt) {
 
   // 2. Spawn continuous 3D cooking smoke/steam from:
   //    a) Kitchen Stove Brass Pot & Copper Skillet (bx = 0.92, by = -2.50, bz = 0.98)
-  //    b) Terrace Covered BBQ Grill with Fish & Beef Steak (bx = 4.85, by = -7.95, bz = 0.80)
+  //    b) Terrace Covered BBQ Grill with Fish & Beef Steak (bx = 4.85, by = -7.55, bz = 0.80)
   //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof (bx = -4.65, by = 2.65, bz = 5.05)
   maherNpcState.smokeAccum += dt;
   if (maherNpcState.smokeAccum >= 0.10) {
@@ -5915,7 +5926,7 @@ function updateMaherNpcAndParticles(dt) {
     spawnSmokePuff(skPos.x, skPos.y, skPos.z, isCookingKitchen ? 0.72 : 0.38, isCookingKitchen ? 0.46 : 0.30);
 
     // Terrace BBQ grill smoke (rising from grilled fish & beef steak under the small grill roof)
-    const gPos = bPos(4.85, -7.95, 0.80);
+    const gPos = bPos(4.85, -7.55, 0.80);
     spawnSmokePuff(gPos.x, gPos.y, gPos.z, isGrillingTerrace ? 0.62 : 0.40, isGrillingTerrace ? 0.48 : 0.34);
 
     // Rooftop BBQ smoke when active
@@ -5925,20 +5936,19 @@ function updateMaherNpcAndParticles(dt) {
     }
   }
 
-  // 3. Spawn pouring water droplets when Maître Maher is watering flowers/olive trees!
+  // 3. Spawn pouring water droplets directly from the 3D watering can spout tip when Maître Maher is watering flowers/olive trees!
   if (maherNpcState.loaded && maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.prop === 'watering_can') {
     maherNpcState.waterAccum += dt;
     if (maherNpcState.waterAccum >= 0.035) {
       maherNpcState.waterAccum = 0;
-      const rootPos = maherNpcState.root.position;
-      const yaw = maherNpcState.root.rotation.y + Math.sin(performance.now() * 0.003) * 0.22;
+      const yaw = maherNpcState.root.rotation.y + Math.sin(performance.now() * 0.003) * 0.16;
       const fwdX = Math.sin(yaw);
       const fwdZ = Math.cos(yaw);
-      const spoutX = rootPos.x + fwdX * 0.55 - fwdZ * 0.16;
-      const spoutY = rootPos.y + 0.92;
-      const spoutZ = rootPos.z + fwdZ * 0.55 + fwdX * 0.16;
-      spawnWaterDroplet(spoutX, spoutY, spoutZ, fwdX, fwdZ);
-      spawnWaterDroplet(spoutX, spoutY, spoutZ, fwdX, fwdZ);
+      if (maherNpcState.spoutTip) {
+        maherNpcState.spoutTip.getWorldPosition(maherNpcState.spoutWorldPos);
+        spawnWaterDroplet(maherNpcState.spoutWorldPos.x, maherNpcState.spoutWorldPos.y, maherNpcState.spoutWorldPos.z, fwdX, fwdZ);
+        spawnWaterDroplet(maherNpcState.spoutWorldPos.x, maherNpcState.spoutWorldPos.y, maherNpcState.spoutWorldPos.z, fwdX, fwdZ);
+      }
     }
   }
 
