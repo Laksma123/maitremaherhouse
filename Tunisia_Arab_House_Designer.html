@@ -578,8 +578,7 @@ scene.background = new THREE.Color(0x16121e);
 scene.environment = hdriCache.sunset.envMap;
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
+controls.enableDamping = false;
 controls.target.set(0.2, 1.2, 6.2);
 controls.maxPolarAngle = Math.PI * 0.492;
 controls.minDistance = 1.6;
@@ -696,51 +695,153 @@ const concreteArmTex = phTexInfo.concrete_pavement_02 ? loadPHTexture(phTexInfo.
 
 function makeOliveLeafClusterTexture() {
   const c = document.createElement('canvas');
-  c.width = 512; c.height = 512;
+  c.width = 1024; c.height = 1024;
   const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, 512, 512);
+  ctx.clearRect(0, 0, 1024, 1024);
 
-  // Fine woody olive twigs
-  ctx.strokeStyle = '#6f6556';
-  ctx.lineCap = 'round';
-  for (let b = 0; b < 14; b++) {
-    const a = (b / 14) * Math.PI * 2 + 0.15;
-    ctx.lineWidth = 3.5;
+  // Draw natural forked woody Mediterranean olive twigs (Olea europaea)
+  const drawBranchTwig = (x0, y0, ang, len, thick, depth) => {
+    const x1 = x0 + Math.cos(ang) * len;
+    const y1 = y0 + Math.sin(ang) * len;
+    const cx = (x0 + x1) * 0.5 + Math.cos(ang + 1.57) * (len * 0.06);
+    const cy = (y0 + y1) * 0.5 + Math.sin(ang + 1.57) * (len * 0.06);
+
+    ctx.strokeStyle = depth === 0 ? '#695f50' : '#7d7364';
+    ctx.lineWidth = thick;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(256, 256);
-    ctx.quadraticCurveTo(256 + Math.cos(a + 0.2) * 110, 256 + Math.sin(a + 0.2) * 110, 256 + Math.cos(a) * 215, 256 + Math.sin(a) * 215);
+    ctx.moveTo(x0, y0);
+    ctx.quadraticCurveTo(cx, cy, x1, y1);
     ctx.stroke();
-  }
 
-  // Hundreds of lanceolate Mediterranean olive leaves (rich olive green + silvery-sage underside)
-  const palette = ['#445937', '#536b43', '#627a51', '#748c62', '#3a4d2e', '#869c75', '#5b734b'];
-  for (let i = 0; i < 520; i++) {
-    const rad = 10 + Math.pow((i * 0.6180339) % 1, 0.72) * 218;
+    // Opposite pairs of narrow, sharply pointed lanceolate olive leaves along the shoot
+    const pairs = Math.max(4, Math.floor(len / 26));
+    const upperPalette = ['#435736', '#4e633f', '#586e49', '#3b4d2f', '#627852'];
+    const silverPalette = ['#8ea182', '#9eb092', '#7e9172', '#a8b89d'];
+
+    for (let p = 1; p <= pairs; p++) {
+      const t = p / (pairs + 0.4);
+      const bx = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1;
+      const by = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * cy + t * t * y1;
+
+      [-1, 1].forEach((side, sIdx) => {
+        const leafAng = ang + side * (0.52 + (p % 3) * 0.08) + Math.sin(p * 1.9 + sIdx) * 0.08;
+        const leafLen = (36 + ((p + depth) % 4) * 6.5) * (1.0 - t * 0.22);
+        const leafWid = leafLen * 0.19; // True narrow lanceolate Olea europaea aspect ratio (~5:1)
+        const isSilverUnderside = ((p + sIdx + depth) % 3 === 0);
+
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(leafAng);
+
+        // Short petiole stem
+        ctx.strokeStyle = '#756c5b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(leafLen * 0.14, 0);
+        ctx.stroke();
+
+        // Pointed lanceolate leaf blade (tapered base and sharp mucronate apex)
+        ctx.fillStyle = isSilverUnderside
+          ? silverPalette[(p + sIdx) % silverPalette.length]
+          : upperPalette[(p + sIdx + depth) % upperPalette.length];
+        ctx.beginPath();
+        ctx.moveTo(leafLen * 0.10, 0);
+        ctx.quadraticCurveTo(leafLen * 0.52, -leafWid, leafLen, 0);
+        ctx.quadraticCurveTo(leafLen * 0.52, leafWid, leafLen * 0.10, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        // Subtle leaf edge rim & central midrib vein
+        ctx.strokeStyle = isSilverUnderside ? 'rgba(218, 228, 210, 0.55)' : 'rgba(165, 184, 148, 0.48)';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(leafLen * 0.14, 0);
+        ctx.lineTo(leafLen * 0.92, 0);
+        ctx.stroke();
+
+        ctx.restore();
+      });
+    }
+
+    // Terminal leaf pair at shoot tip
+    [-0.22, 0.22].forEach((da, tIdx) => {
+      const leafLen = 34;
+      const leafWid = 6.4;
+      ctx.save();
+      ctx.translate(x1, y1);
+      ctx.rotate(ang + da);
+      ctx.fillStyle = tIdx === 0 ? '#556b45' : '#96a889';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(leafLen * 0.5, -leafWid, leafLen, 0);
+      ctx.quadraticCurveTo(leafLen * 0.5, leafWid, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+
+    if (depth < 2) {
+      drawBranchTwig(
+        (x0 + x1) * 0.5,
+        (y0 + y1) * 0.5,
+        ang - 0.52,
+        len * 0.64,
+        Math.max(2.0, thick * 0.68),
+        depth + 1
+      );
+      drawBranchTwig(
+        x0 * 0.35 + x1 * 0.65,
+        y0 * 0.35 + y1 * 0.65,
+        ang + 0.48,
+        len * 0.58,
+        Math.max(2.0, thick * 0.65),
+        depth + 1
+      );
+    }
+  };
+
+  // Radiating natural olive shoots with airy gaps between sprigs
+  const shootAngles = [0.12, 0.78, 1.42, 2.08, 2.75, 3.42, 4.08, 4.72, 5.38, 5.92];
+  shootAngles.forEach((a, idx) => {
+    const startR = 32 + (idx % 3) * 18;
+    const sx = 512 + Math.cos(a) * startR;
+    const sy = 512 + Math.sin(a) * startR;
+    drawBranchTwig(sx, sy, a + (idx % 2 === 0 ? 0.06 : -0.06), 310 + (idx % 3) * 28, 5.2, 0);
+  });
+
+  // Additional overlapping inner lanceolate leaves to enrich the crown center while keeping edges feathery
+  const allColors = ['#465938', '#546a44', '#637852', '#8fa382', '#3c4e30', '#9caf90', '#4f6340'];
+  for (let i = 0; i < 240; i++) {
+    const rad = 18 + Math.pow((i * 0.6180339) % 1, 0.85) * 340;
     const ang = i * 2.39996;
-    const lx = 256 + Math.cos(ang) * rad;
-    const ly = 256 + Math.sin(ang) * rad;
-    const leafAngle = ang + ((i % 2 === 0) ? 0.55 : -0.55) + Math.sin(i) * 0.25;
-    const len = 17 + (i % 5) * 3.2;
-    const wid = 4.5 + (i % 3) * 1.2;
+    const lx = 512 + Math.cos(ang) * rad;
+    const ly = 512 + Math.sin(ang) * rad;
+    const leafAngle = ang + ((i % 2 === 0) ? 0.48 : -0.48) + Math.sin(i * 1.7) * 0.22;
+    const len = 32 + (i % 5) * 4.5;
+    const wid = len * 0.18;
 
     ctx.save();
     ctx.translate(lx, ly);
     ctx.rotate(leafAngle);
-
-    ctx.fillStyle = palette[i % palette.length];
+    ctx.fillStyle = allColors[i % allColors.length];
     ctx.beginPath();
-    ctx.ellipse(0, 0, len, wid, 0, 0, Math.PI * 2);
+    ctx.moveTo(-len * 0.45, 0);
+    ctx.quadraticCurveTo(0, -wid, len * 0.55, 0);
+    ctx.quadraticCurveTo(0, wid, -len * 0.45, 0);
+    ctx.closePath();
     ctx.fill();
 
-    // Subtle olive midrib vein
-    ctx.strokeStyle = 'rgba(168, 184, 152, 0.42)';
-    ctx.lineWidth = 0.9;
+    ctx.strokeStyle = 'rgba(182, 198, 168, 0.42)';
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(-len * 0.82, 0);
-    ctx.lineTo(len * 0.82, 0);
+    ctx.moveTo(-len * 0.38, 0);
+    ctx.lineTo(len * 0.48, 0);
     ctx.stroke();
     ctx.restore();
   }
+
   const tex = new THREE.CanvasTexture(c);
   tex.anisotropy = maxAniso;
   tex.encoding = THREE.sRGBEncoding;
@@ -957,11 +1058,12 @@ const wallMaterials = {};
     color: 0xede3d2,
     map: plasterDiffTex,
     normalMap: plasterNorTex,
-    normalScale: new THREE.Vector2(0.85, 0.85),
+    normalScale: new THREE.Vector2(0.95, 0.95),
     roughnessMap: plasterArmTex,
-    roughness: 0.62,
-    envMapIntensity: 0.85
+    roughness: 0.68,
+    envMapIntensity: 0.52
   });
+  wallMaterials[k].userData = { customEnvIntensity: 0.52 };
 });
 
 const matMashrabiya = new THREE.MeshStandardMaterial({
@@ -970,16 +1072,17 @@ const matMashrabiya = new THREE.MeshStandardMaterial({
   normalScale: new THREE.Vector2(0.85, 0.85),
   roughness: 0.36,
   metalness: 0.24,
-  envMapIntensity: 1.25
+  envMapIntensity: 1.05
 });
 const matArchTrim = new THREE.MeshStandardMaterial({
   color: 0xdfd2bc,
   map: plasterDiffTex,
   normalMap: plasterNorTex,
-  normalScale: new THREE.Vector2(0.55, 0.55),
-  roughness: 0.42,
-  envMapIntensity: 1.0
+  normalScale: new THREE.Vector2(0.65, 0.65),
+  roughness: 0.48,
+  envMapIntensity: 0.65
 });
+matArchTrim.userData = { customEnvIntensity: 0.65 };
 const matLedBorderArch = new THREE.MeshStandardMaterial({
   color: 0xffb444, emissive: 0xff9d24, emissiveIntensity: 2.2, roughness: 0.15
 });
@@ -1066,38 +1169,48 @@ const matMainFloor = new THREE.MeshStandardMaterial({
   color: 0xe6dac8,
   map: texMarbleTiles,
   normalMap: marbleNorTex,
-  normalScale: new THREE.Vector2(0.85, 0.85),
+  normalScale: new THREE.Vector2(0.95, 0.95),
   roughnessMap: marbleArmTex,
-  roughness: 0.24,
-  metalness: 0.06,
-  envMapIntensity: 1.15
+  roughness: 0.28,
+  metalness: 0.04,
+  envMapIntensity: 0.68,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -1
 });
+matMainFloor.userData = { customEnvIntensity: 0.68 };
 const matCourtyardFloor = new THREE.MeshStandardMaterial({
   color: 0xeae0cf,
   map: courtyardDiffTex,
   normalMap: courtyardNorTex,
   normalScale: new THREE.Vector2(0.95, 0.95),
   roughnessMap: courtyardArmTex,
-  roughness: 0.34,
-  envMapIntensity: 1.1
+  roughness: 0.36,
+  envMapIntensity: 0.88
 });
 const matBathFloor = new THREE.MeshStandardMaterial({
   color: 0xffffff,
   map: zelligeDiffTex,
   normalMap: zelligeNorTex,
-  normalScale: new THREE.Vector2(0.85, 0.85),
-  roughness: 0.18,
-  envMapIntensity: 1.3
+  normalScale: new THREE.Vector2(0.95, 0.95),
+  roughness: 0.24,
+  envMapIntensity: 0.72,
+  polygonOffset: true,
+  polygonOffsetFactor: -2,
+  polygonOffsetUnits: -2
 });
+matBathFloor.userData = { customEnvIntensity: 0.72 };
 const matRug = new THREE.MeshStandardMaterial({
   map: texRug,
   normalMap: rugNorTex,
   normalScale: new THREE.Vector2(1.15, 1.15),
   roughness: 0.86,
+  envMapIntensity: 0.45,
   polygonOffset: true,
-  polygonOffsetFactor: -1,
-  polygonOffsetUnits: -1
+  polygonOffsetFactor: -3,
+  polygonOffsetUnits: -3
 });
+matRug.userData = { customEnvIntensity: 0.45 };
 const matAODecal = new THREE.MeshBasicMaterial({
   map: texAO,
   transparent: true,
@@ -1653,17 +1766,17 @@ function buildStaticArchitecture() {
     archRoot.add(puddle);
   });
 
-  // House Architectural Foundation Podium (+25cm above terraces, +50cm above exterior soil)
-  addBoxMesh(12.16, 0.50, 10.16, 0.0, 0.0, -0.25, wallMaterials.south_ext, archRoot, true);
-  addBoxMesh(12.28, 0.06, 10.28, 0.0, 0.0, -0.03, matArchTrim, archRoot, true);
+  // House Architectural Foundation Podium (top lowered to -0.04m & trim top lowered to -0.025m so it NEVER Z-fights with 0.00m interior floor!)
+  addBoxMesh(12.16, 0.46, 10.16, 0.0, 0.0, -0.27, wallMaterials.south_ext, archRoot, true);
+  addBoxMesh(12.28, 0.05, 10.28, 0.0, 0.0, -0.050, matArchTrim, archRoot, true);
 
-  // Main House Interior Floors (at bz = 0.00m)
-  addBoxMesh(12.0, 0.20, 10.0, 0.0, 0.0, -0.10, matMainFloor, archRoot, false);
-  addBoxMesh(3.90, 0.025, 3.80, -4.05, -3.10, 0.013, matBathFloor, archRoot, false);
+  // Main House Interior Floors (top face cleanly at bz = 0.000m, bathroom Zellige top at +0.027m)
+  addBoxMesh(12.0, 0.18, 10.0, 0.0, 0.0, -0.09, matMainFloor, archRoot, false);
+  addBoxMesh(3.90, 0.024, 3.80, -4.05, -3.10, 0.015, matBathFloor, archRoot, false);
 
-  // Right Arched Entrance Terrace ("Terrace Lengkung": top at bz = -0.25m, 25cm above exterior soil -0.50m)
-  addBoxMesh(4.80, 0.25, 4.40, 3.70, -7.10, -0.375, matCourtyardFloor, archRoot, true);
-  addBoxMesh(4.90, 0.045, 4.48, 3.70, -7.10, -0.27, matArchTrim, archRoot, true);
+  // Right Arched Entrance Terrace ("Terrace Lengkung": top at bz = -0.25m, trim top lowered to -0.275m for zero Z-fighting)
+  addBoxMesh(4.60, 0.24, 4.40, 3.70, -7.10, -0.37, matCourtyardFloor, archRoot, true);
+  addBoxMesh(4.70, 0.04, 4.48, 3.70, -7.10, -0.295, matArchTrim, archRoot, true);
 
   // New Left Concrete Terrace (along left of house to modified left wall: bx = -6.00..+1.40, depth = half left wall: by = -5.00..-7.10, top at bz = -0.25m)
   const matConcreteTerrace = new THREE.MeshStandardMaterial({
@@ -1672,12 +1785,12 @@ function buildStaticArchitecture() {
     normalMap: concreteNorTex || courtyardNorTex,
     normalScale: new THREE.Vector2(0.85, 0.85),
     roughnessMap: concreteArmTex || courtyardArmTex,
-    roughness: 0.42,
-    metalness: 0.05,
-    envMapIntensity: 1.05
+    roughness: 0.44,
+    metalness: 0.04,
+    envMapIntensity: 0.85
   });
-  addBoxMesh(7.40, 0.25, 2.10, -2.30, -6.05, -0.375, matConcreteTerrace, archRoot, true);
-  addBoxMesh(7.48, 0.045, 2.18, -2.30, -6.05, -0.27, matArchTrim, archRoot, true);
+  addBoxMesh(7.40, 0.24, 2.10, -2.30, -6.05, -0.37, matConcreteTerrace, archRoot, true);
+  addBoxMesh(7.48, 0.04, 2.18, -2.30, -6.05, -0.295, matArchTrim, archRoot, true);
   // Subtle step from Left Concrete Terrace (-0.25m) down to Exterior Soil (-0.50m)
   addBoxMesh(2.20, 0.125, 0.36, -2.30, -7.26, -0.4375, matConcreteTerrace, archRoot, true);
 
@@ -1709,12 +1822,12 @@ function buildStaticArchitecture() {
   addBoxMesh(11.20, 0.054, 1.55, 0.0, -15.20, -0.468, matLawnBed, archRoot, false);
   addBoxMesh(11.32, 0.038, 1.65, 0.0, -15.20, -0.481, matArchTrim, archRoot, false);
 
-  // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable)
-  const rugBed = addBoxMesh(3.40, 0.008, 3.10, -4.20, 2.50, 0.005, matRug, archRoot, false);
+  // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable, raised cleanly above 0.00m floor)
+  const rugBed = addBoxMesh(3.40, 0.014, 3.10, -4.20, 2.50, 0.011, matRug, archRoot, false);
   registerDraggable(rugBed, 'King Bedroom Kairouan Rug', 'زربية القيروان لبيت النوم');
-  const rugMajlis = addBoxMesh(3.95, 0.008, 4.20, 3.25, 1.65, 0.005, matRug, archRoot, false);
+  const rugMajlis = addBoxMesh(3.95, 0.014, 4.20, 3.25, 1.65, 0.011, matRug, archRoot, false);
   registerDraggable(rugMajlis, 'Grand Majlis Berber Carpet', 'زربية الصالة البربرية');
-  const rugRoof = addBoxMesh(4.10, 0.012, 4.40, 2.85, 1.40, 3.78, matRug, roofGroup, false);
+  const rugRoof = addBoxMesh(4.10, 0.014, 4.40, 2.85, 1.40, 3.782, matRug, roofGroup, false);
   registerDraggable(rugRoof, 'Rooftop Lounge Berber Rug', 'زربية جلسة السطح');
 
   // Walnut Baseboards, Dark Plinth Reveal & Ceiling Crown Moldings (creates deep architectural contrast at wall joints)
@@ -2138,23 +2251,109 @@ function registerDraggable(obj, labelEn, labelAr) {
 // ============================================================================
 // DETAILED CHEF'S KITCHEN & FRENCH-DOOR SMART REFRIGERATOR BUILDER
 // ============================================================================
+function makeKitchenCounterMarbleTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 1024;
+  const ctx = c.getContext('2d');
+  // Warm Tunisian Carthage & Calacatta Gold marble base (warm stone ivory that never glares pure white from afar)
+  const bg = ctx.createLinearGradient(0, 0, 1024, 1024);
+  bg.addColorStop(0.0, '#d8cfc0');
+  bg.addColorStop(0.5, '#e2d9cb');
+  bg.addColorStop(1.0, '#cfc5b4');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  // Organic mineral clouds for natural stone depth from afar
+  for (let i = 0; i < 48; i++) {
+    const x = ((i * 0.6180339) % 1) * 1024;
+    const y = ((i * 0.3819660 + Math.sin(i * 7.1) * 0.2 + 1) % 1) * 1024;
+    const r = 85 + (i % 5) * 38;
+    const g = ctx.createRadialGradient(x, y, 8, x, y, r);
+    g.addColorStop(0, (i % 2 === 0) ? 'rgba(155, 138, 116, 0.26)' : 'rgba(188, 172, 150, 0.24)');
+    g.addColorStop(1, 'rgba(216, 207, 192, 0.0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Distinct warmtaupe, bronze-gold & charcoal-grey Calacatta marble veins clearly visible from both afar and Walk Mode
+  const veinColors = [
+    ['rgba(96, 80, 62, 0.62)', 4.2],
+    ['rgba(142, 114, 78, 0.58)', 3.0],
+    ['rgba(72, 60, 48, 0.52)', 2.2],
+    ['rgba(168, 138, 96, 0.48)', 5.5]
+  ];
+  for (let v = 0; v < 32; v++) {
+    const [col, lw] = veinColors[v % veinColors.length];
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    let vx = ((v * 137.5) % 1024);
+    let vy = (v % 2 === 0) ? 0 : ((v * 293.1) % 1024);
+    ctx.moveTo(vx, vy);
+    for (let s = 1; s <= 8; s++) {
+      vx += 95 + Math.sin(v * 2.1 + s * 1.3) * 55;
+      vy += 110 * (v % 2 === 0 ? 1 : 0.6) + Math.cos(v * 1.7 + s * 1.9) * 48;
+      ctx.lineTo(vx, vy);
+    }
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2.0, 2.0);
+  tex.anisotropy = maxAniso;
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+const texKitchenCounterMarble = makeKitchenCounterMarbleTexture();
+
 async function buildDetailedKitchenAndFridge() {
   const g = furnGroups.kitchen;
   clearGroup(g);
   const cfg = FURNITURE_CATEGORIES.kitchen.items[state.furnitureChoice.kitchen];
 
   const cabMat = new THREE.MeshStandardMaterial({
-    color: cfg.cab, map: woodDiffTex, normalMap: woodNorTex, roughnessMap: woodArmTex, roughness: 0.34, envMapIntensity: 1.1
+    color: cfg.cab, map: woodDiffTex, normalMap: woodNorTex, normalScale: new THREE.Vector2(1.1, 1.1),
+    roughnessMap: woodArmTex, roughness: 0.42, envMapIntensity: 0.55
   });
+  cabMat.userData = { customEnvIntensity: 0.55 };
+
   const doorMat = new THREE.MeshStandardMaterial({
-    color: cfg.door, map: woodDiffTex, normalMap: woodNorTex, roughnessMap: woodArmTex, roughness: 0.30, envMapIntensity: 1.15
+    color: cfg.door, map: woodDiffTex, normalMap: woodNorTex, normalScale: new THREE.Vector2(1.1, 1.1),
+    roughnessMap: woodArmTex, roughness: 0.38, envMapIntensity: 0.58
   });
+  doorMat.userData = { customEnvIntensity: 0.58 };
+
   const counterMat = new THREE.MeshStandardMaterial({
-    color: cfg.counter, map: marbleDiffTex, normalMap: marbleNorTex, roughness: 0.16, metalness: 0.08, envMapIntensity: 1.35
+    color: 0xdad0c0,
+    map: texKitchenCounterMarble,
+    normalMap: marbleNorTex,
+    normalScale: new THREE.Vector2(1.55, 1.55),
+    roughnessMap: marbleArmTex,
+    roughness: 0.32,
+    metalness: 0.03,
+    envMapIntensity: 0.45
   });
-  const fridgeMat = new THREE.MeshStandardMaterial({ color: cfg.fridge, roughness: 0.22, metalness: 0.85, envMapIntensity: 1.4 });
-  const kBrassMat = new THREE.MeshStandardMaterial({ color: cfg.brass, roughness: 0.20, metalness: 0.88, envMapIntensity: 1.5 });
-  const dispLedMat = new THREE.MeshStandardMaterial({ color: 0x38b6ff, emissive: 0x2094ff, emissiveIntensity: 1.2 });
+  counterMat.userData = { customEnvIntensity: 0.45 };
+
+  const fridgeMat = new THREE.MeshStandardMaterial({
+    color: cfg.fridge, roughness: 0.32, metalness: 0.78, envMapIntensity: 0.62
+  });
+  fridgeMat.userData = { customEnvIntensity: 0.62 };
+
+  const kBrassMat = new THREE.MeshStandardMaterial({
+    color: 0xc89e52, roughness: 0.26, metalness: 0.85, envMapIntensity: 0.75
+  });
+  kBrassMat.userData = { customEnvIntensity: 0.75 };
+
+  const sinkBasinMat = new THREE.MeshStandardMaterial({
+    color: 0x1e2228, roughness: 0.34, metalness: 0.82, envMapIntensity: 0.45
+  });
+  sinkBasinMat.userData = { customEnvIntensity: 0.45 };
+
+  const dispLedMat = new THREE.MeshStandardMaterial({ color: 0x38b6ff, emissive: 0x2094ff, emissiveIntensity: 0.95 });
 
   // 1. LUXURY FRENCH-DOOR SMART REFRIGERATOR (X = -1.55, Y = -4.50)
   const fridgeGroup = new THREE.Group();
@@ -2246,9 +2445,25 @@ async function buildDetailedKitchenAndFridge() {
   addBoxMesh(0.54, 0.24, 0.56, 1.01, -2.50, 1.78, cabMat, kGroup);
   addBoxMesh(0.56, 0.04, 0.58, 1.01, -2.50, 1.65, kBrassMat, kGroup);
 
-  // Double-Basin Undermount Sink & High-Arc Gooseneck Brass Faucet
-  addBoxMesh(0.42, 0.04, 0.36, 0.94, -3.75, 0.90, matDarkSteel, kGroup);
-  addBoxMesh(0.42, 0.04, 0.36, 0.94, -4.15, 0.90, matDarkSteel, kGroup);
+  // Subtle Brushed Brass Countertop Bullnose Edge Trim (gives crisp 3D definition from afar)
+  addBoxMesh(1.80, 0.014, 0.016, -0.20, -4.17, 0.892, kBrassMat, kGroup);
+  addBoxMesh(0.016, 0.014, 2.12, 0.57, -3.85, 0.892, kBrassMat, kGroup);
+
+  // Double-Basin Undermount Sink with Brushed Rim, Recessed Dark Basin & Brass Drain Strainers
+  [-3.75, -4.15].forEach(sy => {
+    // Outer brushed brass sink flange (top at 0.906 + 0.007 = 0.913m)
+    addBoxMesh(0.46, 0.014, 0.39, 0.94, sy, 0.906, kBrassMat, kGroup);
+    // Dark recessed anthracite basin surface (top at 0.909 + 0.008 = 0.917m, clearly visible above flange)
+    addBoxMesh(0.40, 0.016, 0.33, 0.94, sy, 0.909, sinkBasinMat, kGroup);
+    // 4 raised sink rim walls (top at 0.922m) framing the recessed basin
+    addBoxMesh(0.44, 0.014, 0.022, 0.94, sy + 0.175, 0.915, kBrassMat, kGroup);
+    addBoxMesh(0.44, 0.014, 0.022, 0.94, sy - 0.175, 0.915, kBrassMat, kGroup);
+    addBoxMesh(0.022, 0.014, 0.37, 0.94 - 0.21, sy, 0.915, kBrassMat, kGroup);
+    addBoxMesh(0.022, 0.014, 0.37, 0.94 + 0.21, sy, 0.915, kBrassMat, kGroup);
+    const drain = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.010, 16), kBrassMat);
+    drain.position.copy(bPos(0.94, sy, 0.916));
+    kGroup.add(drain);
+  });
   const fStem = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.34, 14), kBrassMat);
   fStem.position.copy(bPos(1.16, -3.95, 1.07));
   kGroup.add(fStem);
@@ -2267,7 +2482,7 @@ async function buildDetailedKitchenAndFridge() {
   espTop.position.set(0, 0.34, 0);
   espGroup.add(espTop);
   [-0.06, 0.06].forEach(cx => {
-    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.026, 0.065, 14), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.026, 0.065, 14), new THREE.MeshStandardMaterial({ color: 0xe6dfd3, roughness: 0.35 }));
     cup.position.set(cx, 0.04, -0.18);
     espGroup.add(cup);
   });
@@ -2292,10 +2507,37 @@ async function buildDetailedKitchenAndFridge() {
   kGroup.add(skHandle);
   registerDraggable(kGroup, "Chef's L-Shaped Kitchen Counter & Sink", 'خزائن ورخام الكوجينة على شكل L');
 
-  // Real Poly Haven 3D Electric Stove, Brass Stew Pot, Ceramic Jar & Brass Oil Pitcher!
+  // Real Poly Haven 3D Electric Stove (tuned PBR material so white enamel never washes out at grazing angles)
   const stv = await loadPHModel('electric_stove');
   if (stv) {
+    stv.traverse((ch) => {
+      if (ch.isMesh && ch.material) {
+        ch.material = ch.material.clone();
+        ch.material.color.setHex(0xc2bbb0);
+        ch.material.roughness = Math.max(0.38, ch.material.roughness || 0.40);
+        ch.material.metalness = Math.min(0.24, ch.material.metalness || 0.15);
+        if (ch.material.normalMap) ch.material.normalScale = new THREE.Vector2(1.55, 1.55);
+        ch.material.envMapIntensity = 0.40;
+        ch.material.userData = { customEnvIntensity: 0.40 };
+        ch.material.needsUpdate = true;
+      }
+    });
     const sw = fitAndPlaceModel(stv, [0.68, 0.72, 0.90], null, -Math.PI/2);
+    // Add crisp dark ceramic cooktop panel & 4 cast-iron burner rings on top of the stove for high-contrast detail from afar
+    const cookGlass = new THREE.Mesh(
+      new THREE.BoxGeometry(0.56, 0.012, 0.62),
+      sinkBasinMat
+    );
+    cookGlass.position.set(0.0, 0.865, 0.0);
+    sw.add(cookGlass);
+    [[-0.14, -0.15], [0.14, -0.15], [-0.14, 0.15], [0.14, 0.15]].forEach(([bx, bz]) => {
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.095, 0.016, 20), matDarkSteel);
+      ring.position.set(bx, 0.872, bz);
+      sw.add(ring);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.020, 16), kBrassMat);
+      cap.position.set(bx, 0.875, bz);
+      sw.add(cap);
+    });
     sw.position.copy(bPos(0.92, -2.50, 0.02));
     registerDraggable(sw, '4-Burner Electric Range Stove', 'فرن وغاز كهربائي عصري');
     g.add(sw);
@@ -2849,63 +3091,382 @@ const matOliveBark = new THREE.MeshStandardMaterial({
 
 const matOliveLeafCard = new THREE.MeshStandardMaterial({
   map: texOliveLeaves,
-  alphaTest: 0.42,
+  alphaTest: 0.38,
   transparent: true,
   side: THREE.DoubleSide,
-  color: 0x98ab86,
+  color: 0x889e74,
   normalMap: plasterNorTex,
-  normalScale: new THREE.Vector2(0.35, 0.35),
-  roughness: 0.72,
+  normalScale: new THREE.Vector2(0.28, 0.28),
+  roughness: 0.68,
   metalness: 0.02,
-  envMapIntensity: 0.72
+  envMapIntensity: 0.50,
+  userData: { customEnvIntensity: 0.50 }
 });
 
-function createOliveCanopyPad(padRadius, padHeight, shrub2Proto, shrub4Proto, seed = 0) {
+const matOliveLeaf3DBlade = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  side: THREE.DoubleSide,
+  roughness: 0.60,
+  metalness: 0.02,
+  envMapIntensity: 0.48,
+  userData: { customEnvIntensity: 0.48 }
+});
+
+const matSpikyGrass3D = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  side: THREE.DoubleSide,
+  roughness: 0.62,
+  metalness: 0.02,
+  envMapIntensity: 0.42,
+  userData: { customEnvIntensity: 0.42 }
+});
+
+// Cached 3D Mediterranean Olea europaea lanceolate leaf & twig cluster geometry (zero spherical dome shells, zero wide tropical leaves)
+let _cachedOliveSubClusterGeo = null;
+let _cachedOliveSprigRibbonGeo = null;
+
+function getOliveSubClusterGeometries() {
+  if (_cachedOliveSubClusterGeo && _cachedOliveSprigRibbonGeo) {
+    return { bladeGeo: _cachedOliveSubClusterGeo, ribbonGeo: _cachedOliveSprigRibbonGeo };
+  }
+
+  // 1. True 3D narrow lanceolate Olea europaea leaf blades arranged along 36 radiating shoot twigs
+  const positions = [];
+  const normals = [];
+  const colors = [];
+  const indices = [];
+  let vOffset = 0;
+
+  // Convert sRGB botanical palette to linear space for physically accurate Three.js r128 PBR vertexColors
+  const cDeepOlive = new THREE.Color('#2e421e').convertSRGBToLinear();
+  const cMidOlive = new THREE.Color('#445e2e').convertSRGBToLinear();
+  const cSilverSage = new THREE.Color('#748a67').convertSRGBToLinear();
+  const cSunTip = new THREE.Color('#5a783c').convertSRGBToLinear();
+  const tmpColor = new THREE.Color();
+
+  const shootCount = 36;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+  for (let s = 0; s < shootCount; s++) {
+    const t = s / shootCount;
+    // Full 3D ellipsoid distribution (from +0.94 down to -0.58) so foliage naturally wraps branch forks
+    const yDir = 0.94 - t * 1.52;
+    const rHoriz = Math.sqrt(Math.max(0.05, 1.0 - yDir * yDir));
+    const theta = s * goldenAngle;
+    const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.78, Math.sin(theta) * rHoriz).normalize();
+
+    const shootLen = 0.36 + ((s * 7) % 5) * 0.048;
+    // Ortho basis around shoot direction
+    const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+    const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+    const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+    // 7 pairs of opposite decussate narrow lanceolate leaves per shoot (14 * 36 = 504 3D leaves per sub-cluster)
+    const pairs = 7;
+    for (let p = 0; p < pairs; p++) {
+      const frac = 0.16 + (p / (pairs - 1)) * 0.82;
+      const nodePos = dir.clone().multiplyScalar(shootLen * frac);
+      // Alternate 90-degree rotation at each node (botanical decussate phyllotaxy of Olea europaea)
+      const rot90 = (p % 2 === 1);
+      const axisSide = rot90 ? localUp : right;
+      const axisNormal = rot90 ? right : localUp;
+
+      for (const sideSign of [-1, 1]) {
+        const leafLen = (0.155 - frac * 0.025) * (0.92 + ((s + p) % 3) * 0.08);
+        const leafHalfW = leafLen * 0.11; // Strict narrow lanceolate Olea europaea ratio
+
+        // Leaf points forward along shoot + outward to the side + slight upward/downward arch
+        const lDir = dir.clone().multiplyScalar(0.68)
+          .addScaledVector(axisSide, sideSign * 0.72)
+          .addScaledVector(axisNormal, ((p + s) % 3 - 1) * 0.18)
+          .normalize();
+        const lWidthVec = new THREE.Vector3().crossVectors(lDir, axisNormal).normalize().multiplyScalar(leafHalfW);
+        const lArchVec = axisNormal.clone().multiplyScalar(leafLen * 0.11);
+
+        // 6 vertices per lanceolate leaf: 0=petiole base, 1,2=lower widest, 3,4=upper taper, 5=acute apex tip
+        const p0 = nodePos.clone().addScaledVector(axisSide, sideSign * 0.008);
+        const pMid1 = p0.clone().addScaledVector(lDir, leafLen * 0.36).addScaledVector(lArchVec, 0.7);
+        const pMid2 = p0.clone().addScaledVector(lDir, leafLen * 0.72).addScaledVector(lArchVec, 1.0);
+        const pTip = p0.clone().addScaledVector(lDir, leafLen).addScaledVector(lArchVec, 0.55);
+
+        const v0 = p0;
+        const v1 = pMid1.clone().addScaledVector(lWidthVec, -0.95);
+        const v2 = pMid1.clone().addScaledVector(lWidthVec, 0.95);
+        const v3 = pMid2.clone().addScaledVector(lWidthVec, -0.68);
+        const v4 = pMid2.clone().addScaledVector(lWidthVec, 0.68);
+        const v5 = pTip;
+
+        const verts = [v0, v1, v2, v3, v4, v5];
+        // Outward-blended normal for crisp sunlight highlights across the crown
+        const outNorm = pMid1.clone().normalize().lerp(axisNormal, 0.45).normalize();
+
+        // Real Olea europaea two-tone foliage: ~32% upturned silvery-sage underside leaves, ~68% deep/mid olive upper leaves
+        const isSilvery = ((s * 3 + p * 5 + (sideSign > 0 ? 1 : 0)) % 9) < 3;
+        const baseCol = isSilvery ? cSilverSage : ((s + p) % 2 === 0 ? cDeepOlive : cMidOlive);
+
+        for (let vi = 0; vi < 6; vi++) {
+          const v = verts[vi];
+          positions.push(v.x, v.y, v.z);
+          normals.push(outNorm.x, outNorm.y, outNorm.z);
+          tmpColor.copy(baseCol);
+          if (vi === 5) tmpColor.lerp(cSunTip, 0.35);
+          else if (vi === 0) tmpColor.multiplyScalar(0.78);
+          colors.push(tmpColor.r, tmpColor.g, tmpColor.b);
+        }
+
+        indices.push(
+          vOffset + 0, vOffset + 1, vOffset + 2,
+          vOffset + 1, vOffset + 3, vOffset + 2,
+          vOffset + 2, vOffset + 3, vOffset + 4,
+          vOffset + 3, vOffset + 5, vOffset + 4
+        );
+        vOffset += 6;
+      }
+    }
+  }
+
+  _cachedOliveSubClusterGeo = new THREE.BufferGeometry();
+  _cachedOliveSubClusterGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  _cachedOliveSubClusterGeo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  _cachedOliveSubClusterGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  _cachedOliveSubClusterGeo.setIndex(indices);
+  _cachedOliveSubClusterGeo.computeBoundingSphere();
+
+  // 2. Curved 3D botanical sprig ribbons (arched 3-segment strips mapped with 1024x1024 lanceolate twig texture)
+  const rPos = [];
+  const rNorm = [];
+  const rUv = [];
+  const rIdx = [];
+  let rOff = 0;
+  const ribbonCount = 18;
+
+  for (let r = 0; r < ribbonCount; r++) {
+    const t = r / ribbonCount;
+    const yDir = 0.88 - t * 1.32;
+    const rHoriz = Math.sqrt(Math.max(0.08, 1.0 - yDir * yDir));
+    const theta = r * goldenAngle + 0.8;
+    const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.72, Math.sin(theta) * rHoriz).normalize();
+    const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+    const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+    const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+    const len = 0.44 + (r % 3) * 0.06;
+    const halfW = len * 0.45;
+    const segs = 3;
+
+    for (let j = 0; j <= segs; j++) {
+      const vFrac = j / segs;
+      const dist = 0.04 + vFrac * len;
+      const archLift = Math.sin(vFrac * Math.PI) * 0.065;
+      const center = dir.clone().multiplyScalar(dist).addScaledVector(localUp, archLift);
+      // Slight twist along the sprig so it never sits flat edge-on
+      const twist = (vFrac - 0.5) * 0.42 + ((r % 2 === 0) ? 0.25 : -0.25);
+      const wVec = right.clone().multiplyScalar(Math.cos(twist) * halfW)
+        .addScaledVector(localUp, Math.sin(twist) * halfW);
+      const nVec = center.clone().normalize();
+
+      const pL = center.clone().sub(wVec);
+      const pR = center.clone().add(wVec);
+
+      rPos.push(pL.x, pL.y, pL.z, pR.x, pR.y, pR.z);
+      rNorm.push(nVec.x, nVec.y, nVec.z, nVec.x, nVec.y, nVec.z);
+      rUv.push(0, vFrac, 1, vFrac);
+    }
+    for (let j = 0; j < segs; j++) {
+      const a = rOff + j * 2;
+      const b = a + 1;
+      const c = a + 2;
+      const d = a + 3;
+      rIdx.push(a, b, c, b, d, c);
+    }
+    rOff += (segs + 1) * 2;
+  }
+
+  _cachedOliveSprigRibbonGeo = new THREE.BufferGeometry();
+  _cachedOliveSprigRibbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPos, 3));
+  _cachedOliveSprigRibbonGeo.setAttribute('normal', new THREE.Float32BufferAttribute(rNorm, 3));
+  _cachedOliveSprigRibbonGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rUv, 2));
+  _cachedOliveSprigRibbonGeo.setIndex(rIdx);
+  _cachedOliveSprigRibbonGeo.computeBoundingSphere();
+
+  return { bladeGeo: _cachedOliveSubClusterGeo, ribbonGeo: _cachedOliveSprigRibbonGeo };
+}
+
+function createOliveCanopyPad(padRadius, padHeight, _unused1, _unused2, seed = 0) {
   const padGroup = new THREE.Group();
+  const { bladeGeo, ribbonGeo } = getOliveSubClusterGeometries();
 
-  // 1. Curved 3D spherical botanical leaf-cluster shells (never flat edge-on planes from any camera angle!)
-  const shellCount = 12;
-  for (let i = 0; i < shellCount; i++) {
-    const ang = (i / shellCount) * Math.PI * 2 + seed * 0.7;
-    const shellR = padRadius * (0.74 + (i % 3) * 0.11);
-    const shellGeo = new THREE.SphereGeometry(shellR, 7, 5, 0, Math.PI * 0.88, 0.18, Math.PI * 0.68);
-    const shell = new THREE.Mesh(shellGeo, matOliveLeafCard);
-    shell.scale.set(1.05, Math.max(0.62, padHeight / Math.max(0.25, padRadius)), 1.05);
-    shell.position.set(
-      Math.cos(ang) * padRadius * 0.24,
-      ((i % 3) - 1) * padHeight * 0.14,
-      Math.sin(ang) * padRadius * 0.24
+  // 1. Fine forked woody olive sub-branches inside the foliage crown + core clusters covering branch junctions
+  const subTwigCount = 6;
+  const subClusters = [
+    { pos: new THREE.Vector3(0, -padHeight * 0.04, 0), scale: padRadius * 0.88, rotY: seed * 0.7 },
+    { pos: new THREE.Vector3(0, padHeight * 0.22, 0), scale: padRadius * 0.96, rotY: seed * 1.9 + 1.1 }
+  ];
+
+  for (let i = 0; i < subTwigCount; i++) {
+    const ang = (i / subTwigCount) * Math.PI * 2 + seed * 0.73;
+    const reach = padRadius * (0.46 + (i % 2) * 0.12);
+    const lift = ((i % 3) - 0.7) * padHeight * 0.22;
+    const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.52, lift * 0.45, Math.sin(ang) * reach * 0.52);
+    const endPt = new THREE.Vector3(Math.cos(ang) * reach, lift, Math.sin(ang) * reach);
+
+    const twigMesh = createTaperedOliveBranchMesh(
+      [new THREE.Vector3(0, -padHeight * 0.10, 0), midPt, endPt],
+      Math.max(0.010, padRadius * 0.026),
+      Math.max(0.004, padRadius * 0.009),
+      8, 6, matOliveBark
     );
-    shell.rotation.set(
-      0.35 + (i % 3) * 0.28,
-      ang + (i % 2) * 0.6,
-      (i % 2 === 0 ? 1 : -1) * 0.32
-    );
-    shell.castShadow = true;
-    shell.receiveShadow = true;
-    padGroup.add(shell);
+    padGroup.add(twigMesh);
+
+    subClusters.push({
+      pos: endPt,
+      scale: padRadius * (0.82 + (i % 3) * 0.08),
+      rotY: ang + i * 1.37
+    });
   }
 
-  // 2. Real Poly Haven 3D photogrammetry botanical twigs (shrub_02 & shrub_04) emerging around the crown
-  if (shrub2Proto) {
-    for (let s = 0; s < 3; s++) {
-      const sw = fitAndPlaceModel(cloneModelWithUniqueMaterials(shrub2Proto), [padRadius * 1.48, padRadius * 1.48, padHeight * 1.26], null, seed + s * Math.PI * 0.66, '#6a805b');
-      sw.position.set(
-        Math.cos(seed + s * 2.1) * padRadius * 0.14,
-        -padHeight * 0.28 + (s - 1) * padHeight * 0.08,
-        Math.sin(seed + s * 2.1) * padRadius * 0.14
-      );
-      padGroup.add(sw);
-    }
-  }
-  if (shrub4Proto) {
-    for (let s = 0; s < 2; s++) {
-      const sw4 = fitAndPlaceModel(cloneModelWithUniqueMaterials(shrub4Proto), [padRadius * 1.32, padRadius * 1.32, padHeight * 1.16], null, seed * 1.3 + s * 1.57, '#5d734f');
-      sw4.position.y = -padHeight * 0.24 + s * padHeight * 0.10;
-      padGroup.add(sw4);
-    }
-  }
+  // 2. Attach 3D lanceolate leaf clusters + curved botanical sprig ribbons to each sub-branch tip
+  const flatRatio = Math.max(0.62, Math.min(0.94, padHeight / Math.max(0.22, padRadius)));
+  subClusters.forEach((sc, idx) => {
+    const subGrp = new THREE.Group();
+    subGrp.position.copy(sc.pos);
+    subGrp.rotation.set(
+      Math.sin(seed + idx * 1.9) * 0.22,
+      sc.rotY,
+      Math.cos(seed + idx * 1.3) * 0.20
+    );
+    subGrp.scale.set(sc.scale, sc.scale * flatRatio, sc.scale);
+
+    const bladeMesh = new THREE.Mesh(bladeGeo, matOliveLeaf3DBlade);
+    bladeMesh.castShadow = true;
+    bladeMesh.receiveShadow = true;
+    subGrp.add(bladeMesh);
+
+    const ribbonMesh = new THREE.Mesh(ribbonGeo, matOliveLeafCard);
+    ribbonMesh.castShadow = true;
+    ribbonMesh.receiveShadow = true;
+    subGrp.add(ribbonMesh);
+
+    padGroup.add(subGrp);
+  });
+
   return padGroup;
+}
+
+// ============================================================================
+// TRUE 3D SPIKY GRASS GENERATOR (Sharp Tapered 3D Grass Blades — Zero Radish/Bulb Shapes)
+// ============================================================================
+function createSpikyGrassTuft(tuftRadius = 0.28, tuftHeight = 0.28, bladeCount = 68, seed = 0) {
+  const positions = [];
+  const normals = [];
+  const colors = [];
+  const indices = [];
+  let vOff = 0;
+
+  // Convert sRGB meadow palette to linear space so spiky grass blades have deep, vibrant green gradients
+  const cRoot = new THREE.Color('#18290d').convertSRGBToLinear();
+  const cMid = new THREE.Color('#2f5219').convertSRGBToLinear();
+  const cTip = new THREE.Color('#55802c').convertSRGBToLinear();
+  const cDryTip = new THREE.Color('#6d8c38').convertSRGBToLinear();
+  const tmpCol = new THREE.Color();
+
+  // Deterministic pseudo-random helper
+  let sVal = Math.abs(Math.floor(seed * 9973)) + 137;
+  const rand = () => {
+    sVal = (sVal * 16807) % 2147483647;
+    return (sVal - 1) / 2147483646;
+  };
+
+  const segs = 4; // 4 height segments = 9 vertices per blade (8 along edges + 1 razor-sharp apex tip)
+  for (let b = 0; b < bladeCount; b++) {
+    const rDist = Math.pow(rand(), 0.65) * tuftRadius * 0.78;
+    const rAng = rand() * Math.PI * 2;
+    const bx0 = Math.cos(rAng) * rDist;
+    const bz0 = Math.sin(rAng) * rDist;
+
+    // Outer blades lean slightly more outward; inner blades shoot sharply upward (spiky silhouette)
+    const faceAng = rAng + (rand() - 0.5) * 0.85;
+    const h = tuftHeight * (0.58 + rand() * 0.68) * (1.0 - (rDist / tuftRadius) * 0.24);
+    const baseHalfW = Math.max(0.008, Math.min(0.015, h * 0.044));
+    const lean = (0.08 + (rDist / Math.max(0.05, tuftRadius)) * 0.24 + rand() * 0.16) * h;
+    const curveBend = (0.06 + rand() * 0.14) * h;
+
+    const dirX = Math.cos(faceAng);
+    const dirZ = Math.sin(faceAng);
+    const sideX = -dirZ;
+    const sideZ = dirX;
+
+    const isSunTip = (b % 5 === 0);
+    const tipColor = isSunTip ? cDryTip : cTip;
+    const shadeVar = 0.88 + rand() * 0.24;
+
+    for (let j = 0; j < segs; j++) {
+      const t = j / segs;
+      const y = h * (t * 0.94 + Math.pow(t, 0.85) * 0.06);
+      const archOut = lean * t + curveBend * (t * t);
+      const cx = bx0 + dirX * archOut;
+      const cz = bz0 + dirZ * archOut;
+
+      // Sharp linear+quadratic taper toward the tip
+      const w = baseHalfW * (1.0 - t * 0.78);
+      // Slight V-fold ridge offset along the center for crisp 3D blade shading
+      const lx = cx - sideX * w;
+      const lz = cz - sideZ * w;
+      const rx = cx + sideX * w;
+      const rz = cz + sideZ * w;
+
+      const nx = dirX * 0.35;
+      const ny = 0.86;
+      const nz = dirZ * 0.35;
+
+      if (t < 0.5) {
+        tmpCol.copy(cRoot).lerp(cMid, t * 2.0);
+      } else {
+        tmpCol.copy(cMid).lerp(tipColor, (t - 0.5) * 2.0);
+      }
+      tmpCol.multiplyScalar(shadeVar);
+
+      positions.push(lx, y, lz, rx, y, rz);
+      normals.push(nx - sideX * 0.25, ny, nz - sideZ * 0.25, nx + sideX * 0.25, ny, nz + sideZ * 0.25);
+      colors.push(tmpCol.r, tmpCol.g, tmpCol.b, tmpCol.r, tmpCol.g, tmpCol.b);
+    }
+
+    // Razor-sharp pointed spiky tip vertex (j === segs)
+    const tipOut = lean + curveBend;
+    const tx = bx0 + dirX * tipOut;
+    const ty = h;
+    const tz = bz0 + dirZ * tipOut;
+    tmpCol.copy(tipColor).multiplyScalar(shadeVar * 1.05);
+    positions.push(tx, ty, tz);
+    normals.push(dirX * 0.25, 0.96, dirZ * 0.25);
+    colors.push(tmpCol.r, tmpCol.g, tmpCol.b);
+
+    for (let j = 0; j < segs - 1; j++) {
+      const a = vOff + j * 2;
+      const b1 = a + 1;
+      const c = a + 2;
+      const d = a + 3;
+      indices.push(a, b1, c, b1, d, c);
+    }
+    // Final triangle converging to a sharp spiky point
+    const lastPair = vOff + (segs - 1) * 2;
+    const tipIdx = vOff + segs * 2;
+    indices.push(lastPair, lastPair + 1, tipIdx);
+
+    vOff += segs * 2 + 1;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeBoundingSphere();
+
+  const mesh = new THREE.Mesh(geo, matSpikyGrass3D);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
 }
 
 async function buildStaticPolyHavenDecor() {
@@ -2936,20 +3497,16 @@ async function buildStaticPolyHavenDecor() {
     }
   }
 
-  // Preload Poly Haven 3D Nature Assets for Olive Trees, Pots, Uprooted Stump & Manicured Grass
-  const [stumpProto, boxPlanterProto, clayPotProto, shrub2Proto, shrub4Proto, grassBermudaProto, grassMedProto] = await Promise.all([
+  // Preload Poly Haven 3D Assets for Olive Tree Planters & Uprooted Stump
+  const [stumpProto, boxPlanterProto, clayPotProto] = await Promise.all([
     loadPHModel('tree_stump_01'),
     loadPHModel('planter_box_01'),
-    loadPHModel('planter_pot_clay'),
-    loadPHModel('shrub_02'),
-    loadPHModel('shrub_04'),
-    loadPHModel('grass_bermuda_01'),
-    loadPHModel('grass_medium_01')
+    loadPHModel('planter_pot_clay')
   ]);
 
   // ==========================================================================
   // 1. ANCIENT 3M UNPOTTED OLIVE TREE (Left of Arched Wall: bx = -0.05, by = -8.25, bz = -0.50)
-  //    With realistic photogrammetry root-flare, cracked uplifted soil, & thick grass tufts
+  //    With realistic photogrammetry root-flare, cracked uplifted soil, & spiky 3D grass tufts
   // ==========================================================================
   const bigOliveGroup = new THREE.Group();
   bigOliveGroup.position.copy(bPos(-0.05, -8.25, -0.50));
@@ -3003,29 +3560,18 @@ async function buildStaticPolyHavenDecor() {
     bigOliveGroup.add(clod);
   }
 
-  // Thick uprooted grass tufts (grass_bermuda_01 & grass_medium_01) + manicured cushion shrubs around root flare
+  // Spiky 3D grass tufts sprouting naturally between the gnarled olive roots (no radish/bulb domes!)
   const rootGrassOffsets = [
-    [0.58, 0.25, 0.38], [-0.62, 0.20, 0.42], [0.22, -0.64, 0.36],
-    [-0.28, -0.58, 0.40], [0.74, -0.28, 0.34], [-0.72, -0.18, 0.38],
-    [0.10, 0.75, 0.36], [-0.35, 0.68, 0.35]
+    [0.58, 0.25, 0.34, 0.36], [-0.62, 0.20, 0.36, 0.40], [0.22, -0.64, 0.32, 0.34],
+    [-0.28, -0.58, 0.35, 0.38], [0.74, -0.28, 0.30, 0.32], [-0.72, -0.18, 0.34, 0.36],
+    [0.10, 0.75, 0.32, 0.34], [-0.35, 0.68, 0.32, 0.33],
+    [-0.92, 0.46, 0.38, 0.35], [0.88, 0.48, 0.36, 0.32],
+    [-0.54, -0.84, 0.38, 0.34], [0.64, -0.80, 0.34, 0.30]
   ];
-  rootGrassOffsets.forEach(([gx, gz, gh], idx) => {
-    const proto = (idx % 2 === 0 && grassMedProto) ? grassMedProto : grassBermudaProto;
-    if (proto) {
-      const gw = fitAndPlaceModel(proto.clone(true), [0.58, 0.58, gh], null, idx * 1.1, '#6d944e');
-      gw.position.set(gx, 0.02, gz);
-      bigOliveGroup.add(gw);
-    }
-  });
-
-  // Manicured round evergreen cushion shrubs around base (matching reference photo 2)
-  const cushionPositions = [
-    [-0.88, 0.45, 0.46], [0.86, 0.48, 0.42], [-0.52, -0.82, 0.48], [0.62, -0.78, 0.40]
-  ];
-  cushionPositions.forEach(([cx, cz, cr], idx) => {
-    const bushPad = createOliveCanopyPad(cr, cr * 0.78, null, shrub4Proto, idx + 10);
-    bushPad.position.set(cx, cr * 0.42, cz);
-    bigOliveGroup.add(bushPad);
+  rootGrassOffsets.forEach(([gx, gz, gr, gh], idx) => {
+    const tuft = createSpikyGrassTuft(gr, gh, 64, idx * 1.7 + 3.1);
+    tuft.position.set(gx, 0.0, gz);
+    bigOliveGroup.add(tuft);
   });
 
   // Main Gnarled Multi-Stemmed Olive Trunk & Seamless Spreading Limbs (3.65m tall)
@@ -3040,44 +3586,44 @@ async function buildStaticPolyHavenDecor() {
   const bigLimbs = [
     {
       pts: [[0.0, 1.24, 0.0], [-0.42, 1.78, 0.25], [-0.88, 2.32, 0.48], [-1.22, 2.78, 0.62]],
-      r0: 0.16, r1: 0.055, padR: 0.98, padH: 0.72
+      r0: 0.16, r1: 0.055, padR: 0.94, padH: 0.64
     },
     {
       pts: [[0.0, 1.26, 0.0], [0.44, 1.82, 0.28], [0.88, 2.38, 0.52], [1.18, 2.86, 0.66]],
-      r0: 0.15, r1: 0.055, padR: 0.96, padH: 0.70
+      r0: 0.15, r1: 0.055, padR: 0.92, padH: 0.62
     },
     {
       pts: [[0.0, 1.28, 0.0], [0.20, 1.88, -0.40], [0.50, 2.45, -0.78], [0.72, 2.94, -1.02]],
-      r0: 0.15, r1: 0.055, padR: 0.98, padH: 0.72
+      r0: 0.15, r1: 0.055, padR: 0.94, padH: 0.64
     },
     {
       pts: [[0.0, 1.25, 0.0], [-0.34, 1.84, -0.38], [-0.74, 2.40, -0.74], [-1.02, 2.84, -0.95]],
-      r0: 0.14, r1: 0.05, padR: 0.94, padH: 0.68
+      r0: 0.14, r1: 0.05, padR: 0.90, padH: 0.60
     },
     {
       pts: [[0.0, 1.30, 0.0], [-0.06, 1.98, 0.06], [0.04, 2.62, -0.04], [0.0, 3.18, 0.02]],
-      r0: 0.16, r1: 0.055, padR: 1.18, padH: 0.82
+      r0: 0.16, r1: 0.055, padR: 1.08, padH: 0.72
     },
     // Secondary sub-branches seamlessly forked from main limbs
     {
       pts: [[-0.42, 1.78, 0.25], [-0.62, 2.35, -0.05], [-0.78, 2.88, -0.18]],
-      r0: 0.10, r1: 0.04, padR: 0.88, padH: 0.64
+      r0: 0.10, r1: 0.04, padR: 0.84, padH: 0.58
     },
     {
       pts: [[0.44, 1.82, 0.28], [0.62, 2.40, -0.08], [0.76, 2.92, -0.22]],
-      r0: 0.10, r1: 0.04, padR: 0.88, padH: 0.64
+      r0: 0.10, r1: 0.04, padR: 0.84, padH: 0.58
     },
     {
       pts: [[0.20, 1.88, -0.40], [-0.08, 2.48, -0.58], [-0.22, 3.00, -0.52]],
-      r0: 0.095, r1: 0.04, padR: 0.92, padH: 0.66
+      r0: 0.095, r1: 0.04, padR: 0.86, padH: 0.60
     }
   ];
   bigLimbs.forEach((limb, idx) => {
     const vPts = limb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
     bigOliveGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 8, matOliveBark));
     const tip = vPts[vPts.length - 1];
-    const pad = createOliveCanopyPad(limb.padR, limb.padH, shrub2Proto, shrub4Proto, idx * 1.7);
-    pad.position.set(tip.x, tip.y + 0.08, tip.z);
+    const pad = createOliveCanopyPad(limb.padR, limb.padH, null, null, idx * 1.7);
+    pad.position.set(tip.x, tip.y + 0.06, tip.z);
     bigOliveGroup.add(pad);
   });
 
@@ -3094,7 +3640,7 @@ async function buildStaticPolyHavenDecor() {
     const smallOliveGroup = new THREE.Group();
     smallOliveGroup.position.copy(bPos(ox, -15.20, -0.455));
 
-    // Rustic Wooden Planter Box (planter_box_01) or Terracotta Pot (planter_pot_clay) matching small_one.png
+    // Rustic Wooden Planter Box (planter_box_01) or Terracotta Pot (planter_pot_clay)
     const useWoodenBox = (i % 2 === 0);
     if (useWoodenBox && boxPlanterProto) {
       const boxW = fitAndPlaceModel(boxPlanterProto.clone(true), [0.84, 0.84, 0.48], null, 0);
@@ -3104,7 +3650,7 @@ async function buildStaticPolyHavenDecor() {
       smallOliveGroup.add(potW);
     }
 
-    // Dark potting soil mound inside the planter
+    // Dark potting soil mound + small spiky grass sprouts inside the planter
     const potSoil = new THREE.Mesh(
       new THREE.CylinderGeometry(0.28, 0.30, 0.08, 16),
       new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x473626, roughness: 0.92 })
@@ -3112,7 +3658,11 @@ async function buildStaticPolyHavenDecor() {
     potSoil.position.y = 0.44;
     smallOliveGroup.add(potSoil);
 
-    // Gnarled bonsai-style multi-branched olive trunk (matching small_one.png)
+    const potGrass = createSpikyGrassTuft(0.22, 0.14, 28, i * 4.3 + 1.2);
+    potGrass.position.y = 0.46;
+    smallOliveGroup.add(potGrass);
+
+    // Gnarled bonsai-style multi-branched olive trunk
     const sTrunk = createTaperedOliveBranchMesh([
       new THREE.Vector3(0.0, 0.42, 0.0),
       new THREE.Vector3(0.04 * ((i % 2) ? 1 : -1), 0.72, 0.02),
@@ -3121,16 +3671,17 @@ async function buildStaticPolyHavenDecor() {
     smallOliveGroup.add(sTrunk);
 
     const sBranches = [
-      { pts: [[0.0, 0.92, 0.0], [-0.26, 1.22, 0.14], [-0.42, 1.48, 0.22]], r0: 0.06, r1: 0.022, padR: 0.42, padH: 0.28 },
-      { pts: [[0.0, 0.95, 0.0], [0.28, 1.26, 0.12], [0.44, 1.54, 0.18]], r0: 0.06, r1: 0.022, padR: 0.42, padH: 0.28 },
-      { pts: [[0.0, 0.96, 0.0], [0.06, 1.28, -0.24], [0.12, 1.56, -0.38]], r0: 0.055, r1: 0.02, padR: 0.40, padH: 0.27 },
-      { pts: [[-0.02, 1.00, 0.0], [-0.04, 1.38, 0.02], [0.0, 1.72, 0.0]], r0: 0.06, r1: 0.024, padR: 0.48, padH: 0.30 }
+      { pts: [[0.0, 0.92, 0.0], [-0.26, 1.22, 0.14], [-0.42, 1.48, 0.22]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
+      { pts: [[0.0, 0.95, 0.0], [0.28, 1.26, 0.12], [0.44, 1.54, 0.18]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
+      { pts: [[0.0, 0.96, 0.0], [0.06, 1.28, -0.24], [0.12, 1.56, -0.38]], r0: 0.055, r1: 0.02, padR: 0.44, padH: 0.30 },
+      { pts: [[0.0, 0.94, 0.0], [-0.14, 1.26, -0.20], [-0.28, 1.52, -0.32]], r0: 0.052, r1: 0.02, padR: 0.42, padH: 0.29 },
+      { pts: [[-0.02, 1.00, 0.0], [-0.04, 1.38, 0.02], [0.0, 1.72, 0.0]], r0: 0.06, r1: 0.024, padR: 0.52, padH: 0.35 }
     ];
     sBranches.forEach((sb, bIdx) => {
       const vPts = sb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
       smallOliveGroup.add(createTaperedOliveBranchMesh(vPts, sb.r0, sb.r1, 12, 7, matOliveBark));
       const tip = vPts[vPts.length - 1];
-      const pad = createOliveCanopyPad(sb.padR, sb.padH, shrub2Proto, shrub4Proto, i * 3.1 + bIdx);
+      const pad = createOliveCanopyPad(sb.padR, sb.padH, null, null, i * 3.1 + bIdx);
       pad.position.set(tip.x, tip.y + 0.04, tip.z);
       smallOliveGroup.add(pad);
     });
@@ -3145,42 +3696,37 @@ async function buildStaticPolyHavenDecor() {
   }
 
   // ==========================================================================
-  // 3. MANICURED 3D GRASS TUFTS ALONG ARCHED TERRACE WALKWAY & AROUND 5 OLIVES
+  // 3. SPIKY 3D GRASS TUFTS ALONG ARCHED TERRACE WALKWAY & AROUND 5 OLIVES
+  //    (True pointed 3D grass blades — zero radish/turnip "lobak" domes)
   // ==========================================================================
   const neatGrassGroup = new THREE.Group();
-  // Along both sides of the Arched Terrace entrance pathway (bx = 1.12 and bx = 3.64, by = -10.1 .. -14.1)
+  // Along both sides of the Arched Terrace entrance pathway (bx = 1.12 and bx = 3.64, by = -9.95 .. -14.25)
   for (const gx of [1.12, 3.64]) {
-    for (let gy = -10.15; gy >= -14.15; gy -= 0.80) {
-      if (grassBermudaProto) {
-        const gw = fitAndPlaceModel(grassBermudaProto.clone(true), [0.68, 0.68, 0.22], null, gy * 1.7, '#648f46');
-        gw.position.copy(bPos(gx, gy, -0.46));
-        neatGrassGroup.add(gw);
-      }
-    }
-    // Neat round manicured border shrubs at the start & end of the entrance pathway
-    for (const sy of [-10.05, -12.10, -14.15]) {
-      const bPad = createOliveCanopyPad(0.32, 0.26, null, shrub4Proto, gx + sy);
-      bPad.position.copy(bPos(gx, sy, -0.34));
-      neatGrassGroup.add(bPad);
+    let idx = 0;
+    for (let gy = -9.95; gy >= -14.25; gy -= 0.62) {
+      const jitterX = ((idx % 3) - 1) * 0.06;
+      const tuft = createSpikyGrassTuft(0.32, 0.24 + (idx % 3) * 0.04, 56, gx * 3.7 + gy * 1.9);
+      tuft.position.copy(bPos(gx + jitterX, gy, -0.455));
+      neatGrassGroup.add(tuft);
+      idx++;
     }
   }
 
-  // Neat 3D Bermuda grass tufts & border cushions around the 5 front potted olive trees (by = -15.20)
-  for (let bx = -5.20; bx <= 5.25; bx += 0.65) {
-    if (grassBermudaProto) {
-      const gwFront = fitAndPlaceModel(grassBermudaProto.clone(true), [0.62, 0.62, 0.20], null, bx * 1.3, '#648f46');
-      gwFront.position.copy(bPos(bx, -14.68, -0.455));
-      neatGrassGroup.add(gwFront);
+  // Spiky 3D grass tufts around the 5 front potted olive trees (by = -14.68, -15.20, -15.72)
+  for (let bx = -5.25; bx <= 5.30; bx += 0.58) {
+    const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
+    tuftFront.position.copy(bPos(bx, -14.68, -0.455));
+    neatGrassGroup.add(tuftFront);
 
-      const gwBack = fitAndPlaceModel(grassBermudaProto.clone(true), [0.62, 0.62, 0.20], null, -bx * 1.1, '#648f46');
-      gwBack.position.copy(bPos(bx, -15.72, -0.455));
-      neatGrassGroup.add(gwBack);
-    }
+    const tuftBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(bx * 7)) % 3) * 0.035, 52, -bx * 2.9 + 23.0);
+    tuftBack.position.copy(bPos(bx, -15.72, -0.455));
+    neatGrassGroup.add(tuftBack);
   }
+  // Taller spiky ornamental grass clusters between the 5 potted olive trees
   [-3.60, -1.20, 1.20, 3.60].forEach((mx, idx) => {
-    const midBush = createOliveCanopyPad(0.34, 0.26, null, shrub4Proto, idx * 2.1);
-    midBush.position.copy(bPos(mx, -15.20, -0.34));
-    neatGrassGroup.add(midBush);
+    const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
+    tallTuft.position.copy(bPos(mx, -15.20, -0.455));
+    neatGrassGroup.add(tallTuft);
   });
 
   freezeStaticMeshes(neatGrassGroup);
@@ -3263,32 +3809,42 @@ rimLight.position.set(16, 12, -14);
 scene.add(rimLight);
 
 const zoneLights = {
-  majlis: new THREE.PointLight(0xffb454, 0.62, 7.5, 2.0),
-  bedroom: new THREE.PointLight(0xffb454, 0.58, 7.0, 2.0),
-  middle: new THREE.PointLight(0xffb454, 0.48, 6.5, 2.0),
-  kitchen: new THREE.PointLight(0xffc270, 0.52, 6.5, 2.0),
-  bathroom: new THREE.PointLight(0xffcfa0, 0.50, 5.5, 2.0),
-  exterior: new THREE.PointLight(0xffa438, 0.72, 9.5, 1.8)
+  majlis: new THREE.PointLight(0xffb454, 0.72, 8.2, 1.85),
+  bedroom: new THREE.PointLight(0xffb454, 0.65, 7.6, 1.85),
+  middle: new THREE.PointLight(0xffb860, 0.52, 6.8, 1.95),
+  kitchen: new THREE.PointLight(0xffc880, 0.56, 6.5, 1.95),
+  bathroom: new THREE.PointLight(0xffcfa0, 0.52, 5.5, 2.0),
+  exterior: new THREE.PointLight(0xffa438, 0.78, 10.5, 1.75)
 };
 zoneLights.majlis.position.copy(bPos(3.40, 1.75, 2.85));
 zoneLights.bedroom.position.copy(bPos(-4.10, 2.50, 2.85));
 zoneLights.middle.position.copy(bPos(0.55, 1.85, 2.85));
-zoneLights.kitchen.position.copy(bPos(-0.25, -3.50, 2.85));
+// Position kitchen light slightly forward of the counter so it rakes across the marble normal map without flat top glare
+zoneLights.kitchen.position.copy(bPos(-0.15, -2.85, 2.78));
 zoneLights.bathroom.position.copy(bPos(-3.85, -2.85, 2.85));
 zoneLights.exterior.position.copy(bPos(2.80, -6.20, 2.65));
 Object.values(zoneLights).forEach(l => scene.add(l));
 
+const ZONE_BASE_INTENSITIES = {
+  majlis: 0.62,
+  bedroom: 0.56,
+  middle: 0.44,
+  kitchen: 0.46,
+  bathroom: 0.45,
+  exterior: 0.72
+};
+
 function applyAllMaterialsAndLights() {
   const tod = state.timeOfDay || 'sunset';
   const todLedMult = tod === 'day' ? 0.22 : (tod === 'night' ? 1.35 : 0.90);
-  const todRoomMult = tod === 'day' ? 0.25 : (tod === 'night' ? 1.25 : 0.72);
+  const todRoomMult = tod === 'day' ? 0.32 : (tod === 'night' ? 1.28 : 0.78);
 
   // 1. Per-Wall Paint Colors with realistic plaster roughness
   Object.keys(wallMaterials).forEach(wKey => {
     const pid = state.wallPaints[wKey];
     const pObj = WALL_PAINTS.find(p => p.id === pid) || WALL_PAINTS[0];
     wallMaterials[wKey].color.set(pObj.color);
-    wallMaterials[wKey].roughness = Math.max(0.58, pObj.rough);
+    wallMaterials[wKey].roughness = Math.max(0.60, pObj.rough);
     wallMaterials[wKey].needsUpdate = true;
   });
 
@@ -3312,14 +3868,15 @@ function applyAllMaterialsAndLights() {
   matLedHaloOpening.color.set(ledCfg.color);
   matLedHaloOpening.opacity = showOpenLed ? Math.min(0.85, 0.28 * mult) : 0.0;
 
-  // 3. Room Chandelier Lights
+  // 3. Dimensional Room Chandelier Lights (non-linear zone-weighted intensities)
   const rColorObj = ROOM_LAMP_COLORS.find(c => c.id === state.roomLampColor) || ROOM_LAMP_COLORS[0];
   const rMult = state.roomLampBrightness * todRoomMult;
   Object.keys(zoneLights).forEach(k => {
     const l = zoneLights[k];
     l.visible = !!state.switches[k];
     l.color.set(rColorObj.color);
-    l.intensity = (k === 'exterior' ? 0.65 : 0.48) * rMult;
+    const baseInt = ZONE_BASE_INTENSITIES[k] || 0.48;
+    l.intensity = baseInt * rMult;
   });
 }
 
@@ -3338,71 +3895,81 @@ function setTimeOfDay(mode) {
     skyDomeMat.uniforms.uMode.value = 1.0;
     skyDomeMat.uniforms.uSunDir.value.set(14, 27, 13).normalize();
     scene.fog = new THREE.FogExp2(0xdcebf7, 0.0025);
-    renderer.toneMappingExposure = 0.95;
-    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.88;
-    ambientLight.color.set(0xffffff);
-    ambientLight.intensity = 0.24;
+    renderer.toneMappingExposure = 0.92;
+    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.85;
+    ambientLight.color.set(0xfff8f0);
+    ambientLight.intensity = 0.16;
     hemiLight.color.set(0xe6f4ff);
-    hemiLight.groundColor.set(0x8c7558);
-    hemiLight.intensity = 0.52;
+    hemiLight.groundColor.set(0x3d2e20);
+    hemiLight.intensity = 0.46;
     sunLight.color.set(0xfffcf5);
-    sunLight.intensity = 1.22;
+    sunLight.intensity = 1.24;
     sunLight.position.set(14, 26, 14);
     rimLight.color.set(0xb8d8ff);
-    rimLight.intensity = 0.35;
+    rimLight.intensity = 0.34;
     if (window.bloomPass) {
-      window.bloomPass.strength = 0.08;
-      window.bloomPass.threshold = 1.25;
+      window.bloomPass.strength = 0.07;
+      window.bloomPass.threshold = 1.22;
     }
   } else if (mode === 'sunset') {
     scene.background = new THREE.Color(0x281c2d);
     skyDomeMat.uniforms.uMode.value = 0.0;
     skyDomeMat.uniforms.uSunDir.value.set(-18, 8.5, 18).normalize();
     scene.fog = new THREE.FogExp2(0x3a2832, 0.0038);
-    renderer.toneMappingExposure = 0.92;
-    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.86;
+    renderer.toneMappingExposure = 0.90;
+    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.84;
     ambientLight.color.set(0xfff0e0);
-    ambientLight.intensity = 0.20;
+    ambientLight.intensity = 0.14;
     hemiLight.color.set(0xffcfa3);
-    hemiLight.groundColor.set(0x523c2c);
-    hemiLight.intensity = 0.44;
+    hemiLight.groundColor.set(0x2b1e16);
+    hemiLight.intensity = 0.38;
     sunLight.color.set(0xffb870);
-    sunLight.intensity = 1.08;
+    sunLight.intensity = 1.12;
     sunLight.position.set(-18, 8.5, 18);
     rimLight.color.set(0x8ca4d8);
-    rimLight.intensity = 0.32;
+    rimLight.intensity = 0.30;
     if (window.bloomPass) {
-      window.bloomPass.strength = 0.18;
-      window.bloomPass.threshold = 1.18;
+      window.bloomPass.strength = 0.15;
+      window.bloomPass.threshold = 1.15;
     }
   } else {
     scene.background = new THREE.Color(0x050811);
     skyDomeMat.uniforms.uMode.value = 2.0;
     skyDomeMat.uniforms.uSunDir.value.set(-14, 22, -16).normalize();
     scene.fog = new THREE.FogExp2(0x070c18, 0.0055);
-    renderer.toneMappingExposure = 0.94;
-    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.92;
+    renderer.toneMappingExposure = 0.92;
+    if (window.agxPass) window.agxPass.uniforms.exposure.value = 0.90;
     ambientLight.color.set(0x324770);
-    ambientLight.intensity = 0.14;
+    ambientLight.intensity = 0.11;
     hemiLight.color.set(0x3b5998);
-    hemiLight.groundColor.set(0x141b29);
-    hemiLight.intensity = 0.28;
+    hemiLight.groundColor.set(0x0d121c);
+    hemiLight.intensity = 0.24;
     sunLight.color.set(0x7ca2f0);
     sunLight.intensity = 0.35;
     sunLight.position.set(-14, 22, -16);
     rimLight.color.set(0x3d5a99);
     rimLight.intensity = 0.22;
     if (window.bloomPass) {
-      window.bloomPass.strength = 0.32;
-      window.bloomPass.threshold = 1.05;
+      window.bloomPass.strength = 0.28;
+      window.bloomPass.threshold = 1.02;
     }
   }
 
-  // Update environment intensity across materials for realistic HDRI reflections
-  const envInt = mode === 'day' ? 1.25 : (mode === 'sunset' ? 1.05 : 0.45);
+  // Update environment intensity across materials while strictly respecting customEnvIntensity on indoor/counter/stove surfaces
+  const envInt = mode === 'day' ? 0.95 : (mode === 'sunset' ? 0.82 : 0.42);
+  const customScale = mode === 'day' ? 1.0 : (mode === 'sunset' ? 0.90 : 0.55);
   scene.traverse(obj => {
-    if (obj.isMesh && obj.material && obj.material.envMapIntensity !== undefined) {
-      obj.material.envMapIntensity = envInt;
+    if (obj.isMesh && obj.material) {
+      const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+      mats.forEach(m => {
+        if (m && m.envMapIntensity !== undefined) {
+          if (m.userData && m.userData.customEnvIntensity !== undefined) {
+            m.envMapIntensity = m.userData.customEnvIntensity * customScale;
+          } else {
+            m.envMapIntensity = envInt;
+          }
+        }
+      });
     }
   });
   if (typeof window.matRainPuddle !== 'undefined' && window.matRainPuddle) {
@@ -3984,23 +4551,32 @@ window.addEventListener('keyup', (e) => {
 // ============================================================================
 // WALK MODE MOVEMENT (ZERO-FREEZE CAPSULE COLLISION) & HINGED DOOR/WINDOW ANIMATION
 // ============================================================================
+const EXTRA_PHYSICAL_WALLS = [
+  // Interior Kitchen Divider Wall (bx = 1.40, by = -1.60 .. -5.00)
+  { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22 },
+  // Physical 1.15m Courtyard Walls on the Right Arched Terrace (leaving Grand Welcome Arch at bx = 1.40..3.38, by = -9.20 & Left Concrete Terrace 100% open!)
+  { axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24 },
+  { axis: 'x', fixed: -9.20, min: 3.42, max: 6.00, thick: 0.24 },
+  { axis: 'y', fixed: 1.40, min: -9.20, max: -6.35, thick: 0.24 }
+];
+
 function resolveWalkCollisions(px, pz) {
-  // Clamp to outer courtyard, front yard & villa bounds
-  px = Math.max(-7.50, Math.min(7.50, px));
-  pz = Math.max(-4.68, Math.min(16.80, pz));
+  // Generous exterior yard bounds so player can walk freely around the entire villa, terraces, 3m olive tree & 5 front olive trees
+  px = Math.max(-24.0, Math.min(24.0, px));
+  pz = Math.max(-18.0, Math.min(26.0, pz));
   const playerRadius = 0.22;
 
-  // Push out smoothly from solid wall segments (doors carve wide pass-through portals!)
+  // 1. Push out smoothly from WALL_DEFS segments (doors carve wide pass-through portals compensating for capsule endpoint radius)
   for (const w of WALL_DEFS) {
     const doors = openingsGroup.children
       .filter(op => op.userData && op.userData.isDoor && op.userData.wallId === w.id)
       .sort((a, b) => a.userData.wallCoord - b.userData.wallCoord);
 
-    // Build solid wall sub-segments [u0, u1] with generous doorway clearance
+    const minDist = w.thick * 0.5 + playerRadius;
     const segments = [];
     let cur = w.min;
     for (const d of doors) {
-      const halfPortal = d.userData.openingWidth * 0.56;
+      const halfPortal = d.userData.openingWidth * 0.50 + minDist - 0.04;
       const dStart = d.userData.wallCoord - halfPortal;
       const dEnd = d.userData.wallCoord + halfPortal;
       if (dStart > cur + 0.04) segments.push([cur, dStart]);
@@ -4008,7 +4584,6 @@ function resolveWalkCollisions(px, pz) {
     }
     if (w.max > cur + 0.04) segments.push([cur, w.max]);
 
-    const minDist = w.thick * 0.5 + playerRadius;
     for (const [u0, u1] of segments) {
       let cx, cz;
       if (w.axis === 'x') {
@@ -4028,6 +4603,28 @@ function resolveWalkCollisions(px, pz) {
       }
     }
   }
+
+  // 2. Push out smoothly from physical interior kitchen divider & 1.15m courtyard walls (Welcome Arch & Left Terrace remain open)
+  for (const ew of EXTRA_PHYSICAL_WALLS) {
+    const minDist = ew.thick * 0.5 + playerRadius;
+    let cx, cz;
+    if (ew.axis === 'x') {
+      cx = Math.max(ew.min, Math.min(ew.max, px));
+      cz = -ew.fixed;
+    } else {
+      cx = ew.fixed;
+      cz = Math.max(-ew.max, Math.min(-ew.min, pz));
+    }
+    const dx = px - cx;
+    const dz = pz - cz;
+    const dist = Math.hypot(dx, dz);
+    if (dist < minDist && dist > 0.0001) {
+      const push = minDist - dist;
+      px += (dx / dist) * push;
+      pz += (dz / dist) * push;
+    }
+  }
+
   return { x: px, z: pz };
 }
 
@@ -4042,7 +4639,7 @@ function updateWalkAndOpenings(dt) {
 
   if (viewMode === 'walk') {
     if (inputMag > 0.01) {
-      const speed = 3.25 * dt;
+      const speed = 3.45 * dt;
       const fwdX = -Math.sin(walkState.yaw);
       const fwdZ = -Math.cos(walkState.yaw);
       const rightX = Math.cos(walkState.yaw);
@@ -4053,16 +4650,31 @@ function updateWalkAndOpenings(dt) {
       walkState.pos.x = resolved.x;
       walkState.pos.z = resolved.z;
     }
-    // 3-tier elevation eye height: House (0.00m -> 1.68m), Terraces (-0.25m -> 1.43m), Exterior Soil (-0.50m -> 1.18m)
+    // Smooth 3-tier elevation eye height with stepped ramp interpolation:
+    // House (0.00m -> 1.68m), Terraces (-0.25m -> 1.43m), Exterior Yard Soil (-0.50m -> 1.18m)
     const wx = walkState.pos.x, wz = walkState.pos.z;
     let groundY = -0.50;
-    if (wz >= -5.0 && wz <= 5.0 && wx >= -6.0 && wx <= 6.0) {
+    if (wz >= -5.00 && wz <= 5.05 && wx >= -6.00 && wx <= 6.00) {
       groundY = 0.00;
-    } else if ((wz > 5.0 && wz <= 9.25 && wx >= 1.4 && wx <= 6.0) || (wz > 5.0 && wz <= 7.15 && wx >= -6.0 && wx <= 1.4)) {
+    } else if (wx >= 1.50 && wx <= 3.70 && wz > 5.05 && wz <= 5.75) {
+      // Main Entrance steps ramp (0.00m <-> -0.25m)
+      const tRamp = (wz - 5.05) / 0.70;
+      groundY = -0.25 * tRamp;
+    } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
       groundY = -0.25;
+    } else if (wx >= 1.25 && wx <= 3.55 && wz > 9.25 && wz <= 9.98) {
+      // Welcome Arch steps ramp (-0.25m <-> -0.50m)
+      const tRamp = (wz - 9.25) / 0.73;
+      groundY = -0.25 - 0.25 * tRamp;
+    } else if (wz > 5.05 && wz <= 7.15 && wx >= -6.00 && wx < 1.40) {
+      groundY = -0.25;
+    } else if (wz > 7.15 && wz <= 7.65 && wx >= -6.00 && wx < 1.40) {
+      // Left Concrete Terrace south edge step-down (-0.25m <-> -0.50m)
+      const tRamp = (wz - 7.15) / 0.50;
+      groundY = -0.25 - 0.25 * tRamp;
     }
     const targetEyeY = groundY + 1.68;
-    walkState.pos.y += (targetEyeY - walkState.pos.y) * Math.min(1.0, 10.0 * dt);
+    walkState.pos.y += (targetEyeY - walkState.pos.y) * Math.min(1.0, 12.0 * dt);
     syncWalkCamera();
   } else if (inputMag > 0.01) {
     // Proportional WASD / MOBA Analog Joystick camera translation in Orbit & Top View modes
@@ -4406,6 +5018,8 @@ async function initApp() {
     rebuildCategory('lamps'),
     buildStaticPolyHavenDecor()
   ]);
+
+  setTimeOfDay(state.timeOfDay || 'sunset');
 
   if (savedPositions && Array.isArray(savedPositions)) {
     savedPositions.forEach((sp, idx) => {
