@@ -195,6 +195,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="./maitre_maher_npc_data.js"></script>
 </head>
 <body>
 
@@ -230,6 +231,8 @@
     </div>
     <div class="strip-group" id="cam-strip">
       <button class="cam-btn active" id="cam-exterior" onclick="setCamPreset('exterior', this)">🏛️ Facade</button>
+      <button class="cam-btn" id="cam-maher" style="border-color:rgba(232,185,89,0.65); color:#fde68a;" onclick="focusCameraOnMaher(this)">👨‍🦲 Maître Maher (NPC)</button>
+      <button class="cam-btn" id="cam-maher-next" style="border-color:rgba(232,185,89,0.45);" onclick="cycleMaherActivityAndFocus()">🔄 Next NPC Action</button>
       <button class="cam-btn" id="cam-majlis" onclick="setCamPreset('majlis', this)">🛋️ Salon & TV</button>
       <button class="cam-btn" id="cam-bedroom" onclick="setCamPreset('bedroom', this)">🛏️ Bedroom</button>
       <button class="cam-btn" id="cam-kitchen" onclick="setCamPreset('kitchen', this)">🍳 Kitchen</button>
@@ -314,6 +317,8 @@ const I18N = {
     camKitchen: '🍳 Kitchen',
     camBathroom: '🚿 Bathroom',
     camRooftop: '🔥 Rooftop',
+    camMaher: '👨‍🦲 Maître Maher (NPC)',
+    camMaherNext: '🔄 Next NPC Action',
     loadingText: '⏳ Downloading AAA 3D PBR Assets & HDRI Skies...',
     hudDefault: '📌 Click once on any 3D object to select • Drag unselected = rotate camera',
     hudSelected: '🎯 Selected (Drag to Move): ',
@@ -351,6 +356,8 @@ const I18N = {
     camKitchen: '🍳 الكوجينة',
     camBathroom: '🚿 الحمام',
     camRooftop: '🔥 السطح',
+    camMaher: '👨‍🦲 الأستاذ ماهر (NPC)',
+    camMaherNext: '🔄 نشاط ماهر التالي',
     loadingText: '⏳ جاري تحميل مجسمات 3D وخرائط الإضاءة الواقعية...',
     hudDefault: '📌 انقر مرة لتحديد أي مجسم 3D ثم اسحبه • السحب بدون تحديد يدور الكاميرا',
     hudSelected: '🎯 العنصر المحدد (اسحب للتحريك): ',
@@ -430,7 +437,7 @@ scene.background = new THREE.Color(0x1b2940);
 scene.fog = new THREE.FogExp2(0x1b2940, 0.0065);
 
 const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 180);
-camera.position.set(10.8, 6.8, 22.8);
+camera.position.set(6.8, 4.4, 16.8);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -4421,8 +4428,8 @@ function setViewMode(mode) {
     roofGroup.visible = state.roofVisible;
     facadeDecorGroup.visible = true;
     furnGroups.lamps.visible = true;
-    perspCamera.position.set(10.8, 6.8, 22.8);
-    controls.target.set(0.2, 1.2, 6.2);
+    perspCamera.position.set(6.8, 4.4, 16.8);
+    controls.target.set(2.2, 1.0, 6.6);
     controls.update();
   } else if (mode === 'top1') {
     activeCamera = orthoCamera;
@@ -4492,8 +4499,8 @@ function setCamPreset(preset, btnEl) {
 
   if (preset === 'exterior') {
     state.roofVisible = true; roofGroup.visible = true;
-    perspCamera.position.set(10.8, 6.8, 22.8);
-    controls.target.set(0.2, 1.2, 6.2);
+    perspCamera.position.set(6.8, 4.4, 16.8);
+    controls.target.set(2.2, 1.0, 6.6);
   } else if (preset === 'cutaway') {
     state.roofVisible = false; roofGroup.visible = false;
     perspCamera.position.set(0.2, 13.8, 11.2);
@@ -4526,6 +4533,50 @@ function setCamPreset(preset, btnEl) {
   controls.update();
   requestShadowUpdate();
   updateStaticUIStrings();
+}
+
+function focusCameraOnMaher(btnEl) {
+  if (viewMode !== 'orbit') setViewMode('orbit');
+  document.querySelectorAll('#cam-strip .cam-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  else {
+    const mb = document.getElementById('cam-maher');
+    if (mb) mb.classList.add('active');
+  }
+
+  if (!window.maherNpcState || !window.maherNpcState.root) return;
+  const zone = window.maherNpcState.currentZone;
+  const pos = window.maherNpcState.root.position;
+
+  // Automatically open roof cutaway if Maître Maher is currently inside the house!
+  if (zone === 'inside_kitchen' || zone === 'inside_majlis') {
+    state.roofVisible = false;
+    roofGroup.visible = false;
+    perspCamera.position.set(pos.x - 2.1, pos.y + 2.3, pos.z + 2.4);
+    controls.target.set(pos.x + 0.3, pos.y + 0.95, pos.z - 0.2);
+  } else if (zone === 'roof') {
+    state.roofVisible = true;
+    roofGroup.visible = true;
+    perspCamera.position.set(pos.x + 2.6, pos.y + 1.9, pos.z + 2.6);
+    controls.target.set(pos.x, pos.y + 0.95, pos.z);
+  } else {
+    state.roofVisible = true;
+    roofGroup.visible = true;
+    perspCamera.position.set(pos.x - 1.6, pos.y + 1.85, pos.z + 3.2);
+    controls.target.set(pos.x + 0.25, pos.y + 0.95, pos.z - 0.2);
+  }
+  controls.update();
+  requestShadowUpdate();
+  updateStaticUIStrings();
+}
+
+function cycleMaherActivityAndFocus() {
+  if (!window.maherNpcState) return;
+  const keys = Object.keys(MAHER_ACTIVITIES);
+  const curIdx = keys.indexOf(window.maherNpcState.currentAct.id);
+  const nextKey = keys[(curIdx + 1) % keys.length];
+  startMaherActivity(nextKey, true);
+  focusCameraOnMaher(document.getElementById('cam-maher'));
 }
 
 // ============================================================================
@@ -5060,6 +5111,8 @@ function updateStaticUIStrings() {
   setText('mode-walk', t('modeWalk'));
 
   setText('cam-exterior', t('camExterior'));
+  setText('cam-maher', t('camMaher'));
+  setText('cam-maher-next', t('camMaherNext'));
   setText('cam-cutaway', t('camCutaway'));
   setText('cam-majlis', t('camMajlis'));
   setText('cam-bedroom', t('camBedroom'));
@@ -5067,6 +5120,7 @@ function updateStaticUIStrings() {
   setText('cam-bathroom', t('camBathroom'));
   setText('cam-courtyard', t('camCourtyard'));
   setText('cam-rooftop', t('camRooftop'));
+  if (typeof updateMaherFloatingBadge === 'function') updateMaherFloatingBadge();
 
   setText('ui-loading-text', t('loadingText'));
   setText('ps-title', t('psTitle'));
@@ -5096,8 +5150,9 @@ async function startPhotoshootRender() {
   if (statusEl) statusEl.textContent = t('psRendering');
   if (fillEl) fillEl.style.width = '4%';
 
-  // Temporarily hide selection highlight during render
+  // Temporarily hide selection highlight and floating NPC badge during render
   if (selectedObject) setSelectionHighlight(selectedObject, false);
+  if (window.maherBadgeSprite) window.maherBadgeSprite.visible = false;
 
   const w = renderer.domElement.width;
   const h = renderer.domElement.height;
@@ -5163,6 +5218,7 @@ async function startPhotoshootRender() {
   renderer.shadowMap.needsUpdate = true;
   scene.remove(giBounce1, giBounce2);
   if (selectedObject) setSelectionHighlight(selectedObject, true);
+  if (window.maherBadgeSprite) window.maherBadgeSprite.visible = true;
   if (composer) composer.render();
   else renderer.render(scene, activeCamera);
 
@@ -5595,11 +5651,64 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
   return pts;
 }
 
+const maherBadgeCanvas = document.createElement('canvas');
+maherBadgeCanvas.width = 512;
+maherBadgeCanvas.height = 96;
+const maherBadgeTex = new THREE.CanvasTexture(maherBadgeCanvas);
+maherBadgeTex.encoding = THREE.sRGBEncoding;
+const maherBadgeMat = new THREE.SpriteMaterial({
+  map: maherBadgeTex,
+  transparent: true,
+  depthTest: false,
+  depthWrite: false
+});
+const maherBadgeSprite = new THREE.Sprite(maherBadgeMat);
+maherBadgeSprite.scale.set(1.55, 0.29, 1.0);
+maherBadgeSprite.position.set(0, 1.96, 0);
+maherBadgeSprite.renderOrder = 999;
+maherBadgeSprite.raycast = () => {};
+window.maherBadgeSprite = maherBadgeSprite;
+
+function updateMaherFloatingBadge() {
+  if (!maherNpcState || !maherNpcState.currentAct) return;
+  const ctx = maherBadgeCanvas.getContext('2d');
+  ctx.clearRect(0, 0, 512, 96);
+  ctx.fillStyle = 'rgba(12, 16, 26, 0.82)';
+  ctx.strokeStyle = 'rgba(232, 185, 89, 0.85)';
+  ctx.lineWidth = 3;
+  const r = 24;
+  ctx.beginPath();
+  ctx.moveTo(12 + r, 10);
+  ctx.lineTo(500 - r, 10);
+  ctx.quadraticCurveTo(500, 10, 500, 10 + r);
+  ctx.lineTo(500, 86 - r);
+  ctx.quadraticCurveTo(500, 86, 500 - r, 86);
+  ctx.lineTo(12 + r, 86);
+  ctx.quadraticCurveTo(12, 86, 12, 86 - r);
+  ctx.lineTo(12, 10 + r);
+  ctx.quadraticCurveTo(12, 10, 12 + r, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fde68a';
+  ctx.font = 'bold 24px Outfit, sans-serif';
+  ctx.fillText(state.lang === 'ar' ? '👨‍🦲 الأستاذ ماهر (NPC)' : '👨‍🦲 Maître Maher (NPC)', 256, 42);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '500 18px Outfit, sans-serif';
+  const actText = state.lang === 'ar' ? maherNpcState.currentAct.ar : maherNpcState.currentAct.en;
+  ctx.fillText(actText, 256, 70);
+  maherBadgeTex.needsUpdate = true;
+}
+
 function startMaherActivity(actKey, immediateSpawn = false) {
   const act = MAHER_ACTIVITIES[actKey] || MAHER_ACTIVITIES.GRILL_TERRACE;
   const prevZone = maherNpcState.currentZone;
   maherNpcState.currentAct = act;
   maherNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
+  updateMaherFloatingBadge();
 
   if (!maherNpcState.root) return;
 
@@ -5643,7 +5752,7 @@ function loadMaitreMaherNPC() {
   loadingActive++; loadingTotal++;
   updateLoadingUI();
 
-  gltfLoader.load('./maitre_maher_npc.glb', (gltf) => {
+  const onMaherGltfLoaded = (gltf) => {
     const npcScene = gltf.scene;
     const armRoot = npcScene.getObjectByName('Maitre_Maher') || npcScene;
 
@@ -5670,6 +5779,7 @@ function loadMaitreMaherNPC() {
       buildMaherHandheldProps(maherNpcState.handBoneR);
     }
 
+    armRoot.add(maherBadgeSprite);
     maherNpcGroup.add(armRoot);
     maherNpcState.root = armRoot;
     maherNpcState.mixer = new THREE.AnimationMixer(armRoot);
@@ -5692,15 +5802,44 @@ function loadMaitreMaherNPC() {
     maherNpcState.loaded = true;
     // Start immediately on the terrace grilling fish & beef steak under the small grill roof!
     startMaherActivity('GRILL_TERRACE', true);
+    maherNpcState.timer = 22.0; // Stay on the front terrace for 22s initially so the user immediately sees him!
 
     loadingActive--;
     updateLoadingUI();
     requestShadowUpdate();
-  }, undefined, (err) => {
-    console.warn('Could not load maitre_maher_npc.glb:', err);
-    loadingActive--;
-    updateLoadingUI();
-  });
+  };
+
+  const loadFromUrlWithFallback = () => {
+    const ghFallbackUrl = 'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/maitre_maher_npc.glb';
+    const firstUrl = (window.location.protocol === 'file:') ? ghFallbackUrl : './maitre_maher_npc.glb';
+    gltfLoader.load(firstUrl, onMaherGltfLoaded, undefined, () => {
+      gltfLoader.load(ghFallbackUrl, onMaherGltfLoaded, undefined, (err) => {
+        console.warn('Could not load maitre_maher_npc.glb:', err);
+        loadingActive--;
+        updateLoadingUI();
+      });
+    });
+  };
+
+  // Priority 1: Parse directly from embedded JS Base64 (works 100% offline & on file:// without CORS!)
+  if (window.MAITRE_MAHER_GLB_B64 && typeof window.MAITRE_MAHER_GLB_B64 === 'string') {
+    try {
+      const binStr = window.atob(window.MAITRE_MAHER_GLB_B64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binStr.charCodeAt(i);
+      }
+      gltfLoader.parse(bytes.buffer, '', onMaherGltfLoaded, (err) => {
+        console.warn('Base64 parse fallback to URL:', err);
+        loadFromUrlWithFallback();
+      });
+      return;
+    } catch (e) {
+      console.warn('Base64 decode fallback to URL:', e);
+    }
+  }
+  loadFromUrlWithFallback();
 }
 
 function updateMaherNpcAndParticles(dt) {
