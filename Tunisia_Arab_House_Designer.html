@@ -1573,12 +1573,17 @@ matRug.polygonOffsetFactor = -1;
 matRug.polygonOffsetUnits = -1;
 
 const WALL_DEFS = [
-  { id: 'south_ext', axis: 'x', fixed: -5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'south_ext' },
-  { id: 'north', axis: 'x', fixed: 5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'north' },
-  { id: 'west', axis: 'y', fixed: -6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: Math.PI / 2, matKey: 'west' },
-  { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east' },
-  { id: 'bath_east', axis: 'y', fixed: -2.10, min: -4.88, max: -1.20, thick: 0.18, rotY: Math.PI / 2, matKey: 'bath_kitchen' },
-  { id: 'bath_north', axis: 'x', fixed: -1.20, min: -5.88, max: -2.10, thick: 0.18, rotY: 0, matKey: 'bath_kitchen' }
+  { id: 'south_ext', axis: 'x', fixed: -5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'south_ext', baseZ: 0.0, topZ: 3.50 },
+  { id: 'north', axis: 'x', fixed: 5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'north', baseZ: 0.0, topZ: 3.50 },
+  { id: 'west', axis: 'y', fixed: -6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: Math.PI / 2, matKey: 'west', baseZ: 0.0, topZ: 3.50 },
+  { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east', baseZ: 0.0, topZ: 3.50 },
+  { id: 'bath_east', axis: 'y', fixed: -2.10, min: -4.88, max: -1.20, thick: 0.18, rotY: Math.PI / 2, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
+  { id: 'bath_north', axis: 'x', fixed: -1.20, min: -5.88, max: -2.10, thick: 0.18, rotY: 0, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
+  // East Side Guest Cabin Walls (bx = 6.00 .. 12.00, by = -9.20 .. -5.00, rising from bz = -0.25m up to bz = +3.78m matching the right wall height!)
+  { id: 'cabin_west', axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_south', axis: 'x', fixed: -9.20, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_east', axis: 'y', fixed: 12.00, min: -9.20, max: -5.00, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_north', axis: 'x', fixed: -5.00, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
 ];
 
 function addBoxMesh(w, h, d, bx, by, bz, mat, parent = archRoot, castShadow = true) {
@@ -1602,6 +1607,9 @@ function rebuildDynamicWalls() {
   const H = 3.50;
   WALL_DEFS.forEach(w => {
     const mat = wallMaterials[w.matKey];
+    const baseZ = w.baseZ !== undefined ? w.baseZ : 0.0;
+    const topZ = w.topZ !== undefined ? w.topZ : H;
+    const wallH = topZ - baseZ;
     const ops = openingsGroup.children
       .filter(ch => ch.userData && ch.userData.wallId === w.id)
       .sort((a, b) => a.userData.wallCoord - b.userData.wallCoord);
@@ -1614,20 +1622,20 @@ function rebuildDynamicWalls() {
       if (uStart - cursor > 0.02) {
         const segLen = uStart - cursor;
         const segMid = cursor + segLen * 0.5;
-        if (w.axis === 'x') addBoxMesh(segLen, H, w.thick, segMid, w.fixed, H * 0.5, mat, dynamicWallsGroup);
-        else addBoxMesh(w.thick, H, segLen, w.fixed, segMid, H * 0.5, mat, dynamicWallsGroup);
+        if (w.axis === 'x') addBoxMesh(segLen, wallH, w.thick, segMid, w.fixed, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
+        else addBoxMesh(w.thick, wallH, segLen, w.fixed, segMid, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
       }
       const sill = op.userData.sillHeight || 0.0;
       if (sill > 0.01) {
-        if (w.axis === 'x') addBoxMesh(ow, sill, w.thick, op.userData.wallCoord, w.fixed, sill * 0.5, mat, dynamicWallsGroup);
-        else addBoxMesh(w.thick, sill, ow, w.fixed, op.userData.wallCoord, sill * 0.5, mat, dynamicWallsGroup);
+        if (w.axis === 'x') addBoxMesh(ow, sill, w.thick, op.userData.wallCoord, w.fixed, baseZ + sill * 0.5, mat, dynamicWallsGroup);
+        else addBoxMesh(w.thick, sill, ow, w.fixed, op.userData.wallCoord, baseZ + sill * 0.5, mat, dynamicWallsGroup);
       }
-      const spandrelTop = H - sill;
+      const spandrelTop = wallH - sill;
       const sp = createWallArchSpandrel(ow, op.userData.innerArchW, op.userData.innerArchH, spandrelTop, w.thick, mat, op.userData.pointed);
       if (w.axis === 'x') {
-        sp.position.copy(bPos(op.userData.wallCoord, w.fixed, sill));
+        sp.position.copy(bPos(op.userData.wallCoord, w.fixed, baseZ + sill));
       } else {
-        sp.position.copy(bPos(w.fixed, op.userData.wallCoord, sill));
+        sp.position.copy(bPos(w.fixed, op.userData.wallCoord, baseZ + sill));
         sp.rotation.y = Math.PI / 2;
       }
       dynamicWallsGroup.add(sp);
@@ -1636,8 +1644,8 @@ function rebuildDynamicWalls() {
     if (w.max - cursor > 0.02) {
       const segLen = w.max - cursor;
       const segMid = cursor + segLen * 0.5;
-      if (w.axis === 'x') addBoxMesh(segLen, H, w.thick, segMid, w.fixed, H * 0.5, mat, dynamicWallsGroup);
-      else addBoxMesh(w.thick, H, segLen, w.fixed, segMid, H * 0.5, mat, dynamicWallsGroup);
+      if (w.axis === 'x') addBoxMesh(segLen, wallH, w.thick, segMid, w.fixed, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
+      else addBoxMesh(w.thick, wallH, segLen, w.fixed, segMid, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
     }
   });
   freezeStaticMeshes(dynamicWallsGroup);
@@ -1679,11 +1687,12 @@ function snapOpeningToNearestWall(opObj, targetBx, targetBy) {
 
   opObj.userData.wallId = bestWall.id;
   opObj.userData.wallCoord = bestU;
+  const baseZ = bestWall.baseZ !== undefined ? bestWall.baseZ : 0.0;
   const sill = opObj.userData.sillHeight || 0.0;
   if (bestWall.axis === 'x') {
-    opObj.position.copy(bPos(bestU, bestWall.fixed, sill));
+    opObj.position.copy(bPos(bestU, bestWall.fixed, baseZ + sill));
   } else {
-    opObj.position.copy(bPos(bestWall.fixed, bestU, sill));
+    opObj.position.copy(bPos(bestWall.fixed, bestU, baseZ + sill));
   }
   opObj.rotation.y = bestWall.rotY;
   rebuildDynamicWalls();
@@ -1952,9 +1961,9 @@ function buildStaticArchitecture() {
   addBoxMesh(1.38, 0.048, 1.38, 2.38, -11.45, -0.474, matMainFloor, archRoot, true);
   addBoxMesh(1.38, 0.048, 0.64, 2.38, -10.35, -0.474, matMainFloor, archRoot, true);
 
-  // Continuous manicured grass border bed around the 5 front potted olive trees (by = -15.20, bx = -5.45..+5.45)
-  addBoxMesh(11.20, 0.054, 1.55, 0.0, -15.20, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(11.32, 0.038, 1.65, 0.0, -15.20, -0.481, matArchTrim, archRoot, false);
+  // Continuous manicured grass border bed around the 11 front potted olive trees, stretching from the Swimming Pool (bx = -12.30m) all the way to the New Cabin Front Terrace (bx = +12.30m, width = 24.60m, by = -15.20m)
+  addBoxMesh(24.60, 0.054, 1.55, 0.0, -15.20, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(24.72, 0.038, 1.65, 0.0, -15.20, -0.481, matArchTrim, archRoot, false);
 
   // ==========================================================================
   // POINT 3: FAMILY SWIMMING POOL (3–5 PEOPLE) LEFT OF STAIRCASE + DEEP REFLECTIVE WATER + RIPPLES + WALKWAY
@@ -2409,7 +2418,7 @@ function buildStaticArchitecture() {
   //    Features glowing charcoal embers, cast-iron grates, 3D grilled fish & beef steaks, and a small pitched roof canopy!
   // ==========================================================================
   const terraceGrillGroup = new THREE.Group();
-  const gx = 4.85, gy = -7.55;
+  const gx = 4.18, gy = -7.85;
 
   // Stone & Travertine Grill Island Plinth + Walnut Doors + Dark Steel Firebox
   addBoxMesh(1.42, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
@@ -2568,13 +2577,160 @@ function buildStaticArchitecture() {
   addBoxMesh(0.24, 0.825, 2.10, 1.40, -8.15, 0.1625, wallMaterials.courtyard);
   addBoxMesh(0.30, 0.06, 2.18, 1.40, -8.15, 0.605, matArchTrim);
 
-  // 2) Right Terrace Wall (bx = 6.00, by = -7.10, length 4.20m): raised to match main house / rooftop floor level (bz = +3.78m, total height 4.03m from bz = -0.25m)
-  addBoxMesh(0.24, 4.03, 4.20, 6.00, -7.10, 1.765, wallMaterials.courtyard);
+  // 2) Right Terrace Wall / Cabin West Wall (bx = 6.00, by = -9.20..-5.00): wall geometry with arched doorway at by = -7.05 is built via WALL_DEFS ('cabin_west'); top cornice cap at bz = 3.81m
   addBoxMesh(0.30, 0.06, 4.28, 6.00, -7.10, 3.81, matArchTrim);
 
   // 3) Front Terrace Wall (bx = 4.68, by = -9.20, length 2.65m): lowered to match Terrace Grill counter top (bz = +0.635m, total height 0.885m from bz = -0.25m)
   addBoxMesh(2.65, 0.825, 0.24, 4.68, -9.20, 0.1625, wallMaterials.courtyard);
   addBoxMesh(2.73, 0.06, 0.30, 4.68, -9.20, 0.605, matArchTrim);
+
+  // ==========================================================================
+  // EAST GUEST CABIN ("SEMACAM KABIN DENGAN PINTU MENGHADAP ARAH KIRI RUMAH UTAMA")
+  //   - Extends to the right from bx = 6.00m to bx = 12.00m (width = 6.00m = half of main house 12.0m length!)
+  //   - Front wall (by = -9.20, bx = 6.00..12.00) is collinear with the front wall near the grill (by = -9.20),
+  //     rising to bz = +3.78m (exact same height as the right wall at bx = 6.00!)
+  //   - Arched Door on the Cabin West Wall (bx = 6.00, by = -7.05) faces left (-bx) toward the main house!
+  // ==========================================================================
+  // Cabin Foundation Podium & Polished Carthage Marble Interior Floor (bz = -0.25m)
+  addBoxMesh(6.00, 0.24, 4.20, 9.00, -7.10, -0.37, wallMaterials.courtyard, archRoot, true);
+  addBoxMesh(6.14, 0.04, 4.34, 9.00, -7.10, -0.295, matArchTrim, archRoot, true);
+  addBoxMesh(5.72, 0.018, 3.92, 9.00, -7.10, -0.244, matMainFloor, archRoot, false);
+  // Woven Tunisian Berber Carpet inside the Cabin
+  addBoxMesh(3.60, 0.014, 2.50, 9.15, -7.10, -0.236, matRug, archRoot, false);
+
+  // Top Cornice Trim Caps (bz = 3.81m) around the 3 outer Cabin walls (cabin_south, cabin_east, cabin_north)
+  addBoxMesh(6.16, 0.06, 0.30, 9.00, -9.20, 3.81, matArchTrim);
+  addBoxMesh(0.30, 0.06, 4.28, 12.00, -7.10, 3.81, matArchTrim);
+  addBoxMesh(6.16, 0.06, 0.30, 9.00, -5.00, 3.81, matArchTrim);
+
+  // Cabin Interior Furnishing: Luxury Tunisian Guest Daybed & Divan (against East wall bx = 10.85, by = -7.10) + Inlaid Walnut Tea Table
+  const cabinDaybedGroup = new THREE.Group();
+  addBoxMesh(1.18, 0.32, 2.56, 10.92, -7.10, -0.09, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.22, 0.03, 2.60, 10.92, -7.10, 0.08, matBrass, cabinDaybedGroup);
+  addBoxMesh(1.12, 0.18, 2.48, 10.90, -7.10, 0.18, matKilimCream, cabinDaybedGroup);
+  addBoxMesh(1.04, 0.03, 2.40, 10.88, -7.10, 0.28, matKilimCrimson, cabinDaybedGroup);
+  // Headboard, footboard & backrest cushions along the East cabin wall
+  addBoxMesh(1.18, 0.68, 0.12, 10.92, -5.80, 0.36, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.68, 0.12, 10.92, -8.40, 0.36, matWalnut, cabinDaybedGroup);
+  [-0.78, 0.0, 0.78].forEach((dy, idx) => {
+    addBoxMesh(0.22, 0.42, 0.72, 11.34, -7.10 + dy, 0.46, idx === 1 ? matKilimGold : matKilimTeal, cabinDaybedGroup);
+  });
+  // Side walnut console table & brass lantern inside the Cabin (North wall bx = 8.95, by = -5.52)
+  addBoxMesh(1.36, 0.62, 0.52, 8.95, -5.52, 0.06, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.42, 0.04, 0.56, 8.95, -5.52, 0.39, matMainFloor, cabinDaybedGroup);
+  const cabinLantern = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.08, 0.28, 12), matBrass);
+  cabinLantern.position.copy(bPos(8.95, -5.52, 0.55));
+  cabinDaybedGroup.add(cabinLantern);
+  archRoot.add(cabinDaybedGroup);
+  registerDraggable(cabinDaybedGroup, 'Cabin Guest Daybed & Walnut Console', 'ديوان وسرير مقصورة الضيوف التونسية');
+
+  // ==========================================================================
+  // NEW TERRACE IN FRONT OF THE CABIN ("TERRACE DEPAN KABIN (ARAH DEPAN RUMAH UTAMA)")
+  //   - Spans bx = 6.00m .. 12.00m (width = 6.00m, center bx = 9.00m), by = -9.20m .. -12.30m (depth = 3.10m, center by = -10.75m)
+  //   - Sits at bz = -0.25m (matching the Right Arched Terrace & Left Concrete Terrace)
+  //   - Features a full Tunisian Sofa Lesehan ("beri sofa lesehan d terrace baru ini")!
+  // ==========================================================================
+  addBoxMesh(6.00, 0.24, 3.10, 9.00, -10.75, -0.37, matCourtyardFloor, archRoot, true);
+  addBoxMesh(6.10, 0.04, 3.18, 9.00, -10.75, -0.295, matArchTrim, archRoot, true);
+  // Front & West Travertine Steps from New Cabin Terrace (-0.25m) down to Exterior Soil (-0.50m) & Walkway (-11.45m)
+  addBoxMesh(2.40, 0.125, 0.38, 9.00, -12.46, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(0.36, 0.125, 1.38, 5.84, -11.45, -0.4375, matMainFloor, archRoot, true);
+
+  // TUNISIAN SOFA LESEHAN ON THE NEW CABIN FRONT TERRACE ("BERI SOFA LESEHAN D TERRACE BARU INI")
+  const cabinTerraceLesehanGroup = new THREE.Group();
+  // Large Hand-Woven Tunisian Kilim Carpet Runner (3.90m x 2.25m) on the New Cabin Terrace
+  addBoxMesh(3.90, 0.012, 2.25, 9.00, -10.68, -0.244, matKilimGold, cabinTerraceLesehanGroup);
+  addBoxMesh(3.74, 0.015, 2.10, 9.00, -10.68, -0.240, matKilimCrimson, cabinTerraceLesehanGroup);
+  addBoxMesh(2.85, 0.017, 1.45, 9.00, -10.68, -0.236, matKilimTeal, cabinTerraceLesehanGroup);
+
+  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Brass Trim (backed against the Cabin front wall at by = -9.20m, facing the front olive garden!)
+  // 1) Main Back Sofa Bench (bx = 7.20 .. 10.80, by = -9.68)
+  addBoxMesh(3.60, 0.16, 0.72, 9.00, -9.68, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(3.64, 0.022, 0.75, 9.00, -9.68, -0.075, matBrass, cabinTerraceLesehanGroup);
+  // 2) Left & Right Side Return Sofa Wings (bx = 7.52 and bx = 10.48, by = -10.62)
+  addBoxMesh(0.70, 0.16, 1.18, 7.52, -10.62, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, 7.52, -10.62, -0.075, matBrass, cabinTerraceLesehanGroup);
+  addBoxMesh(0.70, 0.16, 1.18, 10.48, -10.62, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, 10.48, -10.62, -0.075, matBrass, cabinTerraceLesehanGroup);
+
+  // 4 Thick Tufted Tunisian Floor Sofa Mattresses along the Back Bench (bx = 7.65, 8.55, 9.45, 10.35, by = -9.68)
+  [-1.35, -0.45, 0.45, 1.35].forEach((dx, idx) => {
+    const cx = 9.00 + dx;
+    const cMat = (idx % 2 === 0) ? matKilimCrimson : matKilimTeal;
+    addBoxMesh(0.86, 0.17, 0.70, cx, -9.68, 0.015, cMat, cabinTerraceLesehanGroup);
+    addBoxMesh(0.78, 0.024, 0.62, cx, -9.68, 0.108, idx === 1 || idx === 2 ? matKilimCream : matKilimGold, cabinTerraceLesehanGroup);
+    // Plump angled backrest cushion leaning against the Cabin Front Wall
+    const backC = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.42, 0.18), idx % 2 === 0 ? matKilimTeal : matKilimCrimson);
+    backC.position.copy(bPos(cx, -9.40, 0.29));
+    backC.rotation.x = 0.15;
+    backC.castShadow = true;
+    backC.receiveShadow = true;
+    cabinTerraceLesehanGroup.add(backC);
+    // Decorative Tunisian diamond throw pillow
+    const throwP = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.12), idx % 2 === 0 ? matKilimGold : matKilimCream);
+    throwP.position.copy(bPos(cx, -9.52, 0.23));
+    throwP.rotation.x = 0.24;
+    throwP.rotation.z = (idx - 1.5) * 0.10;
+    throwP.castShadow = true;
+    throwP.receiveShadow = true;
+    cabinTerraceLesehanGroup.add(throwP);
+  });
+
+  // Left & Right Return Wing Floor Cushions & Outer Bolster Armrests (Takaya)
+  [-1.48, 1.48].forEach((dx, sIdx) => {
+    const wx = 9.00 + dx;
+    addBoxMesh(0.68, 0.17, 1.14, wx, -10.62, 0.015, sIdx === 0 ? matKilimTeal : matKilimCrimson, cabinTerraceLesehanGroup);
+    addBoxMesh(0.60, 0.024, 1.06, wx, -10.62, 0.108, matKilimCream, cabinTerraceLesehanGroup);
+    // Side bolster pillow along the outer edge of each wing
+    const sideBolster = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 1.05, 18), matKilimGold);
+    sideBolster.rotation.x = Math.PI / 2;
+    sideBolster.position.copy(bPos(wx + (sIdx === 0 ? -0.22 : 0.22), -10.62, 0.20));
+    sideBolster.castShadow = true;
+    sideBolster.receiveShadow = true;
+    cabinTerraceLesehanGroup.add(sideBolster);
+  });
+
+  // Low Carved Walnut & Brass Arabic Coffee Table in the center of the Cabin Terrace Sofa Lesehan (bx = 9.00, by = -10.75)
+  addBoxMesh(1.28, 0.18, 0.68, 9.00, -10.75, -0.145, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(1.34, 0.028, 0.74, 9.00, -10.75, -0.042, matMainFloor, cabinTerraceLesehanGroup);
+  addBoxMesh(1.36, 0.018, 0.76, 9.00, -10.75, -0.028, matBrass, cabinTerraceLesehanGroup);
+  // Hammered Brass Mint-Tea Tray, Teapot (Berrad) & 4 Tea Glasses on the Low Table
+  const cabinTeaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.26, 0.026, 24), matBrass);
+  cabinTeaTray.position.copy(bPos(9.00, -10.75, -0.01));
+  cabinTeaTray.castShadow = true;
+  cabinTerraceLesehanGroup.add(cabinTeaTray);
+  const cabinTeapot = new THREE.Mesh(new THREE.SphereGeometry(0.082, 16, 14), matBrass);
+  cabinTeapot.scale.set(1.0, 1.28, 1.0);
+  cabinTeapot.position.copy(bPos(9.00, -10.75, 0.075));
+  cabinTeapot.castShadow = true;
+  cabinTerraceLesehanGroup.add(cabinTeapot);
+  [[-0.14, -0.08], [0.14, -0.08], [-0.14, 0.08], [0.14, 0.08]].forEach(([gxOff, gyOff]) => {
+    const gl = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.075, 14), matGlass);
+    gl.position.copy(bPos(9.00 + gxOff, -10.75 + gyOff, 0.04));
+    cabinTerraceLesehanGroup.add(gl);
+  });
+
+  // 2 Embroidered Leather Tunisian Floor Poufs at the front corners of the Kilim rug (bx = 8.20 and 9.80, by = -11.48)
+  [-0.80, 0.80].forEach((pxOff, pIdx) => {
+    const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.31, 0.22, 24), pIdx === 0 ? matKilimCrimson : matKilimGold);
+    pouf.position.copy(bPos(9.00 + pxOff, -11.48, -0.125));
+    pouf.castShadow = true;
+    pouf.receiveShadow = true;
+    cabinTerraceLesehanGroup.add(pouf);
+    const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.27, 0.03, 24), matKilimCream);
+    poufTop.position.copy(bPos(9.00 + pxOff, -11.48, -0.005));
+    cabinTerraceLesehanGroup.add(poufTop);
+  });
+
+  archRoot.add(cabinTerraceLesehanGroup);
+  attachNpcTargetWorld(
+    cabinTerraceLesehanGroup,
+    bPos(9.00, -9.85, -0.215),
+    bPos(9.00, -10.85, -0.215)
+  );
+  cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
+  window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
+  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'جلسة أرضية تونسية في شرفة المقصورة');
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -2622,6 +2778,9 @@ function buildStaticArchitecture() {
   // Base Flat Roof Slab, Terrace Floor, Rooftop Pergola & BBQ Counter
   addBoxMesh(12.30, 0.24, 10.30, 0.0, 0.0, 3.62, wallMaterials.south_ext, roofGroup);
   addBoxMesh(11.70, 0.03, 9.70, 0.0, 0.0, 3.755, matCourtyardFloor, roofGroup);
+  // East Guest Cabin Flat Roof Slab & Terrace Surface (bx = 6.00..12.00, by = -9.20..-5.00; hides with roofGroup when Open Roof Cutaway is ON!)
+  addBoxMesh(6.24, 0.24, 4.44, 9.00, -7.10, 3.62, wallMaterials.courtyard, roofGroup);
+  addBoxMesh(5.76, 0.03, 3.96, 9.00, -7.10, 3.755, matCourtyardFloor, roofGroup);
 
   const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
@@ -2681,6 +2840,9 @@ function rebuildFacadeDecor() {
   addBoxMesh(0.04, 0.48, 10.34, 6.16, 0.0, 4.35, matMashrabiya, facadeDecorGroup);
   for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matWalnut, facadeDecorGroup);
   for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matWalnut, facadeDecorGroup);
+  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the East Guest Cabin Front Wall (by = -9.20, bx = 6.00..12.00)
+  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 6.50 + i*0.45, -9.42, 3.55, matWalnut, facadeDecorGroup);
+  addBoxMesh(5.80, 0.035, 0.04, 9.00, -9.34, 3.76, matLedBorderOpening, facadeDecorGroup);
   [-4.40, -0.80].forEach(ex => {
     const a = createModernArabicArchGroup(2.20, 3.05, 0.09, { infillMode: 'mashrabiya', hasLed: true, isOpening: true, pointed: 0.15 });
     a.position.copy(bPos(ex, -5.14, 0.15));
@@ -2729,6 +2891,21 @@ function rebuildOpenings() {
   wWin.userData.labelAr = 'شباك بيت النوم الغربي المقوس';
   openingsGroup.add(wWin);
   snapOpeningToNearestWall(wWin, -6.00, 2.50);
+
+  // 5. East Guest Cabin Arched Door on the Cabin West Wall (X=6.00, Y=-7.05) facing Left (-bx) toward the Main House!
+  const cabinDoor = createArchedDoorAssembly(1.18, 2.55, 0.28, false, 0.14);
+  cabinDoor.userData.labelEn = 'Guest Cabin Arched Door (Facing Left)';
+  cabinDoor.userData.labelAr = 'باب مقصورة الضيوف المقوس';
+  openingsGroup.add(cabinDoor);
+  snapOpeningToNearestWall(cabinDoor, 6.00, -7.05);
+
+  // 6. East Guest Cabin Front Arched Window on the Cabin South Wall (X=9.00, Y=-9.20) overlooking the New Cabin Terrace & Sofa Lesehan!
+  const cabinWin = createArchedWindowAssembly(1.32, 2.05, 0.28, p);
+  cabinWin.userData.sillHeight = 1.08;
+  cabinWin.userData.labelEn = 'Guest Cabin Front Arched Window';
+  cabinWin.userData.labelAr = 'شباك مقصورة الضيوف الأمامي المقوس';
+  openingsGroup.add(cabinWin);
+  snapOpeningToNearestWall(cabinWin, 9.00, -9.20);
 }
 
 
@@ -4278,8 +4455,8 @@ async function buildStaticPolyHavenDecor() {
     neatGrassGroup.add(tPoolS);
   });
 
-  // Spiky 3D grass tufts around the 5 front potted olive trees (by = -14.68, -15.20, -15.72)
-  for (let bx = -5.25; bx <= 5.30; bx += 0.58) {
+  // Spiky 3D grass tufts around the 11 front potted olive trees stretching from the Swimming Pool (bx = -12.00m) to the New Cabin Front Terrace (bx = +12.00m)
+  for (let bx = -12.00; bx <= 12.05; bx += 0.58) {
     const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
     tuftFront.position.copy(bPos(bx, -14.68, -0.455));
     neatGrassGroup.add(tuftFront);
@@ -4288,8 +4465,8 @@ async function buildStaticPolyHavenDecor() {
     tuftBack.position.copy(bPos(bx, -15.72, -0.455));
     neatGrassGroup.add(tuftBack);
   }
-  // Taller spiky ornamental grass clusters between the 5 potted olive trees
-  [-3.60, -1.20, 1.20, 3.60].forEach((mx, idx) => {
+  // Taller spiky ornamental grass clusters between each of the 11 potted olive trees along bx = -11.60 .. +11.60
+  [-10.44, -8.12, -5.80, -3.48, -1.16, 1.16, 3.48, 5.80, 8.12, 10.44].forEach((mx, idx) => {
     const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
     tallTuft.position.copy(bPos(mx, -15.20, -0.455));
     neatGrassGroup.add(tallTuft);
@@ -4484,10 +4661,10 @@ async function buildStaticPolyHavenDecor() {
   g.add(bigOliveGroup);
 
   // ==========================================================================
-  // 2. FIVE SMALL POTTED OLIVE TREES (~1.5m Scale) IN A HORIZONTAL ROW IN FRONT
-  //    (~5m in front of the Arched Wall: by = -15.20, bx = [-4.8, -2.4, 0.0, 2.4, 4.8])
+  // 2. ELEVEN SMALL POTTED OLIVE TREES (~1.5m Scale) DISTRIBUTED ALONG THE FRONT
+  //    FROM THE SWIMMING POOL (bx = -11.60m) TO THE NEW CABIN FRONT TERRACE (bx = +11.60m)
   // ==========================================================================
-  const smallOliveX = [-4.80, -2.40, 0.00, 2.40, 4.80];
+  const smallOliveX = [-11.60, -9.28, -6.96, -4.64, -2.32, 0.00, 2.32, 4.64, 6.96, 9.28, 11.60];
   window.smallOliveTrees = [];
   for (let i = 0; i < smallOliveX.length; i++) {
     const ox = smallOliveX[i];
@@ -5473,8 +5650,7 @@ window.addEventListener('keyup', (e) => {
 const EXTRA_PHYSICAL_WALLS = [
   // Interior Kitchen Divider Wall (bx = 1.40, by = -1.60 .. -5.00)
   { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22, groundOnly: true },
-  // Physical Courtyard Walls on the Right Arched Terrace (leaving Grand Welcome Arch at bx = 1.40..3.38, by = -9.20 & Left Concrete Terrace passage by = -5.00..-7.10 100% open!)
-  { axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24 },
+  // Physical Courtyard Walls on the Right Arched Terrace (cabin_west, cabin_south, cabin_east, cabin_north are in WALL_DEFS with automatic door portal carving!)
   { axis: 'x', fixed: -9.20, min: 3.42, max: 6.00, thick: 0.24 },
   { axis: 'y', fixed: 1.40, min: -9.20, max: -7.10, thick: 0.24 },
   // Left Exterior Staircase Safety Balustrade Wall (bx = -7.42, by = -5.05 .. +0.68) & Top Landing North Return Wall (by = +0.65, bx = -7.42 .. -6.02)
@@ -5605,7 +5781,11 @@ function updateWalkAndOpenings(dt) {
       // Main Entrance steps ramp (0.00m <-> -0.25m)
       const tRamp = (wz - 5.05) / 0.70;
       groundY = -0.25 * tRamp;
-    } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
+    } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 12.00) {
+      // Right Arched Terrace & East Guest Cabin Interior (bz = -0.25m)
+      groundY = -0.25;
+    } else if (wz > 9.25 && wz <= 12.35 && wx >= 6.00 && wx <= 12.00) {
+      // New Cabin Front Terrace (bz = -0.25m)
       groundY = -0.25;
     } else if (wx >= 1.25 && wx <= 3.55 && wz > 9.25 && wz <= 9.98) {
       // Welcome Arch steps ramp (-0.25m <-> -0.50m)
@@ -6765,14 +6945,14 @@ const WIFE_ACTIVITIES = {
   WATER_FRONT_OLIVES: {
     id: 'WATER_FRONT_OLIVES',
     zone: 'front_yard',
-    bx: -4.80, by: -14.28, bz: -0.50,
+    bx: -11.60, by: -14.28, bz: -0.50,
     ry: 0,
     clip: 'Water_Plants',
     prop: 'watering_can',
-    duration: [15, 21], // 3x faster per tree than Maître Maher's [45, 65]s!
-    seqCount: 5,
-    en: 'Watering the 5 Small Olive Trees in Front Yard',
-    ar: 'تسقي شجيرات الزيتون الخمس أمام الدار'
+    duration: [14, 19], // 3x faster per tree than Maître Maher's [45, 65]s!
+    seqCount: 11,
+    en: 'Watering the 11 Small Olive Trees along Front Yard',
+    ar: 'تسقي شجيرات الزيتون الإحدى عشرة على طول الجنينة'
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
