@@ -1579,11 +1579,11 @@ const WALL_DEFS = [
   { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east', baseZ: 0.0, topZ: 3.50 },
   { id: 'bath_east', axis: 'y', fixed: -2.10, min: -4.88, max: -1.20, thick: 0.18, rotY: Math.PI / 2, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
   { id: 'bath_north', axis: 'x', fixed: -1.20, min: -5.88, max: -2.10, thick: 0.18, rotY: 0, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
-  // East Side Guest Cabin Walls (bx = 6.00 .. 12.00, by = -13.40 .. -9.20: back wall cabin_north is collinear with the front terrace wall at by = -9.20m, rising from bz = -0.25m up to bz = +3.78m matching the right wall height!)
-  { id: 'cabin_west', axis: 'y', fixed: 6.00, min: -13.40, max: -9.20, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_south', axis: 'x', fixed: -13.40, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_east', axis: 'y', fixed: 12.00, min: -13.40, max: -9.20, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_north', axis: 'x', fixed: -9.20, min: 6.00, max: 12.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
+  // East Side Guest Cabin Walls (shifted right by its own 6.00m length to bx = 12.00 .. 18.00, by = -13.40 .. -9.20, continuing from the bx = 6.00 .. 12.00 divider wall!)
+  { id: 'cabin_west', axis: 'y', fixed: 12.00, min: -13.40, max: -9.20, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_south', axis: 'x', fixed: -13.40, min: 12.00, max: 18.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_east', axis: 'y', fixed: 18.00, min: -13.40, max: -9.20, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_north', axis: 'x', fixed: -9.20, min: 12.00, max: 18.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
 ];
 
 function addBoxMesh(w, h, d, bx, by, bz, mat, parent = archRoot, castShadow = true) {
@@ -2327,56 +2327,6 @@ function buildStaticArchitecture() {
   addBoxMesh(0.34, 0.045, 0.24, lxCenter + 0.26, -6.22, -0.038, matLesehanCream, leftTerraceLesehanGroup);
   addBoxMesh(0.32, 0.042, 0.22, lxCenter + 0.26, -6.22, 0.005, matLesehanAzure, leftTerraceLesehanGroup);
 
-  // DEDICATED FULL-LENGTH ARCHITECTURAL SHADE CANOPY ALONG THE LEFT TERRACE SOFA LESEHAN
-  // ("kanopi sepanjang sofa lesehan untuk sofa lesehan d terrace kiri")
-  // Spans the entire 3.82m width of the Left Terrace Sofa Lesehan (bx = -4.36 .. -0.54, by = -5.06 .. -6.78, bz = -0.24 .. +2.52m)
-  const matLesehanCanopyTile = new THREE.MeshStandardMaterial({
-    color: 0x8f3d27,
-    map: plasterDiffTex,
-    normalMap: plasterNorTex,
-    normalScale: new THREE.Vector2(1.05, 1.05),
-    roughness: 0.56,
-    metalness: 0.14,
-    envMapIntensity: 0.62,
-    userData: { customEnvIntensity: 0.62 }
-  });
-  [
-    [-1.82,  0.78], [ 1.82,  0.78],
-    [-1.82, -0.78], [ 1.82, -0.78]
-  ].forEach(([dxCol, dyCol]) => {
-    const colX = lxCenter + dxCol;
-    const colY = lyCenter + dyCol;
-    // Ornate Brass Base Plinth + Carved Walnut Column + Brass Capital Corbel (bz = -0.24 .. +2.16m)
-    addBoxMesh(0.13, 0.10, 0.13, colX, colY, -0.19, matBrass, leftTerraceLesehanGroup);
-    addBoxMesh(0.085, 2.32, 0.085, colX, colY, 0.96, matWalnut, leftTerraceLesehanGroup);
-    addBoxMesh(0.17, 0.06, 0.17, colX, colY, 2.13, matBrass, leftTerraceLesehanGroup);
-    // Decorative Tunisian carved walnut arch brackets along the beam
-    addBoxMesh(0.28, 0.10, 0.07, colX + (dxCol < 0 ? 0.14 : -0.14), colY, 2.06, matWalnut, leftTerraceLesehanGroup);
-  });
-  // Perimeter Carved Walnut Eave Frame & Hammered Brass Scalloped Valance Trim along the entire Sofa Lesehan
-  addBoxMesh(3.86, 0.11, 1.76, lxCenter, lyCenter, 2.20, matWalnut, leftTerraceLesehanGroup);
-  addBoxMesh(3.94, 0.036, 1.84, lxCenter, lyCenter, 2.26, matBrass, leftTerraceLesehanGroup);
-  // 9 Carved Walnut Cross-Rafters spanning North-to-South across the canopy
-  for (let ri = -4; ri <= 4; ri++) {
-    addBoxMesh(0.065, 0.06, 1.86, lxCenter + ri * 0.43, lyCenter, 2.29, matWalnut, leftTerraceLesehanGroup);
-  }
-  // Sloped Terracotta-Copper Tunisian Shade Roof Slab + Pitched Crown Ridge along the full length of the Sofa Lesehan
-  const leftCanopySlab = new THREE.Mesh(new THREE.BoxGeometry(3.98, 0.055, 1.92), matLesehanCanopyTile);
-  leftCanopySlab.position.copy(bPos(lxCenter, lyCenter, 2.35));
-  leftCanopySlab.rotation.x = 0.09; // Gentle forward architectural pitch for rainwater runoff
-  leftCanopySlab.castShadow = true;
-  leftCanopySlab.receiveShadow = true;
-  leftTerraceLesehanGroup.add(leftCanopySlab);
-  addBoxMesh(3.62, 0.10, 0.72, lxCenter, lyCenter + 0.08, 2.43, matLesehanCanopyTile, leftTerraceLesehanGroup);
-  addBoxMesh(3.68, 0.028, 0.78, lxCenter, lyCenter + 0.08, 2.49, matBrass, leftTerraceLesehanGroup);
-  [-1.25, 0.0, 1.25].forEach((fxOff) => {
-    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.048, 12, 12), matBrass);
-    finial.position.copy(bPos(lxCenter + fxOff, lyCenter + 0.08, 2.55));
-    leftTerraceLesehanGroup.add(finial);
-  });
-  // Warm 2700K Under-Canopy LED Strip illuminating the Left Terrace Sofa Lesehan
-  addBoxMesh(3.45, 0.020, 0.045, lxCenter, lyCenter, 2.14, matLedBorderOpening, leftTerraceLesehanGroup);
-
   archRoot.add(leftTerraceLesehanGroup);
   attachNpcTargetWorld(
     leftTerraceLesehanGroup,
@@ -2385,7 +2335,7 @@ function buildStaticArchitecture() {
   );
   leftTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.leftTerraceLesehanObj = leftTerraceLesehanGroup;
-  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge & Canopy (Lesehan)', 'جلسة تونسية أرضية بمظلة للاستجمام بعد السباحة');
+  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge (Lesehan)', 'جلسة تونسية أرضية للاستجمام بعد السباحة');
 
   // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable, raised cleanly above 0.00m floor)
   const rugBed = addBoxMesh(3.40, 0.014, 3.10, -4.20, 2.50, 0.011, matRug, archRoot, false);
@@ -2709,82 +2659,88 @@ function buildStaticArchitecture() {
   addBoxMesh(2.65, 0.825, 0.24, 4.68, -9.20, 0.1625, wallMaterials.courtyard);
   addBoxMesh(2.73, 0.06, 0.30, 4.68, -9.20, 0.605, matArchTrim);
 
+  // 4) Additional Full-Height Divider Wall to the Right of Main House ("dinding lagi d kanan dinding rumah utama sebagai pembatas, yg d teruskan dengan dinding kabin d kanannya"):
+  //    Spans bx = 6.00m .. 12.00m (width = 6.00m, center bx = 9.00m) along by = -9.20m, rising from exterior ground (bz = -0.50m) up to bz = +3.78m (matching right wall height) and continued by cabin_north (bx = 12.00 .. 18.00)!
+  addBoxMesh(6.00, 4.28, 0.24, 9.00, -9.20, 1.64, wallMaterials.courtyard, archRoot, true);
+  addBoxMesh(6.08, 0.06, 0.30, 9.00, -9.20, -0.47, matArchTrim, archRoot, true);
+  addBoxMesh(6.16, 0.06, 0.30, 9.00, -9.20, 3.81, matArchTrim, archRoot, true);
+
   // ==========================================================================
-  // EAST GUEST CABIN ("KABIN BARU BAGIAN BELAKANGNYA SEJAJAR DENGAN DINDING TERRACE DEPAN")
-  //   - Extends to the right from bx = 6.00m to bx = 12.00m (width = 6.00m = half of main house 12.0m length!)
-  //   - Back wall (cabin_north at by = -9.20, bx = 6.00..12.00) is collinear ("sejajar") with the front terrace wall near the grill (by = -9.20),
-  //     rising to bz = +3.78m (exact same height as the right terrace wall at bx = 6.00!)
-  //   - Front wall (cabin_south) is at by = -13.40m (center by = -11.30m)
-  //   - Arched Door on the Cabin West Wall (bx = 6.00, by = -11.30) faces left (-bx) toward the main house!
+  // EAST GUEST CABIN SHIFTED RIGHT BY ITS OWN LENGTH ("KABIN D DEPAN RUMAH, DAN TERRACENYA, GESER KE KANAN SEPANJANG KABIN ITU SENDIRI")
+  //   - Shifted +6.00m to the right: spans bx = 12.00m to bx = 18.00m (width = 6.00m, center bx = 15.00m)
+  //   - Back wall (cabin_north at by = -9.20, bx = 12.00..18.00) continues directly from the bx = 6.00..12.00 divider wall ("yg d teruskan dengan dinding kabin d kanannya")!
+  //   - Front wall (cabin_south) is a solid windowless wall at by = -13.40m (center by = -11.30m)
+  //   - Arched Door on the Cabin West Wall (bx = 12.00, by = -11.30) faces left (-bx) toward the main house!
   // ==========================================================================
+  const cabCenterX = 15.00;
   // Cabin Foundation Podium & Polished Carthage Marble Interior Floor (bz = -0.25m)
-  addBoxMesh(6.00, 0.24, 4.20, 9.00, -11.30, -0.37, wallMaterials.courtyard, archRoot, true);
-  addBoxMesh(6.14, 0.04, 4.34, 9.00, -11.30, -0.295, matArchTrim, archRoot, true);
-  addBoxMesh(5.72, 0.018, 3.92, 9.00, -11.30, -0.244, matMainFloor, archRoot, false);
-  // Travertine step outside the Cabin West Door (bx = 6.00, by = -11.30) down to the front yard (-0.50m)
-  addBoxMesh(0.42, 0.125, 1.48, 5.74, -11.30, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(6.00, 0.24, 4.20, cabCenterX, -11.30, -0.37, wallMaterials.courtyard, archRoot, true);
+  addBoxMesh(6.14, 0.04, 4.34, cabCenterX, -11.30, -0.295, matArchTrim, archRoot, true);
+  addBoxMesh(5.72, 0.018, 3.92, cabCenterX, -11.30, -0.244, matMainFloor, archRoot, false);
+  // Travertine step outside the Cabin West Door (bx = 12.00, by = -11.30) down to the front yard (-0.50m)
+  addBoxMesh(0.42, 0.125, 1.48, 11.74, -11.30, -0.4375, matMainFloor, archRoot, true);
   // Woven Tunisian Berber Carpet inside the Cabin
-  addBoxMesh(3.60, 0.014, 2.50, 9.15, -11.30, -0.236, matRug, archRoot, false);
+  addBoxMesh(3.60, 0.014, 2.50, cabCenterX + 0.15, -11.30, -0.236, matRug, archRoot, false);
 
   // Top Cornice Trim Caps (bz = 3.81m) around the 4 Cabin walls (cabin_west, cabin_south, cabin_east, cabin_north)
-  addBoxMesh(0.30, 0.06, 4.28, 6.00, -11.30, 3.81, matArchTrim);
-  addBoxMesh(6.16, 0.06, 0.30, 9.00, -13.40, 3.81, matArchTrim);
   addBoxMesh(0.30, 0.06, 4.28, 12.00, -11.30, 3.81, matArchTrim);
-  addBoxMesh(6.16, 0.06, 0.30, 9.00, -9.20, 3.81, matArchTrim);
+  addBoxMesh(6.16, 0.06, 0.30, cabCenterX, -13.40, 3.81, matArchTrim);
+  addBoxMesh(0.30, 0.06, 4.28, 18.00, -11.30, 3.81, matArchTrim);
+  addBoxMesh(6.16, 0.06, 0.30, cabCenterX, -9.20, 3.81, matArchTrim);
 
-  // Cabin Interior Furnishing: Luxury Tunisian Guest Daybed & Divan (against East wall bx = 10.92, by = -11.30) + Inlaid Walnut Tea Table
+  // Cabin Interior Furnishing: Luxury Tunisian Guest Daybed & Divan (against East wall bx = 16.92, by = -11.30) + Inlaid Walnut Tea Table
   const cabinDaybedGroup = new THREE.Group();
-  addBoxMesh(1.18, 0.32, 2.56, 10.92, -11.30, -0.09, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.22, 0.03, 2.60, 10.92, -11.30, 0.08, matBrass, cabinDaybedGroup);
-  addBoxMesh(1.12, 0.18, 2.48, 10.90, -11.30, 0.18, matKilimCream, cabinDaybedGroup);
-  addBoxMesh(1.04, 0.03, 2.40, 10.88, -11.30, 0.28, matKilimCrimson, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.32, 2.56, 16.92, -11.30, -0.09, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.22, 0.03, 2.60, 16.92, -11.30, 0.08, matBrass, cabinDaybedGroup);
+  addBoxMesh(1.12, 0.18, 2.48, 16.90, -11.30, 0.18, matKilimCream, cabinDaybedGroup);
+  addBoxMesh(1.04, 0.03, 2.40, 16.88, -11.30, 0.28, matKilimCrimson, cabinDaybedGroup);
   // Headboard, footboard & backrest cushions along the East cabin wall
-  addBoxMesh(1.18, 0.68, 0.12, 10.92, -10.00, 0.36, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.18, 0.68, 0.12, 10.92, -12.60, 0.36, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.68, 0.12, 16.92, -10.00, 0.36, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.18, 0.68, 0.12, 16.92, -12.60, 0.36, matWalnut, cabinDaybedGroup);
   [-0.78, 0.0, 0.78].forEach((dy, idx) => {
-    addBoxMesh(0.22, 0.42, 0.72, 11.34, -11.30 + dy, 0.46, idx === 1 ? matKilimGold : matKilimTeal, cabinDaybedGroup);
+    addBoxMesh(0.22, 0.42, 0.72, 17.34, -11.30 + dy, 0.46, idx === 1 ? matKilimGold : matKilimTeal, cabinDaybedGroup);
   });
-  // Side walnut console table & brass lantern inside the Cabin (against North back wall bx = 8.95, by = -9.72)
-  addBoxMesh(1.36, 0.62, 0.52, 8.95, -9.72, 0.06, matWalnut, cabinDaybedGroup);
-  addBoxMesh(1.42, 0.04, 0.56, 8.95, -9.72, 0.39, matMainFloor, cabinDaybedGroup);
+  // Side walnut console table & brass lantern inside the Cabin (against North back wall bx = 14.95, by = -9.72)
+  addBoxMesh(1.36, 0.62, 0.52, 14.95, -9.72, 0.06, matWalnut, cabinDaybedGroup);
+  addBoxMesh(1.42, 0.04, 0.56, 14.95, -9.72, 0.39, matMainFloor, cabinDaybedGroup);
   const cabinLantern = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.08, 0.28, 12), matBrass);
-  cabinLantern.position.copy(bPos(8.95, -9.72, 0.55));
+  cabinLantern.position.copy(bPos(14.95, -9.72, 0.55));
   cabinDaybedGroup.add(cabinLantern);
   archRoot.add(cabinDaybedGroup);
   registerDraggable(cabinDaybedGroup, 'Cabin Guest Daybed & Walnut Console', 'ديوان وسرير مقصورة الضيوف التونسية');
 
   // ==========================================================================
-  // NEW TERRACE IN FRONT OF THE SHIFTED CABIN ("TERRACE DEPAN KABIN BARU")
-  //   - Spans bx = 6.00m .. 12.00m (width = 6.00m, center bx = 9.00m), by = -13.40m .. -16.50m (depth = 3.10m, center by = -14.95m)
+  // NEW TERRACE IN FRONT OF THE SHIFTED CABIN ("DAN TERRACENYA, GESER KE KANAN SEPANJANG KABIN ITU SENDIRI")
+  //   - Spans bx = 12.00m .. 18.00m (width = 6.00m, center bx = 15.00m), by = -13.40m .. -16.50m (depth = 3.10m, center by = -14.95m)
   //   - Sits at bz = -0.25m (matching the Right Arched Terrace & Left Concrete Terrace)
-  //   - Features a full Tunisian Sofa Lesehan ("beri sofa lesehan d terrace baru ini")!
+  //   - Features a full Tunisian Sofa Lesehan without canopy ("hapus semua kanopi di sofa lantai terrace kiri dan terrace baru")!
   // ==========================================================================
-  addBoxMesh(6.00, 0.24, 3.10, 9.00, -14.95, -0.37, matCourtyardFloor, archRoot, true);
-  addBoxMesh(6.10, 0.04, 3.18, 9.00, -14.95, -0.295, matArchTrim, archRoot, true);
+  addBoxMesh(6.00, 0.24, 3.10, cabCenterX, -14.95, -0.37, matCourtyardFloor, archRoot, true);
+  addBoxMesh(6.10, 0.04, 3.18, cabCenterX, -14.95, -0.295, matArchTrim, archRoot, true);
   // Front & West Travertine Steps from New Cabin Terrace (-0.25m) down to Exterior Soil (-0.50m)
-  addBoxMesh(2.40, 0.125, 0.38, 9.00, -16.66, -0.4375, matMainFloor, archRoot, true);
-  addBoxMesh(0.36, 0.125, 1.38, 5.84, -14.95, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(2.40, 0.125, 0.38, cabCenterX, -16.66, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(0.36, 0.125, 1.38, 11.84, -14.95, -0.4375, matMainFloor, archRoot, true);
 
-  // TUNISIAN SOFA LESEHAN ON THE NEW CABIN FRONT TERRACE ("BERI SOFA LESEHAN D TERRACE BARU INI")
+  // TUNISIAN SOFA LESEHAN ON THE NEW CABIN FRONT TERRACE (NO CANOPY)
   const cabinTerraceLesehanGroup = new THREE.Group();
   // Large Hand-Woven Tunisian Kilim Carpet Runner (3.90m x 2.25m) on the New Cabin Terrace
-  addBoxMesh(3.90, 0.012, 2.25, 9.00, -14.88, -0.244, matKilimGold, cabinTerraceLesehanGroup);
-  addBoxMesh(3.74, 0.015, 2.10, 9.00, -14.88, -0.240, matKilimCrimson, cabinTerraceLesehanGroup);
-  addBoxMesh(2.85, 0.017, 1.45, 9.00, -14.88, -0.236, matKilimTeal, cabinTerraceLesehanGroup);
+  addBoxMesh(3.90, 0.012, 2.25, cabCenterX, -14.88, -0.244, matKilimGold, cabinTerraceLesehanGroup);
+  addBoxMesh(3.74, 0.015, 2.10, cabCenterX, -14.88, -0.240, matKilimCrimson, cabinTerraceLesehanGroup);
+  addBoxMesh(2.85, 0.017, 1.45, cabCenterX, -14.88, -0.236, matKilimTeal, cabinTerraceLesehanGroup);
 
-  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Brass Trim (backed against the Cabin front wall at by = -13.40m, facing the front olive garden!)
-  // 1) Main Back Sofa Bench (bx = 7.20 .. 10.80, by = -13.88)
-  addBoxMesh(3.60, 0.16, 0.72, 9.00, -13.88, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(3.64, 0.022, 0.75, 9.00, -13.88, -0.075, matBrass, cabinTerraceLesehanGroup);
-  // 2) Left & Right Side Return Sofa Wings (bx = 7.52 and bx = 10.48, by = -14.82)
-  addBoxMesh(0.70, 0.16, 1.18, 7.52, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(0.73, 0.022, 1.21, 7.52, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
-  addBoxMesh(0.70, 0.16, 1.18, 10.48, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(0.73, 0.022, 1.21, 10.48, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
+  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Brass Trim (backed against the Cabin front wall at by = -13.40m, facing South!)
+  // 1) Main Back Sofa Bench (bx = 13.20 .. 16.80, by = -13.88)
+  addBoxMesh(3.60, 0.16, 0.72, cabCenterX, -13.88, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(3.64, 0.022, 0.75, cabCenterX, -13.88, -0.075, matBrass, cabinTerraceLesehanGroup);
+  // 2) Left & Right Side Return Sofa Wings (bx = 13.52 and bx = 16.48, by = -14.82)
+  addBoxMesh(0.70, 0.16, 1.18, cabCenterX - 1.48, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, cabCenterX - 1.48, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
+  addBoxMesh(0.70, 0.16, 1.18, cabCenterX + 1.48, -14.82, -0.165, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(0.73, 0.022, 1.21, cabCenterX + 1.48, -14.82, -0.075, matBrass, cabinTerraceLesehanGroup);
 
-  // 4 Thick Tufted Tunisian Floor Sofa Mattresses along the Back Bench (bx = 7.65, 8.55, 9.45, 10.35, by = -13.88)
+  // 4 Thick Tufted Tunisian Floor Sofa Mattresses along the Back Bench (by = -13.88)
   [-1.35, -0.45, 0.45, 1.35].forEach((dx, idx) => {
-    const cx = 9.00 + dx;
+    const cx = cabCenterX + dx;
     const cMat = (idx % 2 === 0) ? matKilimCrimson : matKilimTeal;
     addBoxMesh(0.86, 0.17, 0.70, cx, -13.88, 0.015, cMat, cabinTerraceLesehanGroup);
     addBoxMesh(0.78, 0.024, 0.62, cx, -13.88, 0.108, idx === 1 || idx === 2 ? matKilimCream : matKilimGold, cabinTerraceLesehanGroup);
@@ -2807,7 +2763,7 @@ function buildStaticArchitecture() {
 
   // Left & Right Return Wing Floor Cushions & Outer Bolster Armrests (Takaya)
   [-1.48, 1.48].forEach((dx, sIdx) => {
-    const wx = 9.00 + dx;
+    const wx = cabCenterX + dx;
     addBoxMesh(0.68, 0.17, 1.14, wx, -14.82, 0.015, sIdx === 0 ? matKilimTeal : matKilimCrimson, cabinTerraceLesehanGroup);
     addBoxMesh(0.60, 0.024, 1.06, wx, -14.82, 0.108, matKilimCream, cabinTerraceLesehanGroup);
     // Side bolster pillow along the outer edge of each wing
@@ -2819,86 +2775,47 @@ function buildStaticArchitecture() {
     cabinTerraceLesehanGroup.add(sideBolster);
   });
 
-  // Low Carved Walnut & Brass Arabic Coffee Table in the center of the Cabin Terrace Sofa Lesehan (bx = 9.00, by = -14.95)
-  addBoxMesh(1.28, 0.18, 0.68, 9.00, -14.95, -0.145, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(1.34, 0.028, 0.74, 9.00, -14.95, -0.042, matMainFloor, cabinTerraceLesehanGroup);
-  addBoxMesh(1.36, 0.018, 0.76, 9.00, -14.95, -0.028, matBrass, cabinTerraceLesehanGroup);
+  // Low Carved Walnut & Brass Arabic Coffee Table in the center of the Cabin Terrace Sofa Lesehan (bx = 15.00, by = -14.95)
+  addBoxMesh(1.28, 0.18, 0.68, cabCenterX, -14.95, -0.145, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(1.34, 0.028, 0.74, cabCenterX, -14.95, -0.042, matMainFloor, cabinTerraceLesehanGroup);
+  addBoxMesh(1.36, 0.018, 0.76, cabCenterX, -14.95, -0.028, matBrass, cabinTerraceLesehanGroup);
   // Hammered Brass Mint-Tea Tray, Teapot (Berrad) & 4 Tea Glasses on the Low Table
   const cabinTeaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.26, 0.026, 24), matBrass);
-  cabinTeaTray.position.copy(bPos(9.00, -14.95, -0.01));
+  cabinTeaTray.position.copy(bPos(cabCenterX, -14.95, -0.01));
   cabinTeaTray.castShadow = true;
   cabinTerraceLesehanGroup.add(cabinTeaTray);
   const cabinTeapot = new THREE.Mesh(new THREE.SphereGeometry(0.082, 16, 14), matBrass);
   cabinTeapot.scale.set(1.0, 1.28, 1.0);
-  cabinTeapot.position.copy(bPos(9.00, -14.95, 0.075));
+  cabinTeapot.position.copy(bPos(cabCenterX, -14.95, 0.075));
   cabinTeapot.castShadow = true;
   cabinTerraceLesehanGroup.add(cabinTeapot);
   [[-0.14, -0.08], [0.14, -0.08], [-0.14, 0.08], [0.14, 0.08]].forEach(([gxOff, gyOff]) => {
     const gl = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.075, 14), matGlass);
-    gl.position.copy(bPos(9.00 + gxOff, -14.95 + gyOff, 0.04));
+    gl.position.copy(bPos(cabCenterX + gxOff, -14.95 + gyOff, 0.04));
     cabinTerraceLesehanGroup.add(gl);
   });
 
-  // 2 Embroidered Leather Tunisian Floor Poufs at the front corners of the Kilim rug (bx = 8.20 and 9.80, by = -15.68)
+  // 2 Embroidered Leather Tunisian Floor Poufs at the front corners of the Kilim rug (bx = 14.20 and 15.80, by = -15.68)
   [-0.80, 0.80].forEach((pxOff, pIdx) => {
     const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.31, 0.22, 24), pIdx === 0 ? matKilimCrimson : matKilimGold);
-    pouf.position.copy(bPos(9.00 + pxOff, -15.68, -0.125));
+    pouf.position.copy(bPos(cabCenterX + pxOff, -15.68, -0.125));
     pouf.castShadow = true;
     pouf.receiveShadow = true;
     cabinTerraceLesehanGroup.add(pouf);
     const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.27, 0.03, 24), matKilimCream);
-    poufTop.position.copy(bPos(9.00 + pxOff, -15.68, -0.005));
+    poufTop.position.copy(bPos(cabCenterX + pxOff, -15.68, -0.005));
     cabinTerraceLesehanGroup.add(poufTop);
   });
-
-  // DEDICATED FULL-LENGTH ARCHITECTURAL SHADE CANOPY ALONG THE RIGHT EXTRA CABIN TERRACE SOFA LESEHAN
-  // ("kanopi sepanjang sofa lesehan untuk sofa lesehan d terrace kiri dan terrace kanan ekstra")
-  // Spans the entire 4.00m width of the U-shaped Cabin Terrace Sofa Lesehan (bx = 7.00 .. 11.00, by = -13.48 .. -15.88, bz = -0.24 .. +2.58m)
-  [
-    [-1.90,  1.26], [ 1.90,  1.26],
-    [-1.90, -0.92], [ 1.90, -0.92]
-  ].forEach(([dxCol, dyCol]) => {
-    const colX = 9.00 + dxCol;
-    const colY = -14.80 + dyCol;
-    // Ornate Brass Base Plinth + Carved Walnut Column + Brass Capital Corbel (bz = -0.24 .. +2.20m)
-    addBoxMesh(0.13, 0.10, 0.13, colX, colY, -0.19, matBrass, cabinTerraceLesehanGroup);
-    addBoxMesh(0.088, 2.36, 0.088, colX, colY, 0.98, matWalnut, cabinTerraceLesehanGroup);
-    addBoxMesh(0.18, 0.06, 0.18, colX, colY, 2.17, matBrass, cabinTerraceLesehanGroup);
-    addBoxMesh(0.30, 0.10, 0.075, colX + (dxCol < 0 ? 0.15 : -0.15), colY, 2.10, matWalnut, cabinTerraceLesehanGroup);
-  });
-  // Perimeter Carved Walnut Eave Frame & Hammered Brass Valance Trim spanning the full Sofa Lesehan
-  addBoxMesh(4.04, 0.11, 2.38, 9.00, -14.66, 2.24, matWalnut, cabinTerraceLesehanGroup);
-  addBoxMesh(4.12, 0.036, 2.46, 9.00, -14.66, 2.30, matBrass, cabinTerraceLesehanGroup);
-  // 9 Carved Walnut Cross-Rafters spanning North-to-South across the Cabin Terrace canopy
-  for (let ri = -4; ri <= 4; ri++) {
-    addBoxMesh(0.068, 0.06, 2.48, 9.00 + ri * 0.45, -14.66, 2.33, matWalnut, cabinTerraceLesehanGroup);
-  }
-  // Sloped Terracotta-Copper Tunisian Shade Roof Slab + Pitched Crown Ridge along the full length of the Cabin Terrace Sofa Lesehan
-  const cabinCanopySlab = new THREE.Mesh(new THREE.BoxGeometry(4.18, 0.058, 2.54), matGrillRoofTile);
-  cabinCanopySlab.position.copy(bPos(9.00, -14.66, 2.39));
-  cabinCanopySlab.rotation.x = 0.09; // Gentle forward architectural slope
-  cabinCanopySlab.castShadow = true;
-  cabinCanopySlab.receiveShadow = true;
-  cabinTerraceLesehanGroup.add(cabinCanopySlab);
-  addBoxMesh(3.80, 0.11, 0.88, 9.00, -14.56, 2.48, matGrillRoofTile, cabinTerraceLesehanGroup);
-  addBoxMesh(3.86, 0.028, 0.94, 9.00, -14.56, 2.54, matBrass, cabinTerraceLesehanGroup);
-  [-1.30, 0.0, 1.30].forEach((fxOff) => {
-    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.050, 12, 12), matBrass);
-    finial.position.copy(bPos(9.00 + fxOff, -14.56, 2.61));
-    cabinTerraceLesehanGroup.add(finial);
-  });
-  // Warm 2700K Under-Canopy LED Strip illuminating the Cabin Terrace Sofa Lesehan & Meja Lesehan
-  addBoxMesh(3.60, 0.020, 0.045, 9.00, -14.66, 2.18, matLedBorderOpening, cabinTerraceLesehanGroup);
 
   archRoot.add(cabinTerraceLesehanGroup);
   attachNpcTargetWorld(
     cabinTerraceLesehanGroup,
-    bPos(9.00, -14.05, -0.215),
-    bPos(9.00, -15.05, -0.215)
+    bPos(cabCenterX, -14.05, -0.215),
+    bPos(cabCenterX, -15.05, -0.215)
   );
   cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
-  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa & Canopy (Lesehan)', 'جلسة أرضية تونسية بمظلة في شرفة المقصورة');
+  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'جلسة أرضية تونسية في شرفة المقصورة');
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -2946,9 +2863,9 @@ function buildStaticArchitecture() {
   // Base Flat Roof Slab, Terrace Floor, Rooftop Pergola & BBQ Counter
   addBoxMesh(12.30, 0.24, 10.30, 0.0, 0.0, 3.62, wallMaterials.south_ext, roofGroup);
   addBoxMesh(11.70, 0.03, 9.70, 0.0, 0.0, 3.755, matCourtyardFloor, roofGroup);
-  // East Guest Cabin Flat Roof Slab & Terrace Surface (bx = 6.00..12.00, by = -13.40..-9.20; hides with roofGroup when Open Roof Cutaway is ON!)
-  addBoxMesh(6.24, 0.24, 4.44, 9.00, -11.30, 3.62, wallMaterials.courtyard, roofGroup);
-  addBoxMesh(5.76, 0.03, 3.96, 9.00, -11.30, 3.755, matCourtyardFloor, roofGroup);
+  // East Guest Cabin Flat Roof Slab & Terrace Surface (shifted right by cabin length to bx = 12.00..18.00, by = -13.40..-9.20; hides with roofGroup when Open Roof Cutaway is ON!)
+  addBoxMesh(6.24, 0.24, 4.44, 15.00, -11.30, 3.62, wallMaterials.courtyard, roofGroup);
+  addBoxMesh(5.76, 0.03, 3.96, 15.00, -11.30, 3.755, matCourtyardFloor, roofGroup);
 
   const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
@@ -3151,9 +3068,9 @@ function rebuildFacadeDecor() {
   addBoxMesh(0.04, 0.48, 10.34, 6.16, 0.0, 4.35, matMashrabiya, facadeDecorGroup);
   for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matWalnut, facadeDecorGroup);
   for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matWalnut, facadeDecorGroup);
-  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the East Guest Cabin Front Wall (by = -13.40, bx = 6.00..12.00)
-  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 6.50 + i*0.45, -13.62, 3.55, matWalnut, facadeDecorGroup);
-  addBoxMesh(5.80, 0.035, 0.04, 9.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
+  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the Shifted East Guest Cabin Front Wall (by = -13.40, bx = 12.00..18.00)
+  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 12.50 + i*0.45, -13.62, 3.55, matWalnut, facadeDecorGroup);
+  addBoxMesh(5.80, 0.035, 0.04, 15.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
   [-4.40, -0.80].forEach(ex => {
     const a = createModernArabicArchGroup(2.20, 3.05, 0.09, { infillMode: 'mashrabiya', hasLed: true, isOpening: true, pointed: 0.15 });
     a.position.copy(bPos(ex, -5.14, 0.15));
@@ -3203,20 +3120,13 @@ function rebuildOpenings() {
   openingsGroup.add(wWin);
   snapOpeningToNearestWall(wWin, -6.00, 2.50);
 
-  // 5. East Guest Cabin Arched Door on the Cabin West Wall (X=6.00, Y=-11.30) facing Left (-bx) toward the Main House!
+  // 5. East Guest Cabin Arched Door on the Shifted Cabin West Wall (X=12.00, Y=-11.30) facing Left (-bx) toward the Main House!
+  //    (Front window on the new cabin removed as requested: "hapus jendela pada kabin baru")
   const cabinDoor = createArchedDoorAssembly(1.18, 2.55, 0.28, false, 0.14);
   cabinDoor.userData.labelEn = 'Guest Cabin Arched Door (Facing Left)';
   cabinDoor.userData.labelAr = 'باب مقصورة الضيوف المقوس';
   openingsGroup.add(cabinDoor);
-  snapOpeningToNearestWall(cabinDoor, 6.00, -11.30);
-
-  // 6. East Guest Cabin Front Arched Window on the Cabin South Wall (X=9.00, Y=-13.40) overlooking the New Cabin Terrace & Sofa Lesehan!
-  const cabinWin = createArchedWindowAssembly(1.32, 2.05, 0.28, p);
-  cabinWin.userData.sillHeight = 1.08;
-  cabinWin.userData.labelEn = 'Guest Cabin Front Arched Window';
-  cabinWin.userData.labelAr = 'شباك مقصورة الضيوف الأمامي المقوس';
-  openingsGroup.add(cabinWin);
-  snapOpeningToNearestWall(cabinWin, 9.00, -13.40);
+  snapOpeningToNearestWall(cabinDoor, 12.00, -11.30);
 }
 
 
@@ -6066,8 +5976,8 @@ sunLight.castShadow = true;
 sunLight.shadow.mapSize.width = 2048;
 sunLight.shadow.mapSize.height = 2048;
 sunLight.shadow.camera.near = 1;
-sunLight.shadow.camera.far = 65;
-const d = 19.5;
+sunLight.shadow.camera.far = 70;
+const d = 22.5;
 sunLight.shadow.camera.left = -d; sunLight.shadow.camera.right = d;
 sunLight.shadow.camera.top = d; sunLight.shadow.camera.bottom = -d;
 sunLight.shadow.bias = -0.0004;
@@ -6888,9 +6798,9 @@ window.addEventListener('keyup', (e) => {
 const EXTRA_PHYSICAL_WALLS = [
   // Interior Kitchen Divider Wall (bx = 1.40, by = -1.60 .. -5.00)
   { axis: 'y', fixed: 1.40, min: -5.00, max: -1.60, thick: 0.22, groundOnly: true },
-  // Physical Courtyard Walls on the Right Arched Terrace (cabin_west, cabin_south, cabin_east, cabin_north are in WALL_DEFS with automatic door portal carving!)
+  // Physical Courtyard Walls on the Right Arched Terrace + Full-Height Divider Wall (bx = 6.00 .. 12.00 at by = -9.20)
   { axis: 'y', fixed: 6.00, min: -9.20, max: -5.00, thick: 0.24 },
-  { axis: 'x', fixed: -9.20, min: 3.42, max: 6.00, thick: 0.24 },
+  { axis: 'x', fixed: -9.20, min: 3.42, max: 12.00, thick: 0.24 },
   { axis: 'y', fixed: 1.40, min: -9.20, max: -7.10, thick: 0.24 },
   // Left Exterior Staircase Safety Balustrade Wall (bx = -7.42, by = -5.05 .. +0.68) & Top Landing North Return Wall (by = +0.65, bx = -7.42 .. -6.02)
   { axis: 'y', fixed: -7.42, min: -5.05, max: 0.68, thick: 0.20 },
@@ -7023,8 +6933,8 @@ function updateWalkAndOpenings(dt) {
     } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
       // Right Arched Terrace (bz = -0.25m)
       groundY = -0.25;
-    } else if (wz > 9.20 && wz <= 16.55 && wx >= 6.00 && wx <= 12.00) {
-      // Shifted East Guest Cabin Interior (by = -9.20..-13.40) & New Cabin Front Terrace (by = -13.40..-16.50, bz = -0.25m)
+    } else if (wz > 9.20 && wz <= 16.55 && wx >= 12.00 && wx <= 18.00) {
+      // Shifted East Guest Cabin Interior (bx = 12.00..18.00, by = -9.20..-13.40) & New Cabin Front Terrace (by = -13.40..-16.50, bz = -0.25m)
       groundY = -0.25;
     } else if (wx >= 1.25 && wx <= 3.55 && wz > 9.25 && wz <= 9.98) {
       // Welcome Arch steps ramp (-0.25m <-> -0.50m)
