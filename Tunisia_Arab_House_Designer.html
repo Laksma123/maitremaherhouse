@@ -5986,6 +5986,589 @@ async function buildStaticPolyHavenDecor() {
   registerDraggable(orangeTreeGroup, 'Detailed Mediterranean Orange Tree (4.4m)', 'شجرة برتقال تونسي مثمرة مفصلة');
   g.add(orangeTreeGroup);
 
+  // ==========================================================================
+  // 5. TUNISIAN STONE, TERRACOTTA BRICK & CONCRETE BONFIRE PIT IN FRONT OF NEW CABIN TERRACE
+  //    ("tepat d depan terrace baru, di tanah, buat object yg bisa d select yaitu semacam bonfire tunisia
+  //     dengan wadah bebatuan/bata/beton entahlah, dengan api unggun menyala dan efek api, asap yg bagus
+  //     dan realistis. bisa d move, resize, rotate dll juga")
+  //    - Placed on the exterior soil ground (bz = -0.50m) directly in front of the New Cabin Terrace (bx = 15.00, by = -18.35, bz = -0.50m)
+  //    - Combines molded concrete/limestone base & coping rim, 3 staggered courses of terracotta firebricks & dressed stone blocks,
+  //      and a perimeter ring of 16 rugged natural Tunisian fieldstones/boulders
+  //    - Features a glowing red-hot charcoal ember bed, 20 pulsing coal chunks, 8 stacked olive-wood logs,
+  //      14 animated 3D volumetric roaring flame tongues + 3D wavy flame cones, 18 rising swirling fire sparks, and continuous billowing wood smoke!
+  // ==========================================================================
+  const tunisianBonfireGroup = new THREE.Group();
+  tunisianBonfireGroup.position.copy(bPos(15.00, -18.35, -0.50));
+
+  // 5A. Procedural Textures for the Masonry Brick/Stone Wall, Glowing Magma Ember Bed, Volumetric 3D Flames & Warm Ground Firelight Glow
+  const texBonfireBrickWall = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#574d42'; // Mortar base
+    ctx.fillRect(0, 0, w, h);
+    const rows = 8, cols = 8;
+    const bh = h / rows, bw = w / cols;
+    const brickPalette = ['#9c4a30', '#873d27', '#a8583b', '#968069', '#826f5b', '#ab6444'];
+    for (let r = 0; r < rows; r++) {
+      const xOff = (r % 2) * (bw * 0.5);
+      for (let c = -1; c <= cols; c++) {
+        const bx0 = c * bw + xOff + 3;
+        const by0 = r * bh + 3;
+        const bWid = bw - 6;
+        const bHgt = bh - 6;
+        const colHex = brickPalette[(r * 5 + c * 3 + 16) % brickPalette.length];
+        const grad = ctx.createLinearGradient(bx0, by0, bx0, by0 + bHgt);
+        grad.addColorStop(0, colHex);
+        grad.addColorStop(1, '#4f3325');
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx0, by0, bWid, bHgt);
+        // Subtle heat-charred stone/brick texture grain
+        ctx.fillStyle = 'rgba(24, 16, 12, 0.22)';
+        ctx.fillRect(bx0 + 4, by0 + bHgt * 0.55, bWid - 8, bHgt * 0.32);
+      }
+    }
+  });
+  texBonfireBrickWall.wrapS = texBonfireBrickWall.wrapT = THREE.RepeatWrapping;
+  texBonfireBrickWall.repeat.set(3, 1);
+
+  const texBonfireEmbers = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    const cx = w * 0.5, cy = h * 0.5;
+    const bg = ctx.createRadialGradient(cx, cy, 12, cx, cy, w * 0.48);
+    bg.addColorStop(0.0, '#fff6b0');
+    bg.addColorStop(0.24, '#ff9d1a');
+    bg.addColorStop(0.55, '#e63900');
+    bg.addColorStop(0.82, '#591100');
+    bg.addColorStop(1.0, '#1f1612');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    // Dark charcoal ash chunks with incandescent magma cracks between them
+    for (let i = 0; i < 65; i++) {
+      const ang = (i * 2.39996);
+      const rad = Math.sqrt(i / 65) * (w * 0.43);
+      const px = cx + Math.cos(ang) * rad;
+      const py = cy + Math.sin(ang) * rad;
+      const rChunk = 14 + (i % 5) * 6;
+      ctx.fillStyle = (i % 3 === 0) ? 'rgba(32, 20, 16, 0.72)' : 'rgba(58, 22, 10, 0.55)';
+      ctx.beginPath();
+      ctx.arc(px, py, rChunk, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 195, 50, 0.85)' : 'rgba(255, 90, 10, 0.75)';
+      ctx.lineWidth = 2.4;
+      ctx.stroke();
+    }
+  });
+
+  const texBonfireFlame = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h);
+    // Soft multi-lobe volumetric flame texture that fades smoothly to 0.0 alpha on ALL 4 edges (top, bottom, left, right)
+    // so there are ZERO hard polygon intersections or UV border lines!
+    const drawSoftFlameLobe = (cx, cy, rx, ry, rCol, gCol, bCol, peakAlpha) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(rx, ry);
+      const grad = ctx.createRadialGradient(0, 0.15, 0.02, 0, 0.0, 1.0);
+      grad.addColorStop(0.00, `rgba(255, 253, 232, ${peakAlpha})`);
+      grad.addColorStop(0.26, `rgba(${rCol}, ${gCol}, ${bCol}, ${peakAlpha * 0.88})`);
+      grad.addColorStop(0.58, `rgba(${Math.round(rCol * 0.92)}, ${Math.round(gCol * 0.42)}, 8, ${peakAlpha * 0.46})`);
+      grad.addColorStop(0.84, `rgba(185, 24, 2, ${peakAlpha * 0.14})`);
+      grad.addColorStop(1.00, 'rgba(120, 8, 0, 0.0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+    // Outer warm orange-red flame aura
+    drawSoftFlameLobe(w * 0.50, h * 0.56, w * 0.36, h * 0.40, 255, 115, 18, 0.78);
+    // Left & right dancing secondary flame tongues
+    drawSoftFlameLobe(w * 0.37, h * 0.60, w * 0.22, h * 0.33, 255, 145, 28, 0.72);
+    drawSoftFlameLobe(w * 0.63, h * 0.58, w * 0.22, h * 0.35, 255, 140, 24, 0.72);
+    // Upper licking flame tip
+    drawSoftFlameLobe(w * 0.50, h * 0.38, w * 0.20, h * 0.32, 255, 130, 20, 0.68);
+    // Blazing incandescent golden-white inner core
+    drawSoftFlameLobe(w * 0.50, h * 0.66, w * 0.24, h * 0.26, 255, 225, 95, 0.95);
+  });
+  texBonfireFlame.wrapS = THREE.ClampToEdgeWrapping;
+  texBonfireFlame.wrapT = THREE.ClampToEdgeWrapping;
+
+  const texBonfireGlow = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    const g = ctx.createRadialGradient(w * 0.5, h * 0.5, 4, w * 0.5, h * 0.5, w * 0.48);
+    g.addColorStop(0.0, 'rgba(255, 175, 65, 0.72)');
+    g.addColorStop(0.38, 'rgba(255, 105, 20, 0.36)');
+    g.addColorStop(0.72, 'rgba(210, 52, 5, 0.12)');
+    g.addColorStop(1.0, 'rgba(120, 20, 0, 0.0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  });
+
+  // 5B. Ground Contact AO Shadow & Warm Firelight Ground Radiance Disc (marked isAODecal so bounding box stays tight on the stone pit!)
+  const bonfireAoMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.15, 2.15),
+    matAODecal
+  );
+  bonfireAoMesh.rotation.x = -Math.PI / 2;
+  bonfireAoMesh.position.y = 0.004;
+  bonfireAoMesh.raycast = () => {};
+  bonfireAoMesh.userData.isAODecal = true;
+  tunisianBonfireGroup.add(bonfireAoMesh);
+
+  const matBonfireGroundGlow = new THREE.MeshBasicMaterial({
+    map: texBonfireGlow,
+    transparent: true,
+    opacity: 0.68,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const bonfireGroundGlowMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.85, 2.85),
+    matBonfireGroundGlow
+  );
+  bonfireGroundGlowMesh.rotation.x = -Math.PI / 2;
+  bonfireGroundGlowMesh.position.y = 0.012;
+  bonfireGroundGlowMesh.raycast = () => {};
+  bonfireGroundGlowMesh.userData.isAODecal = true;
+  bonfireGroundGlowMesh.userData.isLed = true;
+  tunisianBonfireGroup.add(bonfireGroundGlowMesh);
+
+  // 5C. Molded Concrete / Limestone Stepped Plinth Base + Mortar Core + 3 Staggered Courses of Terracotta Firebricks & Stone Blocks + Outer Ring of 16 Natural Boulders
+  const texBonfireStoneGrain = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#d4c9ba';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 420; i++) {
+      const gx = ((i * 73.1) % w);
+      const gy = ((i * 139.7) % h);
+      const gr = 1.5 + (i % 5) * 1.4;
+      ctx.fillStyle = (i % 3 === 0) ? 'rgba(72, 58, 44, 0.22)' : ((i % 2 === 0) ? 'rgba(255, 246, 232, 0.20)' : 'rgba(110, 88, 68, 0.18)');
+      ctx.beginPath();
+      ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  texBonfireStoneGrain.wrapS = texBonfireStoneGrain.wrapT = THREE.RepeatWrapping;
+
+  const matBonfireConcrete = new THREE.MeshStandardMaterial({
+    map: texBonfireStoneGrain,
+    normalMap: concreteNorTex || plasterNorTex,
+    roughnessMap: concreteArmTex || courtyardArmTex,
+    color: 0xb8aa98,
+    emissive: 0x2e0f02,
+    emissiveIntensity: 0.16,
+    roughness: 0.82,
+    metalness: 0.04
+  });
+  const matBonfireMortarWall = new THREE.MeshStandardMaterial({
+    map: texBonfireBrickWall,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(1.25, 1.25),
+    emissive: 0x331002,
+    emissiveIntensity: 0.18,
+    roughness: 0.86,
+    metalness: 0.03
+  });
+  const matTerracottaBrick = new THREE.MeshStandardMaterial({
+    map: texBonfireStoneGrain,
+    normalMap: plasterNorTex,
+    color: 0xb5593c,
+    emissive: 0x3b1203,
+    emissiveIntensity: 0.20,
+    roughness: 0.80,
+    metalness: 0.03
+  });
+  const matFiredBrickDark = new THREE.MeshStandardMaterial({
+    map: texBonfireStoneGrain,
+    normalMap: plasterNorTex,
+    color: 0x8f432b,
+    emissive: 0x330f02,
+    emissiveIntensity: 0.18,
+    roughness: 0.84,
+    metalness: 0.04
+  });
+  const matLimestoneBlock = new THREE.MeshStandardMaterial({
+    map: texBonfireStoneGrain,
+    normalMap: plasterNorTex,
+    color: 0xc4b097,
+    emissive: 0x2e0f02,
+    emissiveIntensity: 0.16,
+    roughness: 0.78,
+    metalness: 0.03
+  });
+  const matFieldstoneRock = new THREE.MeshStandardMaterial({
+    map: texBonfireStoneGrain,
+    normalMap: soilNorTex || plasterNorTex,
+    color: 0x9c8b78,
+    emissive: 0x240b01,
+    emissiveIntensity: 0.14,
+    roughness: 0.86,
+    metalness: 0.04
+  });
+  const matCharredInterior = new THREE.MeshStandardMaterial({
+    map: soilDiffTex || texBonfireStoneGrain,
+    normalMap: soilNorTex || plasterNorTex,
+    color: 0x211b18,
+    emissive: 0x421402,
+    emissiveIntensity: 0.25,
+    roughness: 0.94,
+    metalness: 0.02
+  });
+
+  // Base Concrete / Travertine Octagonal-Circular Foundation Slab (bottom at y = 0.00m so it rests flush on the -0.50m soil!)
+  const concretePlinth = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.90, 0.95, 0.09, 24),
+    matBonfireConcrete
+  );
+  concretePlinth.position.y = 0.045;
+  concretePlinth.castShadow = true;
+  concretePlinth.receiveShadow = true;
+  tunisianBonfireGroup.add(concretePlinth);
+
+  // Inner Cylindrical Masonry Mortar Wall & Dark Soot-Charred Fire Bowl
+  const masonryCoreWall = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.73, 0.77, 0.36, 24, 1, true),
+    matBonfireMortarWall
+  );
+  masonryCoreWall.position.y = 0.26;
+  masonryCoreWall.castShadow = true;
+  masonryCoreWall.receiveShadow = true;
+  tunisianBonfireGroup.add(masonryCoreWall);
+
+  const innerCharBowl = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.62, 0.58, 0.35, 24),
+    matCharredInterior
+  );
+  innerCharBowl.position.y = 0.18;
+  innerCharBowl.receiveShadow = true;
+  tunisianBonfireGroup.add(innerCharBowl);
+
+  // 3 Staggered Circular Courses of 14 Interlocking 3D Terracotta Firebricks & Dressed Limestone Blocks ("wadah bebatuan/bata/beton")
+  const brickMaterials = [matTerracottaBrick, matLimestoneBlock, matFiredBrickDark];
+  for (let course = 0; course < 3; course++) {
+    const cy = 0.14 + course * 0.11;
+    const rad = 0.72 - course * 0.012;
+    const blockCount = 14;
+    const angleOffset = (course % 2) * (Math.PI / blockCount);
+    for (let bi = 0; bi < blockCount; bi++) {
+      const ang = (bi / blockCount) * Math.PI * 2 + angleOffset;
+      const bMat = brickMaterials[(course * 3 + bi) % brickMaterials.length];
+      const brickMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.30, 0.096, 0.18),
+        bMat
+      );
+      brickMesh.position.set(Math.cos(ang) * rad, cy, Math.sin(ang) * rad);
+      brickMesh.rotation.y = -ang + Math.PI / 2;
+      brickMesh.castShadow = true;
+      brickMesh.receiveShadow = true;
+      tunisianBonfireGroup.add(brickMesh);
+    }
+  }
+
+  // Chiseled Concrete & Limestone Top Coping Rim (16 Beveled Capstone Segments forming a hollow circular rim at y = 0.44m)
+  for (let ci = 0; ci < 16; ci++) {
+    const cAng = (ci / 16) * Math.PI * 2;
+    const capRad = 0.69;
+    const capMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.285, 0.068, 0.22),
+      ci % 2 === 0 ? matBonfireConcrete : matLimestoneBlock
+    );
+    capMesh.position.set(Math.cos(cAng) * capRad, 0.445, Math.sin(cAng) * capRad);
+    capMesh.rotation.y = -cAng + Math.PI / 2;
+    capMesh.castShadow = true;
+    capMesh.receiveShadow = true;
+    tunisianBonfireGroup.add(capMesh);
+  }
+
+  // Wrought-Iron & Hammered Brass Tunisian Heritage Containment Band + 8 Brass Studs around the Masonry Waist (y = 0.26m)
+  const ironBandMat = new THREE.MeshStandardMaterial({ color: 0x262220, roughness: 0.42, metalness: 0.78 });
+  const ironBand = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.768, 0.768, 0.036, 28, 1, true),
+    ironBandMat
+  );
+  ironBand.position.y = 0.26;
+  tunisianBonfireGroup.add(ironBand);
+  for (let si = 0; si < 8; si++) {
+    const sAng = (si / 8) * Math.PI * 2;
+    const stud = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), matBrass);
+    stud.position.set(Math.cos(sAng) * 0.772, 0.26, Math.sin(sAng) * 0.772);
+    tunisianBonfireGroup.add(stud);
+  }
+
+  // Outer Perimeter Ring of 16 Sculpted Natural Tunisian Fieldstones & Boulders ("bebatuan") hugging the base of the Brick/Concrete Pit
+  for (let ri = 0; ri < 16; ri++) {
+    const rAng = (ri / 16) * Math.PI * 2 + 0.18;
+    const rDist = 0.81 + (ri % 3) * 0.032;
+    const baseR = 0.135 + (ri % 3) * 0.018;
+    const rockGeo = new THREE.SphereGeometry(baseR, 14, 10);
+    const rPos = rockGeo.attributes.position;
+    for (let vi = 0; vi < rPos.count; vi++) {
+      const vx = rPos.getX(vi), vy = rPos.getY(vi), vz = rPos.getZ(vi);
+      // Spatial coordinate perturbation keeps shared seam vertices 100% welded (zero torn triangles!)
+      const nScale = 0.92 + 0.12 * Math.sin(vx * 19.0 + ri * 1.7) * Math.cos(vz * 19.0 - ri * 1.3);
+      const ny = Math.max(-baseR * 0.52, vy * nScale * 0.78);
+      rPos.setXYZ(vi, vx * nScale * 1.18, ny, vz * nScale * 1.08);
+    }
+    rockGeo.computeVertexNormals();
+    const rockMesh = new THREE.Mesh(
+      rockGeo,
+      ri % 3 === 0 ? matLimestoneBlock : matFieldstoneRock
+    );
+    rockMesh.position.set(Math.cos(rAng) * rDist, 0.095 + (ri % 2) * 0.014, Math.sin(rAng) * rDist);
+    rockMesh.rotation.y = rAng + ri * 0.5;
+    rockMesh.castShadow = true;
+    rockMesh.receiveShadow = true;
+    tunisianBonfireGroup.add(rockMesh);
+  }
+
+  // 5D. Glowing Red-Hot Charcoal Ember Mound & 20 Individual Pulsing 3D Coal Chunks inside the Pit
+  const matBonfireEmberBed = new THREE.MeshStandardMaterial({
+    map: texBonfireEmbers,
+    emissive: 0xff5a00,
+    emissiveMap: texBonfireEmbers,
+    emissiveIntensity: 1.95,
+    roughness: 0.65,
+    metalness: 0.05
+  });
+  const emberMoundMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.46, 0.58, 0.14, 24),
+    matBonfireEmberBed
+  );
+  emberMoundMesh.position.y = 0.25;
+  emberMoundMesh.userData.isLed = true;
+  tunisianBonfireGroup.add(emberMoundMesh);
+
+  const matGlowingCoal = new THREE.MeshStandardMaterial({
+    color: 0x3b1205,
+    emissive: 0xff4800,
+    emissiveIntensity: 1.85,
+    roughness: 0.55
+  });
+  window.bonfireEmberMaterials = [matBonfireEmberBed, matGlowingCoal];
+  for (let ci = 0; ci < 20; ci++) {
+    const cAng = ci * 2.39996;
+    const cRad = Math.sqrt((ci + 0.5) / 20) * 0.50;
+    const coalMesh = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.048 + (ci % 3) * 0.014, 0),
+      matGlowingCoal
+    );
+    coalMesh.scale.set(1.2, 0.68, 1.0);
+    coalMesh.position.set(
+      Math.cos(cAng) * cRad,
+      0.33 - (cRad / 0.55) * 0.04,
+      Math.sin(cAng) * cRad
+    );
+    coalMesh.rotation.set(ci * 0.8, ci * 1.3, ci * 0.5);
+    coalMesh.userData.isLed = true;
+    tunisianBonfireGroup.add(coalMesh);
+  }
+
+  // 5E. Stacked 3D Tunisian Olive-Wood Firewood Logs (Charred Bark + Glowing Ember Cores in a Classic Campfire Teepee Pyramid)
+  const matFirewoodLog = matOliveBark.clone();
+  matFirewoodLog.color.setHex(0x4a3525);
+  matFirewoodLog.roughness = 0.90;
+  const matLogSplitEnd = new THREE.MeshStandardMaterial({
+    color: 0x9c7248,
+    emissive: 0x6e2200,
+    emissiveIntensity: 0.45,
+    roughness: 0.78
+  });
+
+  // 2 Thick Horizontal Base Cross-Logs resting on the ember bed
+  [0.25, -1.15].forEach((bAng, bIdx) => {
+    const ca = Math.cos(bAng), sa = Math.sin(bAng);
+    const baseLog = createTaperedOliveBranchMesh([
+      new THREE.Vector3(-ca * 0.46, 0.31 + bIdx * 0.04, -sa * 0.46),
+      new THREE.Vector3(0.0, 0.34 + bIdx * 0.05, 0.0),
+      new THREE.Vector3(ca * 0.46, 0.31 + bIdx * 0.04, sa * 0.46)
+    ], 0.068, 0.058, 10, 8, matFirewoodLog);
+    tunisianBonfireGroup.add(baseLog);
+  });
+
+  // 6 Angled Campfire Pyramid Logs leaning into the blazing center
+  for (let li = 0; li < 6; li++) {
+    const lAng = (li / 6) * Math.PI * 2 + 0.32;
+    const ca = Math.cos(lAng), sa = Math.sin(lAng);
+    const baseR = 0.48 + (li % 2) * 0.04;
+    const topR = 0.06 + (li % 3) * 0.025;
+    const topY = 0.72 + (li % 3) * 0.055;
+    const logPts = [
+      new THREE.Vector3(ca * baseR, 0.30, sa * baseR),
+      new THREE.Vector3(ca * (baseR * 0.52), 0.51, sa * (baseR * 0.52)),
+      new THREE.Vector3(ca * topR + sa * 0.04, topY, sa * topR - ca * 0.04)
+    ];
+    const logMesh = createTaperedOliveBranchMesh(logPts, 0.064, 0.044, 12, 8, matFirewoodLog);
+    tunisianBonfireGroup.add(logMesh);
+
+    // Split wood end-cap at base of each log
+    const endCap = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.018, 10), matLogSplitEnd);
+    endCap.position.set(ca * (baseR + 0.008), 0.30, sa * (baseR + 0.008));
+    endCap.rotation.set(sa * 0.85, 0, -ca * 0.85);
+    tunisianBonfireGroup.add(endCap);
+  }
+
+  // 5F. Volumetric Animated 3D Roaring Bonfire Flames, Pit Radiance Glow & 18 Rising Swirling Fire Sparks
+  const bonfireFlameGroup = new THREE.Group();
+  tunisianBonfireGroup.add(bonfireFlameGroup);
+
+  // Inner Pit Firelight Glow Disc illuminating the logs and inner masonry rim
+  const bonfirePitGlowMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.32, 1.32),
+    matBonfireGroundGlow
+  );
+  bonfirePitGlowMesh.rotation.x = -Math.PI / 2;
+  bonfirePitGlowMesh.position.y = 0.36;
+  bonfirePitGlowMesh.raycast = () => {};
+  bonfirePitGlowMesh.userData.isAODecal = true;
+  bonfirePitGlowMesh.userData.isLed = true;
+  bonfireFlameGroup.add(bonfirePitGlowMesh);
+  window.bonfireGlowMaterials = [matBonfireGroundGlow];
+
+  window.bonfireFlameMeshes = [];
+
+  // 16 Soft Curved 3D Volumetric Flame Plumes in 3 Tiers (Blazing White-Gold Core, Roaring Orange Middle Plumes, Licking Crimson-Amber Outer Tongues)
+  const flamePlumeGeo = new THREE.PlaneGeometry(0.62, 0.96, 6, 8);
+  flamePlumeGeo.translate(0, 0.44, 0); // Pivot near base of flame
+  const fpPos = flamePlumeGeo.attributes.position;
+  for (let i = 0; i < fpPos.count; i++) {
+    const px = fpPos.getX(i), py = fpPos.getY(i);
+    const vFrac = Math.max(0, Math.min(1, py / 0.96));
+    // Gentle cylindrical 3D curve so each plume wraps organically around the fire volume without hard creases
+    const zCurve = Math.cos((px / 0.31) * Math.PI * 0.5) * 0.075 * (1.0 - vFrac * 0.45);
+    const xTaper = px * (1.0 - vFrac * 0.42);
+    fpPos.setXYZ(i, xTaper, py, zCurve);
+  }
+  flamePlumeGeo.computeVertexNormals();
+
+  for (let ti = 0; ti < 16; ti++) {
+    const isCore = ti < 5;
+    const isMid = ti >= 5 && ti < 11;
+    const tAng = (ti / 16) * Math.PI * 2 + (ti % 3) * 0.18;
+    const tRad = isCore ? (0.04 + (ti % 2) * 0.03) : (isMid ? (0.12 + (ti % 3) * 0.035) : (0.20 + (ti % 2) * 0.04));
+    const tintHex = isCore ? 0xfff6be : (isMid ? 0xff9a28 : 0xff5208);
+    const baseOp = isCore ? 0.94 : (isMid ? 0.84 : 0.72);
+    const tMat = new THREE.MeshBasicMaterial({
+      map: texBonfireFlame,
+      color: tintHex,
+      transparent: true,
+      opacity: baseOp,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    const tMesh = new THREE.Mesh(flamePlumeGeo, tMat);
+    const baseX = Math.cos(tAng) * tRad;
+    const baseZ = Math.sin(tAng) * tRad;
+    const baseY = isCore ? 0.27 : (isMid ? 0.25 : 0.23);
+    const sXZ = isCore ? 0.82 : (isMid ? (0.95 + (ti % 3) * 0.10) : (0.88 + (ti % 2) * 0.12));
+    const sY = isCore ? 1.16 : (isMid ? (1.02 + (ti % 3) * 0.14) : (0.82 + (ti % 3) * 0.12));
+    const yawSpread = ((ti % 5) - 2) * 0.16; // Within ±0.32 rad (±18°) of camera yaw so NO flame plane is ever viewed edge-on!
+    tMesh.position.set(baseX, baseY, baseZ);
+    tMesh.rotation.y = yawSpread;
+    tMesh.scale.set(sXZ, sY, sXZ);
+    tMesh.userData.isLed = true;
+    bonfireFlameGroup.add(tMesh);
+    window.bonfireFlameMeshes.push({
+      mesh: tMesh,
+      baseX,
+      baseY,
+      baseZ,
+      yawSpread,
+      baseRotY: tMesh.rotation.y,
+      baseScaleX: sXZ,
+      baseScaleY: sY,
+      baseScaleZ: sXZ,
+      baseOpacity: baseOp,
+      speed: 5.0 + (ti % 5) * 0.82,
+      phase: ti * 1.13,
+      spinSpeed: (ti % 2 === 0 ? 1 : -1) * 0.25,
+      isCone: false
+    });
+  }
+
+  // 18 Rising & Swirling 3D Glowing Fire Sparks / Cinders inside bonfireFlameGroup
+  const sparkGeo = new THREE.OctahedronGeometry(0.018, 0);
+  window.bonfireSparkMeshes = [];
+  for (let si = 0; si < 18; si++) {
+    const sMat = new THREE.MeshBasicMaterial({
+      color: si % 2 === 0 ? 0xffe066 : 0xff7711,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const sMesh = new THREE.Mesh(sparkGeo, sMat);
+    sMesh.position.set(0, 0.35 + (si / 18) * 1.15, 0);
+    sMesh.raycast = () => {};
+    sMesh.userData.isAODecal = true; // Exclude high flying sparks from selection bounding box height
+    sMesh.userData.isLed = true;
+    bonfireFlameGroup.add(sMesh);
+    window.bonfireSparkMeshes.push({
+      mesh: sMesh,
+      age: (si / 18) * 1.8,
+      maxAge: 1.5 + (si % 4) * 0.35,
+      baseRadius: 0.08 + (si % 5) * 0.055,
+      swirlSpeed: (si % 2 === 0 ? 1 : -1) * (2.2 + (si % 3) * 0.65),
+      riseSpeed: 0.62 + (si % 4) * 0.14,
+      phase: si * 0.95
+    });
+  }
+
+  // 10 Multi-Layered Billowing 3D Wood-Smoke Cloud Puffs inside bonfireFlameGroup (so the rising smoke plume moves & scales 100% in lockstep when dragging or resizing the bonfire!)
+  const texBonfireSmokeCloud = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h);
+    const lobes = [
+      [w * 0.50, h * 0.52, w * 0.42, 0.72],
+      [w * 0.36, h * 0.46, w * 0.30, 0.52],
+      [w * 0.64, h * 0.44, w * 0.30, 0.52],
+      [w * 0.48, h * 0.36, w * 0.28, 0.48]
+    ];
+    lobes.forEach(([lx, ly, lr, op]) => {
+      const g = ctx.createRadialGradient(lx, ly, 4, lx, ly, lr);
+      g.addColorStop(0.0, `rgba(232, 226, 220, ${op})`);
+      g.addColorStop(0.48, `rgba(198, 192, 188, ${op * 0.55})`);
+      g.addColorStop(0.82, `rgba(165, 160, 158, ${op * 0.18})`);
+      g.addColorStop(1.0, 'rgba(140, 138, 136, 0.0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  });
+  const localSmokeGeo = new THREE.PlaneGeometry(0.65, 0.65);
+  window.bonfireLocalSmokeClouds = [];
+  for (let smi = 0; smi < 10; smi++) {
+    const smMat = new THREE.MeshBasicMaterial({
+      map: texBonfireSmokeCloud,
+      color: 0xffd6b0,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    const smMesh = new THREE.Mesh(localSmokeGeo, smMat);
+    smMesh.raycast = () => {};
+    smMesh.userData.isAODecal = true; // Exclude high smoke plume from selection bounding box height
+    smMesh.userData.isLed = true;
+    bonfireFlameGroup.add(smMesh);
+    window.bonfireLocalSmokeClouds.push({
+      mesh: smMesh,
+      age: (smi / 10) * 2.6,
+      maxAge: 2.6,
+      driftAng: smi * 2.15,
+      phase: smi * 0.85
+    });
+  }
+
+  // Smoke spawn anchor node right above the bonfire flame crown (local y = 0.96m) — moves & scales automatically with tunisianBonfireGroup!
+  const bonfireSmokeNode = new THREE.Object3D();
+  bonfireSmokeNode.position.set(0, 0.96, 0);
+  bonfireSmokeNode.name = 'bonfireSmokeNode';
+  tunisianBonfireGroup.add(bonfireSmokeNode);
+  tunisianBonfireGroup.userData.bonfireSmokeNode = bonfireSmokeNode;
+
+  window.tunisianBonfireObj = tunisianBonfireGroup;
+  registerDraggable(
+    tunisianBonfireGroup,
+    'Tunisian Stone & Brick Bonfire Pit',
+    'موقد نار مخيم تونسي بالحجر والطوب'
+  );
+  g.add(tunisianBonfireGroup);
+
   // Rooftop Stone BBQ Fire Pit & Barstools (Rooftop sofas & coffee table replaced by Rooftop Tunisian Sofa Lesehan & Meja Lesehan in buildStaticArchitecture!)
   const bbq = await loadPHModel('stone_fire_pit');
   if (bbq) {
@@ -7401,9 +7984,10 @@ const smokeParticles = [];
 const waterParticles = [];
 
 const smokePlaneGeo = new THREE.PlaneGeometry(0.36, 0.36);
-for (let i = 0; i < 64; i++) {
+for (let i = 0; i < 120; i++) {
   const mat = new THREE.MeshBasicMaterial({
     map: texSmokePuff,
+    color: 0xffffff,
     transparent: true,
     opacity: 0.0,
     depthWrite: false,
@@ -7416,6 +8000,7 @@ for (let i = 0; i < 64; i++) {
   smokeParticles.push({
     mesh: m,
     active: false,
+    isBonfire: false,
     age: 0,
     maxAge: 2.2,
     vx: 0, vy: 0.45, vz: 0,
@@ -7449,24 +8034,27 @@ for (let i = 0; i < 96; i++) {
   });
 }
 
-function spawnSmokePuff(worldX, worldY, worldZ, maxOpacity = 0.45, startScale = 0.38) {
+function spawnSmokePuff(worldX, worldY, worldZ, maxOpacity = 0.45, startScale = 0.38, isBonfire = false, initialAge = 0.0) {
   for (let i = 0; i < smokeParticles.length; i++) {
     const p = smokeParticles[i];
     if (!p.active) {
       p.active = true;
-      p.age = 0;
-      p.maxAge = 1.8 + Math.random() * 1.1;
+      p.isBonfire = !!isBonfire;
+      p.maxAge = isBonfire ? (2.8 + Math.random() * 1.4) : (1.8 + Math.random() * 1.1);
+      p.age = Math.min(p.maxAge * 0.9, initialAge);
+      const jitterR = isBonfire ? 0.24 : 0.18;
+      p.vx = (Math.random() - 0.5) * (isBonfire ? 0.18 : 0.12) + (isBonfire ? 0.04 : 0.0);
+      p.vy = isBonfire ? (0.58 + Math.random() * 0.28) : (0.36 + Math.random() * 0.22);
+      p.vz = (Math.random() - 0.5) * (isBonfire ? 0.18 : 0.12);
       p.mesh.position.set(
-        worldX + (Math.random() - 0.5) * 0.18,
-        worldY + Math.random() * 0.06,
-        worldZ + (Math.random() - 0.5) * 0.18
+        worldX + (Math.random() - 0.5) * jitterR + p.vx * p.age,
+        worldY + Math.random() * 0.06 + p.vy * p.age,
+        worldZ + (Math.random() - 0.5) * jitterR + p.vz * p.age
       );
-      p.vx = (Math.random() - 0.5) * 0.12;
-      p.vy = 0.36 + Math.random() * 0.22;
-      p.vz = (Math.random() - 0.5) * 0.12;
       p.baseScale = startScale * (0.85 + Math.random() * 0.35);
       p.maxOpacity = maxOpacity;
       p.mesh.scale.setScalar(p.baseScale);
+      p.mesh.material.color.setHex(isBonfire ? 0xffd2a6 : 0xffffff);
       p.mesh.material.opacity = 0.0;
       p.mesh.visible = true;
       return;
@@ -9768,10 +10356,99 @@ function updateMaherNpcAndParticles(dt) {
     if (maherNpcState.shadowTick === 0) requestShadowUpdate();
   }
 
-  // 2. Spawn continuous 3D cooking smoke/steam dynamically locked to the live 3D objects:
+  // 1B. Animate the Tunisian Stone & Brick Bonfire Pit (3D roaring flames, pulsing ember coals, rising swirling sparks & billowing wood-smoke plume)
+  if (window.bonfireFlameMeshes && window.bonfireFlameMeshes.length > 0) {
+    let camYawLocal = 0;
+    if (activeCamera && window.tunisianBonfireObj) {
+      const bfPos = window.tunisianBonfireObj.position;
+      const camYawWorld = Math.atan2(activeCamera.position.x - bfPos.x, activeCamera.position.z - bfPos.z);
+      camYawLocal = camYawWorld - (window.tunisianBonfireObj.rotation ? window.tunisianBonfireObj.rotation.y : 0);
+    }
+    for (let i = 0; i < window.bonfireFlameMeshes.length; i++) {
+      const fm = window.bonfireFlameMeshes[i];
+      if (!fm || !fm.mesh) continue;
+      const w1 = Math.sin(nowSec * fm.speed + fm.phase);
+      const w2 = Math.cos(nowSec * (fm.speed * 1.37) + fm.phase * 1.7);
+      const w3 = Math.sin(nowSec * (fm.speed * 0.73) - fm.phase * 0.9);
+      const scaleY = fm.baseScaleY * (1.0 + w1 * 0.18 + w2 * 0.09);
+      const scaleXZ = fm.baseScaleX * (1.0 - w1 * 0.08 + w3 * 0.07);
+      fm.mesh.scale.set(scaleXZ, scaleY, scaleXZ);
+      if (fm.isCone) {
+        fm.mesh.rotation.y += fm.spinSpeed * dt;
+        fm.mesh.rotation.x = w2 * 0.07;
+        fm.mesh.rotation.z = w3 * 0.07;
+      } else {
+        fm.mesh.position.x = fm.baseX + w2 * 0.022;
+        fm.mesh.position.z = fm.baseZ + w3 * 0.022;
+        fm.mesh.rotation.y = camYawLocal + (fm.yawSpread || 0) + w2 * 0.12;
+        fm.mesh.rotation.x = w1 * 0.09;
+        fm.mesh.rotation.z = w3 * 0.09;
+      }
+      if (fm.mesh.material) {
+        fm.mesh.material.opacity = Math.max(0.35, Math.min(1.0, fm.baseOpacity * (0.90 + w1 * 0.12 + w2 * 0.06)));
+      }
+    }
+  }
+  if (window.bonfireEmberMaterials && window.bonfireEmberMaterials.length > 0) {
+    const emberPulse = 1.85 + Math.sin(nowSec * 5.5) * 0.28 + Math.cos(nowSec * 8.3) * 0.16;
+    for (let i = 0; i < window.bonfireEmberMaterials.length; i++) {
+      window.bonfireEmberMaterials[i].emissiveIntensity = emberPulse;
+    }
+  }
+  if (window.bonfireGlowMaterials && window.bonfireGlowMaterials.length > 0) {
+    const glowPulse = 0.66 + Math.sin(nowSec * 6.2) * 0.11 + Math.cos(nowSec * 9.7) * 0.07;
+    for (let i = 0; i < window.bonfireGlowMaterials.length; i++) {
+      window.bonfireGlowMaterials[i].opacity = glowPulse;
+    }
+  }
+  if (window.bonfireSparkMeshes && window.bonfireSparkMeshes.length > 0) {
+    for (let i = 0; i < window.bonfireSparkMeshes.length; i++) {
+      const sp = window.bonfireSparkMeshes[i];
+      if (!sp || !sp.mesh) continue;
+      sp.age += dt;
+      if (sp.age >= sp.maxAge) sp.age -= sp.maxAge;
+      const t = sp.age / sp.maxAge;
+      const ang = nowSec * sp.swirlSpeed + sp.phase;
+      const rad = sp.baseRadius * (0.45 + t * 1.45);
+      sp.mesh.position.set(
+        Math.cos(ang) * rad + Math.sin(nowSec * 2.1 + i) * 0.05 * t,
+        0.30 + t * sp.riseSpeed * 2.15,
+        Math.sin(ang) * rad + Math.cos(nowSec * 1.8 + i) * 0.05 * t
+      );
+      const sScale = (1.0 - t * 0.65) * (0.85 + 0.25 * Math.sin(nowSec * 12.0 + i));
+      sp.mesh.scale.setScalar(Math.max(0.15, sScale));
+      sp.mesh.material.opacity = t < 0.15 ? (t / 0.15) : Math.pow(1.0 - (t - 0.15) / 0.85, 1.2);
+    }
+  }
+  if (window.bonfireLocalSmokeClouds && window.bonfireLocalSmokeClouds.length > 0) {
+    for (let i = 0; i < window.bonfireLocalSmokeClouds.length; i++) {
+      const sm = window.bonfireLocalSmokeClouds[i];
+      if (!sm || !sm.mesh) continue;
+      sm.age += dt;
+      if (sm.age >= sm.maxAge) sm.age -= sm.maxAge;
+      const t = sm.age / sm.maxAge;
+      const swayX = Math.sin(nowSec * 1.4 + sm.phase) * (0.06 + t * 0.26) + t * 0.18;
+      const swayZ = Math.cos(nowSec * 1.2 + sm.phase) * (0.06 + t * 0.22) - t * 0.10;
+      sm.mesh.position.set(swayX, 0.82 + t * 2.15, swayZ);
+      sm.mesh.scale.setScalar(0.58 + t * 1.85);
+      // Warm fire-lit amber smoke at base (t=0) cooling to natural gray-white smoke aloft (t=1)
+      const warmMix = Math.max(0, 1.0 - t * 1.65);
+      sm.mesh.material.color.setRGB(
+        0.86 + warmMix * 0.14,
+        0.85 - warmMix * 0.08,
+        0.84 - warmMix * 0.24
+      );
+      const alpha = t < 0.20 ? (t / 0.20) : Math.pow(1.0 - (t - 0.20) / 0.80, 1.25);
+      sm.mesh.material.opacity = 0.44 * alpha;
+      sm.mesh.lookAt(activeCamera.position);
+    }
+  }
+
+  // 2. Spawn continuous 3D cooking & bonfire smoke/steam dynamically locked to the live 3D objects:
   //    a) Kitchen Stove & Brass Pot / Copper Skillet
   //    b) Terrace Covered BBQ Grill with Fish & Beef Steak
   //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof
+  //    d) Tunisian Stone & Brick Bonfire Pit in front of the New Cabin Terrace
   maherNpcState.smokeAccum += dt;
   if (maherNpcState.smokeAccum >= 0.10) {
     maherNpcState.smokeAccum = 0;
@@ -9803,6 +10480,14 @@ function updateMaherNpcAndParticles(dt) {
       window.roofBbqObj.updateMatrixWorld(true);
       window.roofBbqObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
       spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, 0.58, 0.46);
+    }
+
+    // Tunisian Bonfire Pit billowing wood-smoke column (dynamically follows moved/resized/rotated bonfire!)
+    if (window.tunisianBonfireObj && window.tunisianBonfireObj.userData && window.tunisianBonfireObj.userData.bonfireSmokeNode) {
+      window.tunisianBonfireObj.updateMatrixWorld(true);
+      window.tunisianBonfireObj.userData.bonfireSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      const bScale = window.tunisianBonfireObj.userData.scaleFactor || 1.0;
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, 0.52, 0.54 * bScale, true);
     }
   }
 
@@ -9956,10 +10641,18 @@ function updateMaherNpcAndParticles(dt) {
       continue;
     }
     const t = p.age / p.maxAge;
-    p.mesh.position.x += (p.vx + Math.sin(p.age * 3.2 + i) * 0.06) * dt;
+    p.mesh.position.x += (p.vx + Math.sin(p.age * 3.2 + i) * (p.isBonfire ? 0.11 : 0.06)) * dt;
     p.mesh.position.y += p.vy * dt;
-    p.mesh.position.z += (p.vz + Math.cos(p.age * 2.8 + i) * 0.06) * dt;
-    p.mesh.scale.setScalar(p.baseScale * (1.0 + t * 1.85));
+    p.mesh.position.z += (p.vz + Math.cos(p.age * 2.8 + i) * (p.isBonfire ? 0.11 : 0.06)) * dt;
+    p.mesh.scale.setScalar(p.baseScale * (1.0 + t * (p.isBonfire ? 2.45 : 1.85)));
+    if (p.isBonfire) {
+      const warmMix = Math.max(0, 1.0 - t * 1.6);
+      p.mesh.material.color.setRGB(
+        0.86 + warmMix * 0.14,
+        0.85 - warmMix * 0.08,
+        0.84 - warmMix * 0.24
+      );
+    }
     const alpha = t < 0.22 ? (t / 0.22) : Math.pow(1.0 - (t - 0.22) / 0.78, 1.3);
     p.mesh.material.opacity = p.maxOpacity * alpha;
     p.mesh.quaternion.copy(activeCamera.quaternion);
