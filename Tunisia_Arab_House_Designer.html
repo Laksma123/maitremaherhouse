@@ -1840,13 +1840,14 @@ function buildStaticArchitecture() {
     const sBy = stairStartBy + (i + 0.5) * stepRun;
     const stepTopBz = stairStartBz + (i + 1) * stepRise;
     const stepBaseBz = -0.50;
-    const pillarH = stepTopBz - stepBaseBz;
-    // Solid plastered masonry support beneath each step (bx = -6.70, width = 1.22m)
-    addBoxMesh(1.22, pillarH, stepRun + 0.03, -6.70, sBy, stepBaseBz + pillarH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+    // Stop step masonry pillar 5cm below stepTopBz so it never Z-fights with the 4.8cm marble stair tread!
+    const pillarH = Math.max(0.08, (stepTopBz - 0.050) - stepBaseBz);
+    // Solid plastered masonry support beneath each step (bx = -6.68, width = 1.18m, strictly inside the -7.31m inner face of the safety wall)
+    addBoxMesh(1.18, pillarH, stepRun + 0.02, -6.68, sBy, stepBaseBz + pillarH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
     // Crisp Carthage marble / travertine stair tread nosing
-    addBoxMesh(1.26, 0.048, stepRun + 0.06, -6.70, sBy, stepTopBz - 0.024, matMainFloor, leftRoofStairGroup, true);
+    addBoxMesh(1.26, 0.048, stepRun + 0.06, -6.68, sBy, stepTopBz - 0.024, matMainFloor, leftRoofStairGroup, true);
     if (i % 3 === 0) {
-      addBoxMesh(1.14, 0.016, 0.02, -6.70, sBy - stepRun * 0.48, stepTopBz - 0.048, matLedBorderOpening, leftRoofStairGroup, false);
+      addBoxMesh(1.14, 0.016, 0.02, -6.68, sBy - stepRun * 0.48, stepTopBz - 0.048, matLedBorderOpening, leftRoofStairGroup, false);
     }
   }
 
@@ -1905,12 +1906,14 @@ function buildStaticArchitecture() {
 
   // Top Stair Landing at the middle of the Left Wall (by = -0.45 .. +0.65m, bz = 3.78m) turning RIGHT (+bx) into the Rooftop!
   const landingBaseBz = -0.50;
-  const landingH = stairEndBz - landingBaseBz;
-  // Supporting masonry pier under the top landing
-  addBoxMesh(1.38, landingH, 1.12, -6.78, 0.10, landingBaseBz + landingH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
-  // Top landing floor slab extending East (-5.88) to meet the rooftop floor seamlessly when turning right
-  addBoxMesh(1.62, 0.06, 1.14, -6.70, 0.10, 3.75, matCourtyardFloor, leftRoofStairGroup, true);
-  addBoxMesh(1.68, 0.05, 1.20, -6.70, 0.10, 3.68, matArchTrim, leftRoofStairGroup, true);
+  // Stop supporting masonry pier at bz = 3.66m (12cm below the 3.78m landing floor) & keep strictly inside [-7.31 .. -6.00] so zero Z-fighting and zero wall poke-through!
+  const landingPierTopBz = 3.66;
+  const landingH = landingPierTopBz - landingBaseBz;
+  addBoxMesh(1.28, landingH, 1.08, -6.66, 0.10, landingBaseBz + landingH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+  // Decorative trim collar kept strictly inside the West safety wall inner face (bx = -7.30 .. -6.00) so it never pokes out on the West exterior face
+  addBoxMesh(1.30, 0.05, 1.12, -6.65, 0.10, 3.685, matArchTrim, leftRoofStairGroup, true);
+  // Top landing marble floor slab (bz = 3.758, thickness 0.06 -> top at 3.788m) bridging cleanly across the West wall portal (-6.00m) onto the rooftop floor with zero Z-fighting!
+  addBoxMesh(1.52, 0.06, 1.14, -6.55, 0.10, 3.758, matCourtyardFloor, leftRoofStairGroup, true);
   // Horizontal coping on top of the West landing safety wall (bx = -7.40m, by = -0.45 .. +0.68m)
   addBoxMesh(0.24, 0.065, 1.18, -7.40, 0.11, 4.76, matArchTrim, leftRoofStairGroup, true);
   // North return safety wall at the back of the top landing (by = +0.65m, bx = -7.42 .. -6.02m) guiding user to turn right onto the roof!
@@ -2248,6 +2251,56 @@ function buildStaticArchitecture() {
   addBoxMesh(0.34, 0.045, 0.24, lxCenter + 0.26, -6.22, -0.038, matLesehanCream, leftTerraceLesehanGroup);
   addBoxMesh(0.32, 0.042, 0.22, lxCenter + 0.26, -6.22, 0.005, matLesehanAzure, leftTerraceLesehanGroup);
 
+  // DEDICATED FULL-LENGTH ARCHITECTURAL SHADE CANOPY ALONG THE LEFT TERRACE SOFA LESEHAN
+  // ("kanopi sepanjang sofa lesehan untuk sofa lesehan d terrace kiri")
+  // Spans the entire 3.82m width of the Left Terrace Sofa Lesehan (bx = -4.36 .. -0.54, by = -5.06 .. -6.78, bz = -0.24 .. +2.52m)
+  const matLesehanCanopyTile = new THREE.MeshStandardMaterial({
+    color: 0x8f3d27,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(1.05, 1.05),
+    roughness: 0.56,
+    metalness: 0.14,
+    envMapIntensity: 0.62,
+    userData: { customEnvIntensity: 0.62 }
+  });
+  [
+    [-1.82,  0.78], [ 1.82,  0.78],
+    [-1.82, -0.78], [ 1.82, -0.78]
+  ].forEach(([dxCol, dyCol]) => {
+    const colX = lxCenter + dxCol;
+    const colY = lyCenter + dyCol;
+    // Ornate Brass Base Plinth + Carved Walnut Column + Brass Capital Corbel (bz = -0.24 .. +2.16m)
+    addBoxMesh(0.13, 0.10, 0.13, colX, colY, -0.19, matBrass, leftTerraceLesehanGroup);
+    addBoxMesh(0.085, 2.32, 0.085, colX, colY, 0.96, matWalnut, leftTerraceLesehanGroup);
+    addBoxMesh(0.17, 0.06, 0.17, colX, colY, 2.13, matBrass, leftTerraceLesehanGroup);
+    // Decorative Tunisian carved walnut arch brackets along the beam
+    addBoxMesh(0.28, 0.10, 0.07, colX + (dxCol < 0 ? 0.14 : -0.14), colY, 2.06, matWalnut, leftTerraceLesehanGroup);
+  });
+  // Perimeter Carved Walnut Eave Frame & Hammered Brass Scalloped Valance Trim along the entire Sofa Lesehan
+  addBoxMesh(3.86, 0.11, 1.76, lxCenter, lyCenter, 2.20, matWalnut, leftTerraceLesehanGroup);
+  addBoxMesh(3.94, 0.036, 1.84, lxCenter, lyCenter, 2.26, matBrass, leftTerraceLesehanGroup);
+  // 9 Carved Walnut Cross-Rafters spanning North-to-South across the canopy
+  for (let ri = -4; ri <= 4; ri++) {
+    addBoxMesh(0.065, 0.06, 1.86, lxCenter + ri * 0.43, lyCenter, 2.29, matWalnut, leftTerraceLesehanGroup);
+  }
+  // Sloped Terracotta-Copper Tunisian Shade Roof Slab + Pitched Crown Ridge along the full length of the Sofa Lesehan
+  const leftCanopySlab = new THREE.Mesh(new THREE.BoxGeometry(3.98, 0.055, 1.92), matLesehanCanopyTile);
+  leftCanopySlab.position.copy(bPos(lxCenter, lyCenter, 2.35));
+  leftCanopySlab.rotation.x = 0.09; // Gentle forward architectural pitch for rainwater runoff
+  leftCanopySlab.castShadow = true;
+  leftCanopySlab.receiveShadow = true;
+  leftTerraceLesehanGroup.add(leftCanopySlab);
+  addBoxMesh(3.62, 0.10, 0.72, lxCenter, lyCenter + 0.08, 2.43, matLesehanCanopyTile, leftTerraceLesehanGroup);
+  addBoxMesh(3.68, 0.028, 0.78, lxCenter, lyCenter + 0.08, 2.49, matBrass, leftTerraceLesehanGroup);
+  [-1.25, 0.0, 1.25].forEach((fxOff) => {
+    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.048, 12, 12), matBrass);
+    finial.position.copy(bPos(lxCenter + fxOff, lyCenter + 0.08, 2.55));
+    leftTerraceLesehanGroup.add(finial);
+  });
+  // Warm 2700K Under-Canopy LED Strip illuminating the Left Terrace Sofa Lesehan
+  addBoxMesh(3.45, 0.020, 0.045, lxCenter, lyCenter, 2.14, matLedBorderOpening, leftTerraceLesehanGroup);
+
   archRoot.add(leftTerraceLesehanGroup);
   attachNpcTargetWorld(
     leftTerraceLesehanGroup,
@@ -2256,15 +2309,13 @@ function buildStaticArchitecture() {
   );
   leftTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.leftTerraceLesehanObj = leftTerraceLesehanGroup;
-  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge (Lesehan)', 'جلسة تونسية أرضية للاستجمام بعد السباحة');
+  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge & Canopy (Lesehan)', 'جلسة تونسية أرضية بمظلة للاستجمام بعد السباحة');
 
   // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable, raised cleanly above 0.00m floor)
   const rugBed = addBoxMesh(3.40, 0.014, 3.10, -4.20, 2.50, 0.011, matRug, archRoot, false);
   registerDraggable(rugBed, 'King Bedroom Kairouan Rug', 'زربية القيروان لبيت النوم');
   const rugMajlis = addBoxMesh(3.95, 0.014, 4.20, 3.25, 1.65, 0.011, matRug, archRoot, false);
   registerDraggable(rugMajlis, 'Grand Majlis Berber Carpet', 'زربية الصالة البربرية');
-  const rugRoof = addBoxMesh(4.10, 0.014, 4.40, 2.85, 1.40, 3.782, matRug, roofGroup, false);
-  registerDraggable(rugRoof, 'Rooftop Lounge Berber Rug', 'زربية جلسة السطح');
 
   // Walnut Baseboards, Dark Plinth Reveal & Ceiling Crown Moldings (creates deep architectural contrast at wall joints)
   addBoxMesh(11.8, 0.14, 0.12, 0.0, 4.84, H - 0.07, matWalnut);
@@ -2724,6 +2775,45 @@ function buildStaticArchitecture() {
     cabinTerraceLesehanGroup.add(poufTop);
   });
 
+  // DEDICATED FULL-LENGTH ARCHITECTURAL SHADE CANOPY ALONG THE RIGHT EXTRA CABIN TERRACE SOFA LESEHAN
+  // ("kanopi sepanjang sofa lesehan untuk sofa lesehan d terrace kiri dan terrace kanan ekstra")
+  // Spans the entire 4.00m width of the U-shaped Cabin Terrace Sofa Lesehan (bx = 7.00 .. 11.00, by = -13.48 .. -15.88, bz = -0.24 .. +2.58m)
+  [
+    [-1.90,  1.26], [ 1.90,  1.26],
+    [-1.90, -0.92], [ 1.90, -0.92]
+  ].forEach(([dxCol, dyCol]) => {
+    const colX = 9.00 + dxCol;
+    const colY = -14.80 + dyCol;
+    // Ornate Brass Base Plinth + Carved Walnut Column + Brass Capital Corbel (bz = -0.24 .. +2.20m)
+    addBoxMesh(0.13, 0.10, 0.13, colX, colY, -0.19, matBrass, cabinTerraceLesehanGroup);
+    addBoxMesh(0.088, 2.36, 0.088, colX, colY, 0.98, matWalnut, cabinTerraceLesehanGroup);
+    addBoxMesh(0.18, 0.06, 0.18, colX, colY, 2.17, matBrass, cabinTerraceLesehanGroup);
+    addBoxMesh(0.30, 0.10, 0.075, colX + (dxCol < 0 ? 0.15 : -0.15), colY, 2.10, matWalnut, cabinTerraceLesehanGroup);
+  });
+  // Perimeter Carved Walnut Eave Frame & Hammered Brass Valance Trim spanning the full Sofa Lesehan
+  addBoxMesh(4.04, 0.11, 2.38, 9.00, -14.66, 2.24, matWalnut, cabinTerraceLesehanGroup);
+  addBoxMesh(4.12, 0.036, 2.46, 9.00, -14.66, 2.30, matBrass, cabinTerraceLesehanGroup);
+  // 9 Carved Walnut Cross-Rafters spanning North-to-South across the Cabin Terrace canopy
+  for (let ri = -4; ri <= 4; ri++) {
+    addBoxMesh(0.068, 0.06, 2.48, 9.00 + ri * 0.45, -14.66, 2.33, matWalnut, cabinTerraceLesehanGroup);
+  }
+  // Sloped Terracotta-Copper Tunisian Shade Roof Slab + Pitched Crown Ridge along the full length of the Cabin Terrace Sofa Lesehan
+  const cabinCanopySlab = new THREE.Mesh(new THREE.BoxGeometry(4.18, 0.058, 2.54), matGrillRoofTile);
+  cabinCanopySlab.position.copy(bPos(9.00, -14.66, 2.39));
+  cabinCanopySlab.rotation.x = 0.09; // Gentle forward architectural slope
+  cabinCanopySlab.castShadow = true;
+  cabinCanopySlab.receiveShadow = true;
+  cabinTerraceLesehanGroup.add(cabinCanopySlab);
+  addBoxMesh(3.80, 0.11, 0.88, 9.00, -14.56, 2.48, matGrillRoofTile, cabinTerraceLesehanGroup);
+  addBoxMesh(3.86, 0.028, 0.94, 9.00, -14.56, 2.54, matBrass, cabinTerraceLesehanGroup);
+  [-1.30, 0.0, 1.30].forEach((fxOff) => {
+    const finial = new THREE.Mesh(new THREE.SphereGeometry(0.050, 12, 12), matBrass);
+    finial.position.copy(bPos(9.00 + fxOff, -14.56, 2.61));
+    cabinTerraceLesehanGroup.add(finial);
+  });
+  // Warm 2700K Under-Canopy LED Strip illuminating the Cabin Terrace Sofa Lesehan & Meja Lesehan
+  addBoxMesh(3.60, 0.020, 0.045, 9.00, -14.66, 2.18, matLedBorderOpening, cabinTerraceLesehanGroup);
+
   archRoot.add(cabinTerraceLesehanGroup);
   attachNpcTargetWorld(
     cabinTerraceLesehanGroup,
@@ -2732,7 +2822,7 @@ function buildStaticArchitecture() {
   );
   cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
-  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'جلسة أرضية تونسية في شرفة المقصورة');
+  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa & Canopy (Lesehan)', 'جلسة أرضية تونسية بمظلة في شرفة المقصورة');
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -2796,6 +2886,149 @@ function buildStaticArchitecture() {
   }
   roofGroup.add(roofPergolaGroup);
   registerDraggable(roofPergolaGroup, 'Rooftop Walnut Pergola', 'برغولا السطح الخشبية');
+
+  // ==========================================================================
+  // ROOFTOP TUNISIAN SOFA LESEHAN & MEJA LESEHAN UNDER THE PERGOLA
+  // ("ganti sofa d roof menjadi sofa lesehan dengan meja lesehan juga")
+  // Replaces the old Western rooftop sofas (r1, r1e, r2) & coffee table (rt) at bx = 2.85, by = 1.40, bz = 3.78m!
+  // ==========================================================================
+  const rooftopLesehanGroup = new THREE.Group();
+  const rLx = 2.85, rLy = 1.40, rBaseBz = 3.78;
+
+  // 3-Layer Hand-Woven Tunisian Kilim & Berber Carpet Runner (4.15m x 4.25m) under the Rooftop Pergola
+  addBoxMesh(4.15, 0.012, 4.25, rLx, rLy, rBaseBz + 0.004, matKilimGold, rooftopLesehanGroup);
+  addBoxMesh(3.96, 0.015, 4.06, rLx, rLy, rBaseBz + 0.008, matKilimCrimson, rooftopLesehanGroup);
+  addBoxMesh(3.10, 0.018, 3.16, rLx, rLy, rBaseBz + 0.012, matKilimTeal, rooftopLesehanGroup);
+
+  // U-Shaped Low Carved Walnut Floor Sofa Plinth & Hammered Brass Trim (North, East, and South lounge wings facing inward toward the Meja Lesehan!)
+  // 1) North Wing Plinth (by = 3.06, bx = 1.15 .. 4.55, width = 3.40m)
+  addBoxMesh(3.40, 0.16, 0.74, rLx, 3.06, rBaseBz + 0.085, matWalnut, rooftopLesehanGroup);
+  addBoxMesh(3.44, 0.022, 0.77, rLx, 3.06, rBaseBz + 0.175, matBrass, rooftopLesehanGroup);
+  // 2) South Wing Plinth (by = -0.26, bx = 1.15 .. 4.55, width = 3.40m)
+  addBoxMesh(3.40, 0.16, 0.74, rLx, -0.26, rBaseBz + 0.085, matWalnut, rooftopLesehanGroup);
+  addBoxMesh(3.44, 0.022, 0.77, rLx, -0.26, rBaseBz + 0.175, matBrass, rooftopLesehanGroup);
+  // 3) East Wing Plinth (bx = 4.18, by = 0.12 .. 2.68, depth = 2.56m)
+  addBoxMesh(0.74, 0.16, 2.56, 4.18, rLy, rBaseBz + 0.085, matWalnut, rooftopLesehanGroup);
+  addBoxMesh(0.77, 0.022, 2.60, 4.18, rLy, rBaseBz + 0.175, matBrass, rooftopLesehanGroup);
+
+  // North & South Wing Tufted Floor Sofa Mattresses (4 cushions per wing), Angled Backrests & Diamond Throw Pillows
+  [-1.26, -0.42, 0.42, 1.26].forEach((dx, idx) => {
+    const cx = rLx + dx;
+    // North Wing Cushions (facing South toward Meja Lesehan)
+    addBoxMesh(0.82, 0.17, 0.72, cx, 3.06, rBaseBz + 0.265, idx % 2 === 0 ? matKilimCrimson : matKilimTeal, rooftopLesehanGroup);
+    addBoxMesh(0.74, 0.024, 0.64, cx, 3.06, rBaseBz + 0.358, idx === 1 || idx === 2 ? matKilimCream : matKilimGold, rooftopLesehanGroup);
+    const nBack = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.42, 0.18), idx % 2 === 0 ? matKilimTeal : matKilimCrimson);
+    nBack.position.copy(bPos(cx, 3.32, rBaseBz + 0.54));
+    nBack.rotation.x = -0.15;
+    nBack.castShadow = true;
+    nBack.receiveShadow = true;
+    rooftopLesehanGroup.add(nBack);
+    const nPil = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.12), idx % 2 === 0 ? matKilimGold : matKilimCream);
+    nPil.position.copy(bPos(cx, 3.18, rBaseBz + 0.48));
+    nPil.rotation.x = -0.24;
+    nPil.castShadow = true;
+    rooftopLesehanGroup.add(nPil);
+
+    // South Wing Cushions (facing North toward Meja Lesehan)
+    addBoxMesh(0.82, 0.17, 0.72, cx, -0.26, rBaseBz + 0.265, idx % 2 === 0 ? matKilimTeal : matKilimCrimson, rooftopLesehanGroup);
+    addBoxMesh(0.74, 0.024, 0.64, cx, -0.26, rBaseBz + 0.358, idx === 1 || idx === 2 ? matKilimGold : matKilimCream, rooftopLesehanGroup);
+    const sBack = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.42, 0.18), idx % 2 === 0 ? matKilimCrimson : matKilimTeal);
+    sBack.position.copy(bPos(cx, -0.52, rBaseBz + 0.54));
+    sBack.rotation.x = 0.15;
+    sBack.castShadow = true;
+    sBack.receiveShadow = true;
+    rooftopLesehanGroup.add(sBack);
+    const sPil = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.12), idx % 2 === 0 ? matKilimCream : matKilimGold);
+    sPil.position.copy(bPos(cx, -0.38, rBaseBz + 0.48));
+    sPil.rotation.x = 0.24;
+    sPil.castShadow = true;
+    rooftopLesehanGroup.add(sPil);
+  });
+
+  // East Wing Tufted Floor Sofa Mattresses (3 cushions facing West toward Meja Lesehan)
+  [-0.82, 0.0, 0.82].forEach((dy, idx) => {
+    const cy = rLy + dy;
+    addBoxMesh(0.72, 0.17, 0.80, 4.18, cy, rBaseBz + 0.265, idx === 1 ? matKilimCrimson : matKilimTeal, rooftopLesehanGroup);
+    addBoxMesh(0.64, 0.024, 0.72, 4.18, cy, rBaseBz + 0.358, matKilimCream, rooftopLesehanGroup);
+    const eBack = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.76), idx === 1 ? matKilimGold : matKilimCrimson);
+    eBack.position.copy(bPos(4.44, cy, rBaseBz + 0.54));
+    eBack.rotation.z = 0.15;
+    eBack.castShadow = true;
+    eBack.receiveShadow = true;
+    rooftopLesehanGroup.add(eBack);
+    const ePil = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.28, 0.34), matKilimGold);
+    ePil.position.copy(bPos(4.30, cy, rBaseBz + 0.48));
+    ePil.rotation.z = 0.24;
+    ePil.castShadow = true;
+    rooftopLesehanGroup.add(ePil);
+  });
+
+  // Cylindrical Takaya Bolster Armrests at the West ends of the North & South wings
+  [3.06, -0.26].forEach((byWing) => {
+    const bol = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.68, 18), matKilimGold);
+    bol.rotation.x = Math.PI / 2;
+    bol.position.copy(bPos(1.26, byWing, rBaseBz + 0.45));
+    bol.castShadow = true;
+    rooftopLesehanGroup.add(bol);
+  });
+
+  // LOW CARVED WALNUT, CARTHAGE MARBLE & BRASS MEJA LESEHAN ("DENGAN MEJA LESEHAN JUGA")
+  // Centered at (bx = 2.68, by = 1.40, bz = 3.78 .. 4.04m)
+  addBoxMesh(1.56, 0.20, 0.94, 2.68, rLy, rBaseBz + 0.10, matWalnut, rooftopLesehanGroup);
+  addBoxMesh(1.64, 0.032, 1.02, 2.68, rLy, rBaseBz + 0.215, matMainFloor, rooftopLesehanGroup);
+  addBoxMesh(1.68, 0.020, 1.06, 2.68, rLy, rBaseBz + 0.232, matBrass, rooftopLesehanGroup);
+  // Hammered Brass Mint-Tea Service (Tray, Traditional Berrad Teapot, 4 Tea Glasses & Decorative Brass Lantern) on the Rooftop Meja Lesehan
+  const roofTeaTray = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.30, 0.028, 24), matBrass);
+  roofTeaTray.position.copy(bPos(2.52, rLy, rBaseBz + 0.252));
+  roofTeaTray.castShadow = true;
+  rooftopLesehanGroup.add(roofTeaTray);
+  const roofTeapot = new THREE.Mesh(new THREE.SphereGeometry(0.088, 16, 14), matBrass);
+  roofTeapot.scale.set(1.0, 1.28, 1.0);
+  roofTeapot.position.copy(bPos(2.52, rLy, rBaseBz + 0.34));
+  roofTeapot.castShadow = true;
+  rooftopLesehanGroup.add(roofTeapot);
+  [[-0.15, -0.09], [0.15, -0.09], [-0.15, 0.09], [0.15, 0.09]].forEach(([gxOff, gyOff]) => {
+    const gl = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.022, 0.076, 14), matGlass);
+    gl.position.copy(bPos(2.52 + gxOff, rLy + gyOff, rBaseBz + 0.30));
+    rooftopLesehanGroup.add(gl);
+  });
+  const roofTableLantern = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.070, 0.22, 12), matBrass);
+  roofTableLantern.position.copy(bPos(3.08, rLy, rBaseBz + 0.35));
+  roofTableLantern.castShadow = true;
+  rooftopLesehanGroup.add(roofTableLantern);
+
+  // 2 Embroidered Leather Tunisian Floor Poufs on the West side of the Rooftop Meja Lesehan (bx = 1.42, by = 0.72 and 2.08)
+  [-0.68, 0.68].forEach((pyOff, pIdx) => {
+    const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.33, 0.23, 24), pIdx === 0 ? matKilimCrimson : matKilimGold);
+    pouf.position.copy(bPos(1.42, rLy + pyOff, rBaseBz + 0.125));
+    pouf.castShadow = true;
+    pouf.receiveShadow = true;
+    rooftopLesehanGroup.add(pouf);
+    const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.03, 24), matKilimCream);
+    poufTop.position.copy(bPos(1.42, rLy + pyOff, rBaseBz + 0.245));
+    rooftopLesehanGroup.add(poufTop);
+  });
+
+  roofGroup.add(rooftopLesehanGroup);
+  // South wing seat target for Maître Maher & North wing child seat target for Mme Maher (both move/rotate dynamically with rooftopLesehanGroup!)
+  attachNpcTargetWorld(
+    rooftopLesehanGroup,
+    bPos(2.68, -0.04, rBaseBz + 0.02),
+    bPos(2.68, rLy, rBaseBz + 0.02)
+  );
+  rooftopLesehanGroup.userData.npcActivityId = 'ROOF_LOUNGE';
+  const rooftopLesehanNorthSeat = new THREE.Object3D();
+  rooftopLesehanGroup.add(rooftopLesehanNorthSeat);
+  rooftopLesehanGroup.updateMatrixWorld(true);
+  attachNpcTargetWorld(
+    rooftopLesehanNorthSeat,
+    bPos(2.68, 2.84, rBaseBz + 0.02),
+    bPos(2.68, rLy, rBaseBz + 0.02)
+  );
+  rooftopLesehanNorthSeat.userData.npcActivityId = 'ROOF_LOUNGE';
+  window.activeRoofSofa = rooftopLesehanGroup;
+  window.roofSofas = [rooftopLesehanGroup, rooftopLesehanNorthSeat];
+  registerDraggable(rooftopLesehanGroup, 'Rooftop Tunisian Floor Sofa & Meja Lesehan', 'جلسة وطاولة أرضية تونسية في السطح');
 
   const roofBarGroup = new THREE.Group();
   addBoxMesh(1.10, 0.92, 3.40, -4.65, 2.20, 4.22, matMashrabiya, roofBarGroup);
@@ -4738,58 +4971,454 @@ async function buildStaticPolyHavenDecor() {
     g.add(smallOliveGroup);
   }
 
-  // Rooftop Sofas (all facing inward toward Rooftop Coffee Table at bPos(2.65, 1.40, 3.78)), Table, Stone BBQ Fire Pit & Barstools
-  window.roofSofas = [];
-  const r1 = await loadPHModel('sofa_03');
-  if (r1) {
-    const rw1 = fitAndPlaceModel(r1, [3.20, 0.95, 0.85], null, 0);
-    rw1.position.copy(bPos(2.85, 3.35, 3.78));
-    attachNpcTargetWorld(
-      rw1,
-      bPos(2.85, 3.18, 3.80),
-      bPos(2.85, 2.18, 3.80)
+  // ==========================================================================
+  // 3. GIANT DENSE NON-FRUITING MEDITERRANEAN SHADE TREE (~6.8M TALL = 2X LARGEST OLIVE TREE)
+  //    PLACED TO THE LEFT (WEST) OF THE SWIMMING POOL (bx = -13.15, by = -3.10, bz = -0.50)
+  //    ("pohon besar d kiri kolam, pohon besar rindang ini tidak berbuah dan besarnya tingginya 2x lipat olives terbesar")
+  // ==========================================================================
+  const giantShadeTreeGroup = new THREE.Group();
+  giantShadeTreeGroup.position.copy(bPos(-13.15, -3.10, -0.50));
+
+  const matShadeLeaf3D = new THREE.MeshStandardMaterial({
+    color: 0x286e22,
+    roughness: 0.46,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.50,
+    userData: { customEnvIntensity: 0.50 }
+  });
+  const matShadeLeafDark3D = new THREE.MeshStandardMaterial({
+    color: 0x194f16,
+    roughness: 0.52,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matShadeLeafCard = matOliveLeafCard.clone();
+  matShadeLeafCard.color.setHex(0x388e2c);
+  matShadeLeafCard.userData = { customEnvIntensity: 0.48 };
+
+  function createLushShadeCanopyPad(padRadius, padHeight, seed = 0) {
+    const padGrp = new THREE.Group();
+    const { bladeGeo, ribbonGeo } = getOliveSubClusterGeometries();
+    const subTwigCount = 8;
+    const subClusters = [
+      { pos: new THREE.Vector3(0, -padHeight * 0.06, 0), scale: padRadius * 0.96, rotY: seed * 0.7 },
+      { pos: new THREE.Vector3(0, padHeight * 0.24, 0), scale: padRadius * 1.04, rotY: seed * 1.9 + 1.1 },
+      { pos: new THREE.Vector3(0, padHeight * 0.46, 0), scale: padRadius * 0.84, rotY: seed * 2.7 + 0.5 }
+    ];
+    for (let i = 0; i < subTwigCount; i++) {
+      const ang = (i / subTwigCount) * Math.PI * 2 + seed * 0.67;
+      const reach = padRadius * (0.50 + (i % 2) * 0.14);
+      const lift = ((i % 3) - 0.6) * padHeight * 0.25;
+      const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.52, lift * 0.45, Math.sin(ang) * reach * 0.52);
+      const endPt = new THREE.Vector3(Math.cos(ang) * reach, lift, Math.sin(ang) * reach);
+      padGrp.add(createTaperedOliveBranchMesh(
+        [new THREE.Vector3(0, -padHeight * 0.12, 0), midPt, endPt],
+        Math.max(0.016, padRadius * 0.032),
+        Math.max(0.006, padRadius * 0.012),
+        8, 6, matOliveBark
+      ));
+      subClusters.push({
+        pos: endPt,
+        scale: padRadius * (0.88 + (i % 3) * 0.09),
+        rotY: ang + i * 1.31
+      });
+    }
+    const flatRatio = Math.max(0.66, Math.min(0.95, padHeight / Math.max(0.25, padRadius)));
+    subClusters.forEach((sc, idx) => {
+      const subG = new THREE.Group();
+      subG.position.copy(sc.pos);
+      subG.rotation.set(Math.sin(seed + idx * 1.9) * 0.20, sc.rotY, Math.cos(seed + idx * 1.3) * 0.18);
+      subG.scale.set(sc.scale, sc.scale * flatRatio, sc.scale);
+      const bMesh = new THREE.Mesh(bladeGeo, idx % 2 === 0 ? matShadeLeaf3D : matShadeLeafDark3D);
+      bMesh.castShadow = true;
+      bMesh.receiveShadow = true;
+      subG.add(bMesh);
+      const rMesh = new THREE.Mesh(ribbonGeo, matShadeLeafCard);
+      rMesh.castShadow = true;
+      rMesh.receiveShadow = true;
+      subG.add(rMesh);
+      padGrp.add(subG);
+    });
+    return padGrp;
+  }
+
+  // Massive cracked & root-heaved earth decal under the 6.8m Giant Shade Tree
+  const giantCrackDecal = new THREE.Mesh(
+    new THREE.PlaneGeometry(4.80, 4.80),
+    new THREE.MeshBasicMaterial({
+      map: texCrackedEarth,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3
+    })
+  );
+  giantCrackDecal.rotation.x = -Math.PI / 2;
+  giantCrackDecal.position.y = 0.006;
+  giantCrackDecal.raycast = () => {};
+  giantCrackDecal.userData.isAODecal = true;
+  giantShadeTreeGroup.add(giantCrackDecal);
+
+  if (stumpProto) {
+    const giantStumpW = fitAndPlaceModel(stumpProto.clone(true), [2.95, 2.95, 0.96], null, 0.75, '#8f7e6a');
+    giantStumpW.position.y = -0.03;
+    giantShadeTreeGroup.add(giantStumpW);
+  }
+
+  // 8 Massive Buttressed Surface Roots & Uplifted Earth Clods
+  for (let r = 0; r < 8; r++) {
+    const ra = (r / 8) * Math.PI * 2 + 0.15;
+    const ca = Math.cos(ra), sa = Math.sin(ra);
+    giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
+      new THREE.Vector3(ca * 0.26, 0.88, sa * 0.26),
+      new THREE.Vector3(ca * 0.86, 0.42, sa * 0.86),
+      new THREE.Vector3(ca * 1.52, 0.18, sa * 1.52),
+      new THREE.Vector3(ca * 2.15, -0.03, sa * 2.15)
+    ], 0.24, 0.055, 14, 8, matOliveBark));
+    const clod = new THREE.Mesh(
+      new THREE.BoxGeometry(0.48, 0.12, 0.38),
+      new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x5c4733, roughness: 0.9 })
     );
-    rw1.userData.npcActivityId = 'ROOF_LOUNGE';
-    window.roofSofas.push(rw1);
-    registerDraggable(rw1, 'Rooftop Lounge Sofa (North)', 'أريكة جلسة السطح (شمال)');
-    roofGroup.add(rw1);
+    clod.position.set(ca * 1.28, 0.08, sa * 1.28);
+    clod.rotation.set(sa * 0.32, ra, -ca * 0.32);
+    clod.castShadow = true;
+    clod.receiveShadow = true;
+    giantShadeTreeGroup.add(clod);
   }
-  const r1e = await loadPHModel('sofa_03');
-  if (r1e) {
-    const rwe = fitAndPlaceModel(r1e, [0.95, 3.20, 0.85], null, -Math.PI/2);
-    rwe.position.copy(bPos(4.35, 1.40, 3.78));
-    attachNpcTargetWorld(
-      rwe,
-      bPos(4.18, 1.40, 3.80),
-      bPos(3.18, 1.40, 3.80)
+
+  // 14 Spiky 3D Grass Tufts around the Giant Shade Tree roots
+  for (let gi = 0; gi < 14; gi++) {
+    const ga = (gi / 14) * Math.PI * 2 + 0.35;
+    const grDist = 1.05 + (gi % 3) * 0.38;
+    const gTuft = createSpikyGrassTuft(0.42, 0.38 + (gi % 2) * 0.08, 68, gi * 2.3 + 7.1);
+    gTuft.position.set(Math.cos(ga) * grDist, 0.0, Math.sin(ga) * grDist);
+    giantShadeTreeGroup.add(gTuft);
+  }
+
+  // Massive Gnarled Trunk (2x the diameter and height of the 3.2m Ancient Olive Tree!)
+  giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
+    new THREE.Vector3(0.0, 0.02, 0.0),
+    new THREE.Vector3(0.09, 0.92, -0.06),
+    new THREE.Vector3(-0.08, 1.85, 0.08),
+    new THREE.Vector3(0.0, 2.72, 0.0)
+  ], 0.58, 0.40, 22, 14, matOliveBark));
+
+  // 12 Primary & Secondary Spreading Boughs reaching 6.4m - 6.8m height (2x the 3.2m Big Olive Tree!) with lush non-fruiting shade canopy
+  const giantLimbs = [
+    { pts: [[0.0, 2.48, 0.0], [-0.85, 3.55, 0.52], [-1.76, 4.65, 0.96], [-2.45, 5.56, 1.24]], r0: 0.30, r1: 0.10, padR: 1.72, padH: 1.18 },
+    { pts: [[0.0, 2.52, 0.0], [0.88, 3.64, 0.56], [1.74, 4.76, 1.04], [2.36, 5.72, 1.32]], r0: 0.29, r1: 0.10, padR: 1.68, padH: 1.16 },
+    { pts: [[0.0, 2.56, 0.0], [0.40, 3.76, -0.80], [1.00, 4.90, -1.56], [1.44, 5.88, -2.04]], r0: 0.29, r1: 0.10, padR: 1.72, padH: 1.18 },
+    { pts: [[0.0, 2.50, 0.0], [-0.68, 3.68, -0.76], [-1.48, 4.80, -1.48], [-2.04, 5.68, -1.90]], r0: 0.28, r1: 0.095, padR: 1.66, padH: 1.14 },
+    { pts: [[0.0, 2.60, 0.0], [-0.12, 3.96, 0.12], [0.08, 5.24, -0.08], [0.0, 6.38, 0.04]], r0: 0.32, r1: 0.11, padR: 1.98, padH: 1.34 },
+    { pts: [[-0.85, 3.55, 0.52], [-1.24, 4.70, -0.10], [-1.56, 5.76, -0.36]], r0: 0.20, r1: 0.08, padR: 1.54, padH: 1.08 },
+    { pts: [[0.88, 3.64, 0.56], [1.24, 4.80, -0.16], [1.52, 5.84, -0.44]], r0: 0.20, r1: 0.08, padR: 1.54, padH: 1.08 },
+    { pts: [[0.40, 3.76, -0.80], [-0.16, 4.96, -1.16], [-0.44, 6.00, -1.04]], r0: 0.19, r1: 0.08, padR: 1.58, padH: 1.10 },
+    { pts: [[-0.12, 3.96, 0.12], [0.62, 5.10, 0.85], [1.05, 6.12, 1.25]], r0: 0.18, r1: 0.075, padR: 1.52, padH: 1.06 },
+    { pts: [[-0.12, 3.96, 0.12], [-0.72, 5.12, 0.82], [-1.15, 6.08, 1.20]], r0: 0.18, r1: 0.075, padR: 1.52, padH: 1.06 }
+  ];
+  giantLimbs.forEach((limb, idx) => {
+    const vPts = limb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+    giantShadeTreeGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 9, matOliveBark));
+    const tip = vPts[vPts.length - 1];
+    const pad = createLushShadeCanopyPad(limb.padR, limb.padH, idx * 2.1 + 0.8);
+    pad.position.set(tip.x, tip.y + 0.08, tip.z);
+    giantShadeTreeGroup.add(pad);
+  });
+
+  window.giantPoolShadeTreeObj = giantShadeTreeGroup;
+  registerDraggable(giantShadeTreeGroup, 'Giant Mediterranean Shade Tree (6.8m)', 'شجرة ظل متوسطية عملاقة وارفة');
+  g.add(giantShadeTreeGroup);
+
+  // ==========================================================================
+  // 4. DETAILED MEDITERRANEAN FRUITING ORANGE TREE (~4.45M TALL > BIG OLIVE TREE)
+  //    PLACED TO THE LEFT (WEST) OF THE NEW RIGHT EXTRA CABIN TERRACE (bx = 4.25, by = -14.95, bz = -0.50)
+  //    ("lalu pohon orange d kiri terrace ekstra kanan, tingginya lebih dari pohon olives besar. buat detail")
+  // ==========================================================================
+  const orangeTreeGroup = new THREE.Group();
+  orangeTreeGroup.position.copy(bPos(4.25, -14.95, -0.50));
+
+  const matCitrusBark = matOliveBark.clone();
+  matCitrusBark.color.setHex(0x6b533e);
+  matCitrusBark.roughness = 0.84;
+  matCitrusBark.userData = { customEnvIntensity: 0.42 };
+  const matCitrusLeaf3D = new THREE.MeshStandardMaterial({
+    color: 0x18681d,
+    roughness: 0.34, // Glossy waxy Citrus sinensis leaf sheen
+    metalness: 0.04,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.58,
+    userData: { customEnvIntensity: 0.58 }
+  });
+  const matCitrusLeafCard = matOliveLeafCard.clone();
+  matCitrusLeafCard.color.setHex(0x28842a);
+  matCitrusLeafCard.userData = { customEnvIntensity: 0.55 };
+  const matOrangeFruitPeel = new THREE.MeshStandardMaterial({
+    color: 0xff6a00,
+    emissive: 0x521a00,
+    emissiveIntensity: 0.45,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.95, 0.95), // Realistic dimpled Valencia orange rind texture
+    roughness: 0.30,
+    metalness: 0.04,
+    envMapIntensity: 0.75,
+    userData: { customEnvIntensity: 0.75 }
+  });
+  const matOrangeCalyx = new THREE.MeshStandardMaterial({
+    color: 0x26581c,
+    roughness: 0.55,
+    metalness: 0.02
+  });
+  const matOrangeBlossomPetal = new THREE.MeshStandardMaterial({
+    color: 0xfffdf7,
+    emissive: 0x2a2418,
+    emissiveIntensity: 0.25,
+    roughness: 0.35,
+    side: THREE.DoubleSide
+  });
+  const matOrangeBlossomStamen = new THREE.MeshStandardMaterial({
+    color: 0xf5b82e,
+    emissive: 0x4a3000,
+    emissiveIntensity: 0.30,
+    roughness: 0.40
+  });
+
+  // Reusable Detailed 3D Valencia Orange Fruit Geometry + Calyx Stem + Navel Dimple
+  const orangeSphereGeo = new THREE.SphereGeometry(0.094, 16, 14);
+  const orangeCalyxGeo = new THREE.CylinderGeometry(0.008, 0.030, 0.022, 5);
+  const orangeStemGeo = new THREE.CylinderGeometry(0.005, 0.006, 0.044, 6);
+  const orangeNavelGeo = new THREE.CylinderGeometry(0.015, 0.008, 0.010, 8);
+  const blossomPetalGeo = new THREE.SphereGeometry(0.026, 8, 6);
+  const blossomCenterGeo = new THREE.SphereGeometry(0.014, 8, 8);
+
+  function createDetailedSingleOrangeFruit(scaleMul = 1.0) {
+    const fGrp = new THREE.Group();
+    const rind = new THREE.Mesh(orangeSphereGeo, matOrangeFruitPeel);
+    rind.scale.set(1.0 * scaleMul, 0.94 * scaleMul, 1.0 * scaleMul);
+    rind.castShadow = true;
+    rind.receiveShadow = true;
+    fGrp.add(rind);
+    // 5-Pointed Green Calyx Star & Woody Stem at top of orange
+    const calyx = new THREE.Mesh(orangeCalyxGeo, matOrangeCalyx);
+    calyx.position.y = 0.086 * scaleMul;
+    fGrp.add(calyx);
+    const stem = new THREE.Mesh(orangeStemGeo, matCitrusBark);
+    stem.position.y = 0.106 * scaleMul;
+    fGrp.add(stem);
+    // Navel dimple at bottom of orange
+    const navel = new THREE.Mesh(orangeNavelGeo, matCitrusBark);
+    navel.position.y = -0.085 * scaleMul;
+    fGrp.add(navel);
+    return fGrp;
+  }
+
+  function createOrangeBlossomFlower() {
+    const bGrp = new THREE.Group();
+    const center = new THREE.Mesh(blossomCenterGeo, matOrangeBlossomStamen);
+    bGrp.add(center);
+    for (let p = 0; p < 5; p++) {
+      const pa = (p / 5) * Math.PI * 2;
+      const petal = new THREE.Mesh(blossomPetalGeo, matOrangeBlossomPetal);
+      petal.scale.set(0.55, 0.22, 1.35);
+      petal.position.set(Math.sin(pa) * 0.028, 0.002, Math.cos(pa) * 0.028);
+      petal.rotation.y = pa;
+      petal.rotation.x = -0.22;
+      bGrp.add(petal);
+    }
+    return bGrp;
+  }
+
+  function createDetailedOrangeCanopyPad(padRadius, padHeight, seed = 0) {
+    const padGrp = new THREE.Group();
+    const { bladeGeo, ribbonGeo } = getOliveSubClusterGeometries();
+    const subTwigCount = 7;
+    const subClusters = [
+      { pos: new THREE.Vector3(0, -padHeight * 0.04, 0), scale: padRadius * 0.92, rotY: seed * 0.7 },
+      { pos: new THREE.Vector3(0, padHeight * 0.24, 0), scale: padRadius * 0.98, rotY: seed * 1.9 + 1.1 }
+    ];
+    for (let i = 0; i < subTwigCount; i++) {
+      const ang = (i / subTwigCount) * Math.PI * 2 + seed * 0.79;
+      const reach = padRadius * (0.48 + (i % 2) * 0.13);
+      const lift = ((i % 3) - 0.65) * padHeight * 0.24;
+      const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.52, lift * 0.45, Math.sin(ang) * reach * 0.52);
+      const endPt = new THREE.Vector3(Math.cos(ang) * reach, lift, Math.sin(ang) * reach);
+      padGrp.add(createTaperedOliveBranchMesh(
+        [new THREE.Vector3(0, -padHeight * 0.10, 0), midPt, endPt],
+        Math.max(0.012, padRadius * 0.028),
+        Math.max(0.005, padRadius * 0.010),
+        8, 6, matCitrusBark
+      ));
+      subClusters.push({
+        pos: endPt,
+        scale: padRadius * (0.84 + (i % 3) * 0.08),
+        rotY: ang + i * 1.37
+      });
+
+      // Hang 2-3 ripe Valencia oranges naturally around the outer & lower perimeter of each fruiting sub-branch!
+      const fruit1 = createDetailedSingleOrangeFruit(1.0 + (i % 3) * 0.12);
+      fruit1.position.set(
+        endPt.x * 1.12 + Math.cos(ang + 0.35) * 0.18,
+        endPt.y - 0.04 - (i % 2) * 0.08,
+        endPt.z * 1.12 + Math.sin(ang + 0.35) * 0.18
+      );
+      padGrp.add(fruit1);
+
+      const fruit2 = createDetailedSingleOrangeFruit(0.94 + ((i + 1) % 3) * 0.10);
+      fruit2.position.set(
+        endPt.x * 0.92 + Math.cos(ang - 0.45) * 0.22,
+        endPt.y + 0.16 + (i % 2) * 0.06,
+        endPt.z * 0.92 + Math.sin(ang - 0.45) * 0.22
+      );
+      padGrp.add(fruit2);
+
+      if (i % 2 === 0) {
+        const fruit3 = createDetailedSingleOrangeFruit(0.92 + (i % 2) * 0.12);
+        fruit3.position.set(
+          midPt.x * 1.25 + Math.cos(ang + 0.8) * 0.20,
+          midPt.y - 0.14,
+          midPt.z * 1.25 + Math.sin(ang + 0.8) * 0.20
+        );
+        padGrp.add(fruit3);
+      }
+
+      // Fragrant white Tunisian orange blossom (Zahar) on the sunny outer canopy tips
+      if (i % 2 === 1) {
+        const blossom = createOrangeBlossomFlower();
+        blossom.position.set(
+          endPt.x * 1.16,
+          endPt.y + 0.18,
+          endPt.z * 1.16
+        );
+        blossom.rotation.set(0.35, ang, 0.20);
+        padGrp.add(blossom);
+      }
+    }
+
+    const flatRatio = Math.max(0.68, Math.min(0.96, padHeight / Math.max(0.22, padRadius)));
+    subClusters.forEach((sc, idx) => {
+      const subG = new THREE.Group();
+      subG.position.copy(sc.pos);
+      subG.rotation.set(Math.sin(seed + idx * 1.9) * 0.22, sc.rotY, Math.cos(seed + idx * 1.3) * 0.20);
+      subG.scale.set(sc.scale, sc.scale * flatRatio, sc.scale);
+      const bMesh = new THREE.Mesh(bladeGeo, matCitrusLeaf3D);
+      bMesh.castShadow = true;
+      bMesh.receiveShadow = true;
+      subG.add(bMesh);
+      const rMesh = new THREE.Mesh(ribbonGeo, matCitrusLeafCard);
+      rMesh.castShadow = true;
+      rMesh.receiveShadow = true;
+      subG.add(rMesh);
+      padGrp.add(subG);
+    });
+    return padGrp;
+  }
+
+  // Cracked & root-heaved earth decal under the 4.45m Orange Tree
+  const orangeCrackDecal = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.25, 3.25),
+    new THREE.MeshBasicMaterial({
+      map: texCrackedEarth,
+      transparent: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3
+    })
+  );
+  orangeCrackDecal.rotation.x = -Math.PI / 2;
+  orangeCrackDecal.position.y = 0.006;
+  orangeCrackDecal.raycast = () => {};
+  orangeCrackDecal.userData.isAODecal = true;
+  orangeTreeGroup.add(orangeCrackDecal);
+
+  if (stumpProto) {
+    const orangeStumpW = fitAndPlaceModel(stumpProto.clone(true), [1.90, 1.90, 0.64], null, 1.15, '#8c765c');
+    orangeStumpW.position.y = -0.02;
+    orangeTreeGroup.add(orangeStumpW);
+  }
+
+  // 6 Woody Citrus Surface Roots & Tilted Soil Clods
+  for (let r = 0; r < 6; r++) {
+    const ra = (r / 6) * Math.PI * 2 + 0.42;
+    const ca = Math.cos(ra), sa = Math.sin(ra);
+    orangeTreeGroup.add(createTaperedOliveBranchMesh([
+      new THREE.Vector3(ca * 0.16, 0.56, sa * 0.16),
+      new THREE.Vector3(ca * 0.56, 0.28, sa * 0.56),
+      new THREE.Vector3(ca * 0.98, 0.12, sa * 0.98),
+      new THREE.Vector3(ca * 1.35, -0.02, sa * 1.35)
+    ], 0.15, 0.035, 14, 8, matCitrusBark));
+    const clod = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.09, 0.28),
+      new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x5c4733, roughness: 0.9 })
     );
-    rwe.userData.npcActivityId = 'ROOF_LOUNGE';
-    window.roofSofas.push(rwe);
-    registerDraggable(rwe, 'Rooftop Lounge Sofa (East)', 'أريكة جلسة السطح (شرق)');
-    roofGroup.add(rwe);
+    clod.position.set(ca * 0.82, 0.06, sa * 0.82);
+    clod.rotation.set(sa * 0.35, ra, -ca * 0.35);
+    clod.castShadow = true;
+    clod.receiveShadow = true;
+    orangeTreeGroup.add(clod);
   }
-  const r2 = await loadPHModel('sofa_02');
-  if (r2) {
-    const rw2 = fitAndPlaceModel(r2, [2.80, 0.92, 0.85], null, Math.PI);
-    rw2.position.copy(bPos(2.85, -0.55, 3.78));
-    attachNpcTargetWorld(
-      rw2,
-      bPos(2.85, -0.38, 3.80),
-      bPos(2.85, 0.62, 3.80)
-    );
-    rw2.userData.npcActivityId = 'ROOF_LOUNGE';
-    window.activeRoofSofa = rw2;
-    window.roofSofas.push(rw2);
-    registerDraggable(rw2, 'Rooftop Lounge Sofa (South)', 'أريكة جلسة السطح (جنوب)');
-    roofGroup.add(rw2);
+
+  // 12 Spiky 3D Grass Tufts + 4 Fallen Ripe Oranges at the base of the Orange Tree
+  for (let gi = 0; gi < 12; gi++) {
+    const ga = (gi / 12) * Math.PI * 2 + 0.22;
+    const grDist = 0.68 + (gi % 3) * 0.24;
+    const gTuft = createSpikyGrassTuft(0.35, 0.34 + (gi % 2) * 0.05, 60, gi * 1.9 + 4.4);
+    gTuft.position.set(Math.cos(ga) * grDist, 0.0, Math.sin(ga) * grDist);
+    orangeTreeGroup.add(gTuft);
   }
-  const rt = await loadPHModel('modern_coffee_table_01');
-  if (rt) {
-    const rtw = fitAndPlaceModel(rt, [1.85, 1.10, 0.52], null, 0);
-    rtw.position.copy(bPos(2.65, 1.40, 3.78));
-    registerDraggable(rtw, 'Rooftop Teak Coffee Table', 'طاولة قهوة السطح');
-    roofGroup.add(rtw);
-  }
+  [
+    [0.52, 0.068, 0.44], [-0.58, 0.068, 0.36], [0.34, 0.068, -0.62], [-0.42, 0.068, -0.48]
+  ].forEach(([fx, fy, fz], fIdx) => {
+    const fallenOrange = createDetailedSingleOrangeFruit(0.95 + (fIdx % 2) * 0.08);
+    fallenOrange.position.set(fx, fy, fz);
+    fallenOrange.rotation.set(fIdx * 0.6, fIdx * 1.1, fIdx * 0.4);
+    orangeTreeGroup.add(fallenOrange);
+  });
+
+  // Main Citrus Trunk rising to 1.82m (Taller than the 1.36m Ancient Olive Tree trunk!)
+  orangeTreeGroup.add(createTaperedOliveBranchMesh([
+    new THREE.Vector3(0.0, 0.02, 0.0),
+    new THREE.Vector3(0.05, 0.64, -0.04),
+    new THREE.Vector3(-0.04, 1.26, 0.05),
+    new THREE.Vector3(0.0, 1.82, 0.0)
+  ], 0.36, 0.25, 20, 12, matCitrusBark));
+
+  // 9 Structural Citrus Limbs reaching 3.65m - 4.15m (total crown height ~4.55m, strictly taller than the 3.2m Big Olive Tree!)
+  const orangeLimbs = [
+    { pts: [[0.0, 1.68, 0.0], [-0.52, 2.38, 0.32], [-1.08, 3.08, 0.60], [-1.46, 3.68, 0.78]], r0: 0.18, r1: 0.065, padR: 1.08, padH: 0.78 },
+    { pts: [[0.0, 1.70, 0.0], [0.54, 2.42, 0.34], [1.08, 3.14, 0.64], [1.42, 3.76, 0.82]], r0: 0.17, r1: 0.065, padR: 1.06, padH: 0.76 },
+    { pts: [[0.0, 1.72, 0.0], [0.26, 2.48, -0.48], [0.62, 3.22, -0.92], [0.88, 3.84, -1.20]], r0: 0.17, r1: 0.065, padR: 1.08, padH: 0.78 },
+    { pts: [[0.0, 1.69, 0.0], [-0.42, 2.44, -0.46], [-0.88, 3.16, -0.88], [-1.22, 3.74, -1.14]], r0: 0.16, r1: 0.06, padR: 1.04, padH: 0.74 },
+    { pts: [[0.0, 1.75, 0.0], [-0.06, 2.58, 0.06], [0.05, 3.42, -0.05], [0.0, 4.16, 0.02]], r0: 0.19, r1: 0.07, padR: 1.24, padH: 0.88 },
+    { pts: [[-0.52, 2.38, 0.32], [-0.76, 3.12, -0.06], [-0.94, 3.78, -0.22]], r0: 0.12, r1: 0.05, padR: 0.96, padH: 0.70 },
+    { pts: [[0.54, 2.42, 0.34], [0.76, 3.18, -0.10], [0.92, 3.82, -0.26]], r0: 0.12, r1: 0.05, padR: 0.96, padH: 0.70 },
+    { pts: [[0.26, 2.48, -0.48], [-0.10, 3.26, -0.68], [-0.26, 3.92, -0.62]], r0: 0.11, r1: 0.05, padR: 0.98, padH: 0.72 },
+    { pts: [[-0.06, 2.58, 0.06], [0.32, 3.32, 0.48], [0.52, 3.96, 0.72]], r0: 0.11, r1: 0.05, padR: 0.96, padH: 0.70 }
+  ];
+  orangeLimbs.forEach((limb, idx) => {
+    const vPts = limb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+    orangeTreeGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 8, matCitrusBark));
+    const tip = vPts[vPts.length - 1];
+    const pad = createDetailedOrangeCanopyPad(limb.padR, limb.padH, idx * 2.3 + 1.4);
+    pad.position.set(tip.x, tip.y + 0.06, tip.z);
+    orangeTreeGroup.add(pad);
+  });
+
+  attachNpcTargetWorld(
+    orangeTreeGroup,
+    bPos(4.25, -16.25, -0.50),
+    bPos(4.25, -14.95, -0.50)
+  );
+  orangeTreeGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+  window.orangeTreeObj = orangeTreeGroup;
+  registerDraggable(orangeTreeGroup, 'Detailed Mediterranean Orange Tree (4.4m)', 'شجرة برتقال تونسي مثمرة مفصلة');
+  g.add(orangeTreeGroup);
+
+  // Rooftop Stone BBQ Fire Pit & Barstools (Rooftop sofas & coffee table replaced by Rooftop Tunisian Sofa Lesehan & Meja Lesehan in buildStaticArchitecture!)
   const bbq = await loadPHModel('stone_fire_pit');
   if (bbq) {
     const bw = fitAndPlaceModel(bbq, [0.88, 1.15, 0.55], null, 0);
@@ -7324,6 +7953,173 @@ function pickNextRandomWifeActivity() {
   startWifeActivity(nextKey, false);
 }
 
+function fixNpcClothingAndBackGlitches(armRoot, isWife) {
+  if (!armRoot) return;
+  let boneMap = {};
+  armRoot.traverse((ch) => {
+    if (ch.isSkinnedMesh && ch.skeleton && ch.skeleton.bones) {
+      ch.skeleton.bones.forEach((b, idx) => {
+        boneMap[b.name] = idx;
+      });
+    }
+  });
+  const hipsIdx = boneMap['Hips'] !== undefined ? boneMap['Hips'] : 0;
+  const spineIdx = boneMap['Spine'] !== undefined ? boneMap['Spine'] : 1;
+  const chestIdx = boneMap['Chest'] !== undefined ? boneMap['Chest'] : 3;
+  const upLegLIdx = boneMap['UpLeg.L'] !== undefined ? boneMap['UpLeg.L'] : 44;
+  const upLegRIdx = boneMap['UpLeg.R'] !== undefined ? boneMap['UpLeg.R'] : 48;
+  const upperArmLIdx = boneMap['UpperArm.L'] !== undefined ? boneMap['UpperArm.L'] : 5;
+  const upperArmRIdx = boneMap['UpperArm.R'] !== undefined ? boneMap['UpperArm.R'] : 24;
+  const clavLIdx = boneMap['Clavicle.L'] !== undefined ? boneMap['Clavicle.L'] : 4;
+  const clavRIdx = boneMap['Clavicle.R'] !== undefined ? boneMap['Clavicle.R'] : 23;
+
+  armRoot.traverse((ch) => {
+    if (!ch.isMesh || !ch.geometry || !ch.material) return;
+    const matName = Array.isArray(ch.material) ? (ch.material[0] && ch.material[0].name) : ch.material.name;
+    if (!matName) return;
+
+    const geo = ch.geometry;
+    const pos = geo.attributes.position;
+    const skinIdx = geo.attributes.skinIndex;
+    const skinW = geo.attributes.skinWeight;
+    if (!pos) return;
+
+    // 1. Shrink hidden underlying torso/pelvis/armpit skin inward so skin can NEVER poke through shirt/tunic/sleeves during swimming or walking
+    if (matName.includes('Mat_Skin_Maher')) {
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y >= 0.56 && y <= 1.46 && Math.abs(x) < 0.245) {
+          pos.setXYZ(i, x * 0.72, y, z * 0.62);
+        }
+      }
+      pos.needsUpdate = true;
+    } else if (matName.includes('Mat_Skin_Wife')) {
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y >= 0.25 && y <= 1.45 && Math.abs(x) < 0.32) {
+          pos.setXYZ(i, x * 0.70, y, z * 0.62);
+        }
+      }
+      pos.needsUpdate = true;
+    }
+    // 2. Pull upper waist of shorts/pants inward & reassign back-waist leg weights to Hips so they never clip through the lower back of the shirt/tunic
+    else if (matName.includes('Mat_Shorts_Maher')) {
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y >= 0.87 && y <= 1.06) {
+          const t = Math.min(1.0, (y - 0.86) / 0.14);
+          pos.setXYZ(i, x * (1.0 - 0.24 * t), y, z * (1.0 - 0.28 * t));
+        }
+      }
+      pos.needsUpdate = true;
+    } else if (matName.includes('Mat_Pants_Wife')) {
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y >= 0.52 && y <= 1.06) {
+          const t = Math.min(1.0, (y - 0.50) / 0.18);
+          pos.setXYZ(i, x * (1.0 - 0.25 * t), y, z * (1.0 - 0.30 * t));
+        }
+      }
+      pos.needsUpdate = true;
+    } else if (matName.includes('Mat_Hijab_Wife')) {
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        if (y <= 1.45 && z < -0.02) {
+          pos.setZ(i, z - 0.012);
+        }
+      }
+      pos.needsUpdate = true;
+    }
+    // 3. Smooth the sculpted vertical back crease & eliminate leg/arm bone-weight tearing on Mat_Top_Maher and Mat_Tunic_Wife
+    else if (matName.includes('Mat_Top_Maher') || matName.includes('Mat_Tunic_Wife')) {
+      const isMaherTop = matName.includes('Mat_Top_Maher');
+      const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+      mats.forEach((m) => {
+        m.polygonOffset = true;
+        m.polygonOffsetFactor = -1;
+        m.polygonOffsetUnits = -1;
+        m.needsUpdate = true;
+      });
+
+      for (let i = 0; i < pos.count; i++) {
+        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+
+        // Smooth out the sculpted vertical spine fold on the back so the back of the shirt/tunic is a clean, rounded, wrinkle-free surface
+        if (z < -0.015 && y >= (isMaherTop ? 0.90 : 0.65) && y <= 1.49 && Math.abs(x) < 0.165) {
+          const baseDepth = isMaherTop ? -0.120 : -0.106;
+          const roundedZ = baseDepth * Math.cos(Math.min(1.25, Math.abs(x) / 0.185) * 0.68);
+          z = Math.min(z, roundedZ);
+          if (isMaherTop && y <= 1.05) {
+            z -= 0.012; // Flare lower back hem slightly outward over shorts waist
+          }
+          pos.setZ(i, z);
+        }
+
+        // Fix skin weights so leg swings (Walk_Cycle / SWIM_POOL) and shoulder sculling never tear or pinch the back
+        if (skinIdx && skinW) {
+          let i0 = skinIdx.getX(i), i1 = skinIdx.getY(i), i2 = skinIdx.getZ(i), i3 = skinIdx.getW(i);
+          let w0 = skinW.getX(i), w1 = skinW.getY(i), w2 = skinW.getZ(i), w3 = skinW.getW(i);
+          const idxs = [i0, i1, i2, i3];
+          const ws = [w0, w1, w2, w3];
+
+          for (let k = 0; k < 4; k++) {
+            if (ws[k] <= 0.0001) continue;
+            // Reassign thigh (UpLeg.L / UpLeg.R) weights on the shirt/upper-tunic to Hips so leg rotation never pulls the back inward
+            if ((idxs[k] === upLegLIdx || idxs[k] === upLegRIdx) && y >= (isMaherTop ? 0.88 : 0.72)) {
+              idxs[k] = (y > 1.05) ? spineIdx : hipsIdx;
+            }
+            // On the central back torso, reassign UpperArm/Clavicle weights to Chest so arm sculling in SWIM_POOL never pinches the spine
+            if (z < -0.02 && Math.abs(x) < 0.135 && y >= 1.08 && y <= 1.47) {
+              if (idxs[k] === upperArmLIdx || idxs[k] === upperArmRIdx || idxs[k] === clavLIdx || idxs[k] === clavRIdx) {
+                idxs[k] = chestIdx;
+              }
+            }
+          }
+          skinIdx.setXYZW(i, idxs[0], idxs[1], idxs[2], idxs[3]);
+        }
+      }
+      pos.needsUpdate = true;
+      if (skinIdx) skinIdx.needsUpdate = true;
+
+      // Recompute smooth vertex normals and weld normals across coincident UV seam vertices
+      geo.computeVertexNormals();
+      const norm = geo.attributes.normal;
+      if (norm) {
+        const seamBuckets = new Map();
+        for (let i = 0; i < pos.count; i++) {
+          const kx = Math.round(pos.getX(i) * 400);
+          const ky = Math.round(pos.getY(i) * 400);
+          const kz = Math.round(pos.getZ(i) * 400);
+          const key = `${kx}_${ky}_${kz}`;
+          let b = seamBuckets.get(key);
+          if (!b) {
+            b = [];
+            seamBuckets.set(key, b);
+          }
+          b.push(i);
+        }
+        seamBuckets.forEach((vList) => {
+          if (vList.length > 1) {
+            let nx = 0, ny = 0, nz = 0;
+            for (let j = 0; j < vList.length; j++) {
+              const vi = vList[j];
+              nx += norm.getX(vi);
+              ny += norm.getY(vi);
+              nz += norm.getZ(vi);
+            }
+            const len = Math.hypot(nx, ny, nz) || 1.0;
+            nx /= len; ny /= len; nz /= len;
+            for (let j = 0; j < vList.length; j++) {
+              norm.setXYZ(vList[j], nx, ny, nz);
+            }
+          }
+        });
+        norm.needsUpdate = true;
+      }
+    }
+  });
+}
+
 function loadMaherWifeNPC() {
   loadingActive++; loadingTotal++;
   updateLoadingUI();
@@ -7331,6 +8127,7 @@ function loadMaherWifeNPC() {
   const onWifeGltfLoaded = (gltf) => {
     const npcScene = gltf.scene;
     const armRoot = npcScene.getObjectByName('Maher_Wife') || npcScene;
+    fixNpcClothingAndBackGlitches(armRoot, true);
 
     armRoot.traverse((ch) => {
       if (ch.isMesh) {
@@ -7443,6 +8240,7 @@ function loadMaitreMaherNPC() {
   const onMaherGltfLoaded = (gltf) => {
     const npcScene = gltf.scene;
     const armRoot = npcScene.getObjectByName('Maitre_Maher') || npcScene;
+    fixNpcClothingAndBackGlitches(armRoot, false);
 
     armRoot.traverse((ch) => {
       if (ch.isMesh) {
