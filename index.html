@@ -256,8 +256,10 @@
 </div>
 
 <div id="selection-hud">
-  <span class="hud-title" id="sel-name">📌 Click once on any 3D object to select • Drag unselected = rotate camera</span>
+  <span class="hud-title" id="sel-name">📌 Click once on any 3D object to select • Drag = Move • ↑/↓ = Resize</span>
   <button class="hud-btn btn-open-toggle" id="btn-hud-open" onclick="toggleSelectedOpening()">🚪 Open / Close</button>
+  <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
+  <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
   <button class="hud-btn" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
   <button class="hud-btn" onclick="rotateSelected(Math.PI/12)">↻ +15°</button>
   <button class="hud-btn" onclick="rotateSelected(Math.PI/2)">⟳ 90°</button>
@@ -314,8 +316,10 @@ const I18N = {
     camMaher: '👨‍🦲 Maître Maher',
     camMaherNext: '🔄 Next Action',
     loadingText: '⏳ Downloading AAA 3D PBR Assets & HDRI Skies...',
-    hudDefault: '📌 Click once on any 3D object to select • Drag unselected = rotate camera',
-    hudSelected: '🎯 Selected (Drag to Move): ',
+    hudDefault: '📌 Click once on any 3D object to select • Drag = Move • ↑/↓ = Resize',
+    hudSelected: '🎯 Selected (Drag to Move • ↑/↓ Resize): ',
+    btnSmaller: '➖ Smaller (↓)',
+    btnBigger: '➕ Bigger (↑)',
     btnOpenLeaf: '🚪 Open Door/Window',
     btnCloseLeaf: '🚪 Close Door/Window',
     btnDeselect: '✖ Deselect',
@@ -353,8 +357,10 @@ const I18N = {
     camMaher: '👨‍🦲 الأستاذ ماهر',
     camMaherNext: '🔄 النشاط التالي',
     loadingText: '⏳ جاري تحميل مجسمات 3D وخرائط الإضاءة الواقعية...',
-    hudDefault: '📌 انقر مرة لتحديد أي مجسم 3D ثم اسحبه • السحب بدون تحديد يدور الكاميرا',
-    hudSelected: '🎯 العنصر المحدد (اسحب للتحريك): ',
+    hudDefault: '📌 انقر مرة لتحديد أي مجسم 3D ثم اسحبه • الأسهم ↑/↓ لتكبير وتصغير الحجم',
+    hudSelected: '🎯 العنصر المحدد (اسحب للتحريك • ↑/↓ للحجم): ',
+    btnSmaller: '➖ تصغير (↓)',
+    btnBigger: '➕ تكبير (↑)',
     btnOpenLeaf: '🚪 فتح الباب / الشباك',
     btnCloseLeaf: '🚪 غلق الباب / الشباك',
     btnDeselect: '✖ إلغاء التحديد',
@@ -1939,6 +1945,7 @@ function buildStaticArchitecture() {
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -1
   });
+  window.matLawnBed = matLawnBed;
 
   // 1) Horizontal West-to-East Leg of Letter-L Walkway (starts at the West edge of the Left Swimming Pool bx = -10.61m and runs along the Pool & Left Terrace to bx = +2.38m, centered at by = -11.45m!)
   // North inner grass strip along horizontal leg (bx = -10.61 .. +0.65, width = 11.26m, center bx = -4.98, by = -10.26)
@@ -1964,9 +1971,9 @@ function buildStaticArchitecture() {
   addBoxMesh(1.38, 0.048, 1.38, 2.38, -11.45, -0.474, matMainFloor, archRoot, true);
   addBoxMesh(1.38, 0.048, 0.64, 2.38, -10.35, -0.474, matMainFloor, archRoot, true);
 
-  // Continuous manicured grass border bed around the 11 front potted olive trees, shifted forward (by = -19.00m) and stretching from the Swimming Pool (bx = -10.65m) all the way to the New Cabin Front Terrace (bx = +12.15m, width = 22.80m, center bx = +0.75m)
-  addBoxMesh(22.80, 0.054, 1.55, 0.75, -19.00, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(22.92, 0.038, 1.65, 0.75, -19.00, -0.481, matArchTrim, archRoot, false);
+  // Note: The front manicured grass border bed (matLawnBed) & golden stone base trim (matArchTrim) for the 11 small potted olive trees
+  // are grouped together with the 3D grass tufts and all 11 pots & olive trees inside `frontOliveGardenGroup` in `buildStaticPolyHavenDecor()`
+  // so clicking the grass or base selects, moves, resizes, and rotates the entire lawn bed + 11 olive trees as a single unified object!
 
   // ==========================================================================
   // POINT 3: FAMILY SWIMMING POOL (HALF WIDTH = 2.00m × 8.00m) LEFT OF STAIRCASE + DEEP REFLECTIVE WATER + RIPPLES + WALKWAY
@@ -3360,6 +3367,8 @@ function registerDraggable(obj, labelEn, labelAr) {
   obj.userData.draggable = true;
   obj.userData.labelEn = labelEn;
   obj.userData.labelAr = labelAr || labelEn;
+  obj.userData.baseScale = obj.scale.clone();
+  obj.userData.scaleFactor = 1.0;
   draggableObjects.push(obj);
 }
 
@@ -4676,25 +4685,35 @@ async function buildStaticPolyHavenDecor() {
     neatGrassGroup.add(tPoolS);
   });
 
+  freezeStaticMeshes(neatGrassGroup);
+  archRoot.add(neatGrassGroup);
+
+  // ==========================================================================
+  // UNIFIED FRONT OLIVE LAWN BED GROUP (`frontOliveGardenGroup`):
+  // Combines the manicured green lawn slab (`matLawnBed`), golden stone base trim (`matArchTrim`),
+  // spiky 3D grass tufts, and all 11 small potted olive trees into ONE selectable/movable/resizable/rotatable group!
+  // ("khusus lahan rumput alas dari pot2 olives kecil, aku ingin mngklik rumput akan select rumput, alas, beserta semua pot dan olivesnya, bisa ku pindahkan dan geser dan resize dan rotate sesuka hati seperti object lain")
+  // ==========================================================================
+  const frontOliveGardenGroup = new THREE.Group();
+  addBoxMesh(22.80, 0.054, 1.55, 0.75, -19.00, -0.468, window.matLawnBed, frontOliveGardenGroup, false);
+  addBoxMesh(22.92, 0.038, 1.65, 0.75, -19.00, -0.481, matArchTrim, frontOliveGardenGroup, false);
+
   // Spiky 3D grass tufts around the 11 shifted front potted olive trees (by = -19.00m) stretching from the Swimming Pool (bx = -10.40m) to the New Cabin Front Terrace (bx = +11.85m)
   for (let bx = -10.40; bx <= 11.90; bx += 0.58) {
     const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
     tuftFront.position.copy(bPos(bx, -18.48, -0.455));
-    neatGrassGroup.add(tuftFront);
+    frontOliveGardenGroup.add(tuftFront);
 
     const tuftBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(bx * 7)) % 3) * 0.035, 52, -bx * 2.9 + 23.0);
     tuftBack.position.copy(bPos(bx, -19.52, -0.455));
-    neatGrassGroup.add(tuftBack);
+    frontOliveGardenGroup.add(tuftBack);
   }
   // Taller spiky ornamental grass clusters between each of the 11 potted olive trees along bx = -10.00 .. +11.50 (by = -19.00m)
   [-8.92, -6.77, -4.62, -2.47, -0.32, 1.83, 3.98, 6.13, 8.28, 10.43].forEach((mx, idx) => {
     const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
     tallTuft.position.copy(bPos(mx, -19.00, -0.455));
-    neatGrassGroup.add(tallTuft);
+    frontOliveGardenGroup.add(tallTuft);
   });
-
-  freezeStaticMeshes(neatGrassGroup);
-  archRoot.add(neatGrassGroup);
 
   const mir = await loadPHModel('ornate_mirror_01');
   if (mir) {
@@ -4949,13 +4968,22 @@ async function buildStaticPolyHavenDecor() {
     );
     smallOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
     window.smallOliveTrees.push(smallOliveGroup);
-    registerDraggable(
-      smallOliveGroup,
-      `Potted Olive Tree #${i + 1} (1.5m)`,
-      `شجرة زيتون في أصيص #${i + 1}`
-    );
-    g.add(smallOliveGroup);
+    frontOliveGardenGroup.add(smallOliveGroup);
   }
+
+  attachNpcTargetWorld(
+    frontOliveGardenGroup,
+    bPos(0.75, -18.08, -0.50),
+    bPos(0.75, -19.00, -0.50)
+  );
+  frontOliveGardenGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+  window.frontOliveGardenObj = frontOliveGardenGroup;
+  registerDraggable(
+    frontOliveGardenGroup,
+    'Front Olive Lawn Bed & 11 Potted Olive Trees',
+    'حوض العشب وأشجار الزيتون الأمامية (11 شجرة)'
+  );
+  g.add(frontOliveGardenGroup);
 
   // ==========================================================================
   // 3. ACCURATE GIANT BROADLEAF SHADE TREE (~6.8M TALL = 2X LARGEST OLIVE TREE)
@@ -5398,267 +5426,293 @@ async function buildStaticPolyHavenDecor() {
   matCitrusBark.roughness = 0.80;
   matCitrusBark.userData = { customEnvIntensity: 0.44 };
 
-  // Dedicated Citrus sinensis Broad Pointed-Ovate Leaf Sprig Texture (with winged petioles & glossy green sheen)
-  const texCitrusLeaves = makeCanvasTexture(512, 512, (ctx, w, h) => {
+  // Dedicated Citrus sinensis Broad Pointed-Ovate Leaf Cluster Texture (1024x1024, natural warm Olive-chlorophyll Mediterranean shading, zero blue/cyan cast)
+  // ("daun2 pada pohon jeruk shading nya d perbaiki krena saat ini terlihat pengaturan kontras dan warnanya tidak natural. pewarnaan pada pohon olives yg terbaik saat ini")
+  const texCitrusLeaves = makeCanvasTexture(1024, 1024, (ctx, w, h) => {
     ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = '#4a5c2f';
-    ctx.lineWidth = 6.0;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(w * 0.5, h * 0.96);
-    ctx.quadraticCurveTo(w * 0.52, h * 0.50, w * 0.50, h * 0.08);
-    ctx.stroke();
 
-    const drawCitrusLeaf = (cx, cy, ang, len, wid, isBright) => {
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(ang);
+    // Warm Mediterranean olive-chlorophyll palette (low blue channel so sky IBL & rim light never turn broad citrus leaves cyan/bluish)
+    const upperCitrusPalette = ['#283d14', '#344d1b', '#3f5c22', '#4b6b29', '#2e4517'];
+    const sunSageCitrusPalette = ['#557530', '#608238', '#6a8c40', '#4c6b28'];
 
-      // Characteristic Citrus sinensis winged petiole at leaf base
-      ctx.fillStyle = '#367523';
+    const drawCitrusTwig = (x0, y0, ang, len, thick, depth) => {
+      const x1 = x0 + Math.cos(ang) * len;
+      const y1 = y0 + Math.sin(ang) * len;
+
+      ctx.strokeStyle = depth === 0 ? '#5b4e3e' : '#6e604f';
+      ctx.lineWidth = thick;
+      ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.ellipse(0, 4, wid * 0.15, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Broad pointed-ovate Citrus leaf blade (width:length ~ 1:1.95)
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(-wid * 0.60, -len * 0.25, -wid * 0.54, -len * 0.72, 0, -len);
-      ctx.bezierCurveTo(wid * 0.54, -len * 0.72, wid * 0.60, -len * 0.25, 0, 0);
-      ctx.closePath();
-
-      const grad = ctx.createLinearGradient(-wid * 0.4, 0, wid * 0.4, -len);
-      if (isBright) {
-        grad.addColorStop(0, '#296e1c');
-        grad.addColorStop(0.5, '#3e8c28');
-        grad.addColorStop(1, '#58ab38');
-      } else {
-        grad.addColorStop(0, '#1e5414');
-        grad.addColorStop(0.55, '#2e731e');
-        grad.addColorStop(1, '#438f2c');
-      }
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Glossy central midrib & citrus venation
-      ctx.strokeStyle = isBright ? 'rgba(175, 230, 120, 0.60)' : 'rgba(115, 175, 75, 0.48)';
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(0, -2);
-      ctx.lineTo(0, -len * 0.94);
-      for (let v = 1; v <= 4; v++) {
-        const vy = -len * (0.19 * v);
-        const vw = wid * (0.38 - v * 0.045);
-        ctx.moveTo(0, vy);
-        ctx.lineTo(-vw, vy - len * 0.09);
-        ctx.moveTo(0, vy);
-        ctx.lineTo(vw, vy - len * 0.09);
-      }
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
       ctx.stroke();
-      ctx.restore();
+
+      const pairs = depth === 0 ? 7 : 5;
+      for (let i = 1; i <= pairs; i++) {
+        const t = i / (pairs + 0.5);
+        const px = x0 + (x1 - x0) * t;
+        const py = y0 + (y1 - y0) * t;
+
+        [-1, 1].forEach((side, sIdx) => {
+          const leafAng = ang + side * (0.64 + (i % 2) * 0.10);
+          // Broad pointed-ovate Citrus sinensis leaf shape (wider than olive, with warm Mediterranean olive-green tonal balance)
+          const leafLen = (depth === 0 ? 42 : 34) * (1.0 - t * 0.20);
+          const leafWid = leafLen * 0.42;
+
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(leafAng);
+
+          const isLighterLeaf = ((i + sIdx + depth) % 3 === 0);
+          ctx.fillStyle = isLighterLeaf
+            ? sunSageCitrusPalette[(i + depth) % sunSageCitrusPalette.length]
+            : upperCitrusPalette[(i + sIdx) % upperCitrusPalette.length];
+
+          // Winged petiole at leaf base
+          ctx.beginPath();
+          ctx.ellipse(leafLen * 0.08, 0, leafLen * 0.06, leafWid * 0.22, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Broad pointed-ovate leaf blade
+          ctx.beginPath();
+          ctx.moveTo(leafLen * 0.12, 0);
+          ctx.bezierCurveTo(leafLen * 0.34, -leafWid * 0.62, leafLen * 0.72, -leafWid * 0.54, leafLen, 0);
+          ctx.bezierCurveTo(leafLen * 0.72, leafWid * 0.54, leafLen * 0.34, leafWid * 0.62, leafLen * 0.12, 0);
+          ctx.closePath();
+          ctx.fill();
+
+          // Warm golden-olive midrib vein
+          ctx.strokeStyle = isLighterLeaf ? 'rgba(176, 198, 124, 0.44)' : 'rgba(138, 164, 96, 0.40)';
+          ctx.lineWidth = 1.15;
+          ctx.beginPath();
+          ctx.moveTo(leafLen * 0.15, 0);
+          ctx.lineTo(leafLen * 0.92, 0);
+          ctx.stroke();
+
+          ctx.restore();
+        });
+      }
+
+      if (depth < 2) {
+        drawCitrusTwig((x0 + x1) * 0.5, (y0 + y1) * 0.5, ang - 0.50, len * 0.62, Math.max(2.0, thick * 0.66), depth + 1);
+        drawCitrusTwig(x0 * 0.35 + x1 * 0.65, y0 * 0.35 + y1 * 0.65, ang + 0.48, len * 0.58, Math.max(2.0, thick * 0.64), depth + 1);
+      }
     };
 
-    const citrusSprigs = [
-      [0.50, 0.90, -0.95, 108, 56, false], [0.50, 0.88,  0.95, 110, 56, true],
-      [0.50, 0.74, -0.82, 116, 60, true],  [0.51, 0.72,  0.80, 114, 58, false],
-      [0.50, 0.58, -0.68, 120, 62, true],  [0.51, 0.56,  0.70, 118, 60, true],
-      [0.50, 0.42, -0.52, 114, 58, false], [0.50, 0.40,  0.54, 114, 58, true],
-      [0.50, 0.26, -0.35, 104, 54, true],  [0.50, 0.26,  0.36, 104, 54, false],
-      [0.50, 0.15,  0.00, 108, 56, true]
-    ];
-    for (const [rx, ry, a, l, wd, br] of citrusSprigs) {
-      drawCitrusLeaf(w * rx, h * ry, a, l, wd, br);
+    const shootAngles = [0.12, 0.78, 1.42, 2.08, 2.75, 3.42, 4.08, 4.72, 5.38, 5.92];
+    shootAngles.forEach((a, idx) => {
+      const startR = 32 + (idx % 3) * 18;
+      const sx = 512 + Math.cos(a) * startR;
+      const sy = 512 + Math.sin(a) * startR;
+      drawCitrusTwig(sx, sy, a + (idx % 2 === 0 ? 0.06 : -0.06), 310 + (idx % 3) * 26, 5.2, 0);
+    });
+
+    const allCitrusColors = ['#334b1a', '#3e5921', '#4a6828', '#587832', '#283c14', '#63843a', '#39521e'];
+    for (let i = 0; i < 210; i++) {
+      const rad = 18 + Math.pow((i * 0.6180339) % 1, 0.85) * 336;
+      const ang = i * 2.39996;
+      const lx = 512 + Math.cos(ang) * rad;
+      const ly = 512 + Math.sin(ang) * rad;
+      const leafAngle = ang + ((i % 2 === 0) ? 0.48 : -0.48) + Math.sin(i * 1.7) * 0.22;
+      const len = 34 + (i % 5) * 4.5;
+      const wid = len * 0.38;
+
+      ctx.save();
+      ctx.translate(lx, ly);
+      ctx.rotate(leafAngle);
+      ctx.fillStyle = allCitrusColors[i % allCitrusColors.length];
+      ctx.beginPath();
+      ctx.moveTo(-len * 0.45, 0);
+      ctx.quadraticCurveTo(0, -wid, len * 0.55, 0);
+      ctx.quadraticCurveTo(0, wid, -len * 0.45, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(164, 186, 118, 0.36)';
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(-len * 0.38, 0);
+      ctx.lineTo(len * 0.48, 0);
+      ctx.stroke();
+      ctx.restore();
     }
   });
   texCitrusLeaves.encoding = THREE.sRGBEncoding;
-  texCitrusLeaves.anisotropy = 4;
+  texCitrusLeaves.anisotropy = maxAniso;
 
+  // High roughness (0.78) + low customEnvIntensity (0.16) + warm subsurface chlorophyll emissive prevents broad leaves from reflecting blue sky IBL
   const matCitrusLeaf3D = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.36, // Glossy waxy Citrus sinensis leaf sheen
-    metalness: 0.03,
+    emissive: 0x162408,
+    emissiveIntensity: 0.16,
     side: THREE.DoubleSide,
-    envMapIntensity: 0.44,
-    userData: { customEnvIntensity: 0.44 }
+    roughness: 0.78,
+    metalness: 0.0,
+    envMapIntensity: 0.16,
+    userData: { customEnvIntensity: 0.16 }
   });
   const matCitrusLeafCard = new THREE.MeshStandardMaterial({
-    color: 0x529e36,
     map: texCitrusLeaves,
-    alphaTest: 0.32,
-    roughness: 0.40,
-    metalness: 0.02,
+    alphaTest: 0.38,
+    transparent: true,
     side: THREE.DoubleSide,
-    envMapIntensity: 0.40,
-    userData: { customEnvIntensity: 0.40 }
+    color: 0x829c58,
+    emissive: 0x162408,
+    emissiveIntensity: 0.14,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.28, 0.28),
+    roughness: 0.80,
+    metalness: 0.0,
+    envMapIntensity: 0.16,
+    userData: { customEnvIntensity: 0.16 }
   });
 
-  // Build Dense 3D Broad Pointed-Ovate Citrus Leaf Cluster Geometry (34 shoots x 12 broad citrus leaves + 18 arched sprig ribbons, linear sRGB vertex colors)
+  // Build Dense 3D Broad Pointed-Ovate Citrus Leaf Cluster Geometry using warm Olive-grade chlorophyll colors & soft upward-biased crown normals
   let _cachedCitrusClusterGeos = null;
   function getCitrusLeafClusterGeometries() {
     if (_cachedCitrusClusterGeos) return _cachedCitrusClusterGeos;
-    const bPosArr = [], bNormArr = [], bColArr = [], bIdxArr = [];
-    let bVOff = 0;
-    const cDeepCitrus = new THREE.Color(0x1b4d12).convertSRGBToLinear();
-    const cMidCitrus = new THREE.Color(0x2d701d).convertSRGBToLinear();
-    const cBrightCitrus = new THREE.Color(0x45942b).convertSRGBToLinear();
-    const cSunCitrus = new THREE.Color(0x60b03c).convertSRGBToLinear();
-    const tmpC = new THREE.Color();
+    const positions = [], normals = [], colors = [], indices = [];
+    let vOffset = 0;
 
-    const shootCount = 34;
-    const pairsPerShoot = 6;
+    // Warm Mediterranean olive-green palette with low blue channel (zero cyan/blue reflection under any sky angle)
+    const cDeepCitrus = new THREE.Color('#283d14').convertSRGBToLinear();
+    const cMidCitrus = new THREE.Color('#3d5920').convertSRGBToLinear();
+    const cSageCitrus = new THREE.Color('#5a7a34').convertSRGBToLinear();
+    const cSunTip = new THREE.Color('#6c8f3e').convertSRGBToLinear();
+    const tmpColor = new THREE.Color();
+
+    const shootCount = 36;
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
     for (let s = 0; s < shootCount; s++) {
-      const su = (s + 0.5) / shootCount;
-      const phi = s * 2.3999632;
-      const rHoriz = Math.pow(su, 0.52) * 0.25;
-      const yDome = (1.0 - su * 0.65) * 0.14 - 0.04 + ((s % 5) - 2.0) * 0.016;
-      const sx0 = Math.cos(phi) * rHoriz * 0.35;
-      const sy0 = yDome * 0.5;
-      const sz0 = Math.sin(phi) * rHoriz * 0.35;
+      const t = s / shootCount;
+      // Full 3D ellipsoid distribution matching getOliveSubClusterGeometries() so light and shadow wrap naturally around every crown pad
+      const yDir = 0.94 - t * 1.52;
+      const rHoriz = Math.sqrt(Math.max(0.05, 1.0 - yDir * yDir));
+      const theta = s * goldenAngle;
+      const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.78, Math.sin(theta) * rHoriz).normalize();
 
-      const sYaw = phi + ((s % 3) - 1) * 0.24;
-      const sPitch = (1.0 - su) * 0.55 - 0.10 + ((s % 4) - 1.5) * 0.10;
-      const sLen = 0.21 + (s % 3) * 0.035;
+      const shootLen = 0.36 + ((s * 7) % 5) * 0.048;
+      const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+      const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
 
-      const sdx = Math.cos(sYaw) * Math.cos(sPitch);
-      const sdy = Math.sin(sPitch);
-      const sdz = Math.sin(sYaw) * Math.cos(sPitch);
+      const pairs = 6;
+      for (let p = 0; p < pairs; p++) {
+        const frac = 0.16 + (p / (pairs - 1)) * 0.82;
+        const nodePos = dir.clone().multiplyScalar(shootLen * frac);
+        const rot90 = (p % 2 === 1);
+        const axisSide = rot90 ? localUp : right;
+        const axisNormal = rot90 ? right : localUp;
 
-      const rx = -Math.sin(sYaw), ry = 0, rz = Math.cos(sYaw);
-      const upx = ry * sdz - rz * sdy, upy = rz * sdx - rx * sdz, upz = rx * sdy - ry * sdx;
+        for (const sideSign of [-1, 1]) {
+          // Broad pointed-ovate Citrus sinensis leaf proportions (wider ovate blade than olive, with identical natural 3D normal & vertex shading)
+          const leafLen = (0.148 - frac * 0.022) * (0.92 + ((s + p) % 3) * 0.08);
+          const leafHalfW = leafLen * 0.23;
 
-      for (let p = 0; p < pairsPerShoot; p++) {
-        const t = (p + 0.4) / pairsPerShoot;
-        const archDrop = t * t * 0.045;
-        const bx = sx0 + sdx * (sLen * t);
-        const by = sy0 + sdy * (sLen * t) - archDrop;
-        const bz = sz0 + sdz * (sLen * t);
+          const lDir = dir.clone().multiplyScalar(0.68)
+            .addScaledVector(axisSide, sideSign * 0.72)
+            .addScaledVector(axisNormal, ((p + s) % 3 - 1) * 0.18)
+            .normalize();
+          const lWidthVec = new THREE.Vector3().crossVectors(lDir, axisNormal).normalize().multiplyScalar(leafHalfW);
+          const lArchVec = axisNormal.clone().multiplyScalar(leafLen * 0.11);
 
-        for (let side = -1; side <= 1; side += 2) {
-          // Broad pointed-ovate Citrus sinensis leaf (length ~9.6cm, full width ~4.8cm -> ratio 1:2.0)
-          const leafL = (0.092 + (1.0 - Math.abs(t - 0.5) * 0.75) * 0.024) * (0.92 + ((s + p) % 3) * 0.08);
-          const leafW = leafL * 0.25; // half-width -> full width = 0.50 * leafL
+          const p0 = nodePos.clone().addScaledVector(axisSide, sideSign * 0.008);
+          const pMid1 = p0.clone().addScaledVector(lDir, leafLen * 0.36).addScaledVector(lArchVec, 0.7);
+          const pMid2 = p0.clone().addScaledVector(lDir, leafLen * 0.72).addScaledVector(lArchVec, 1.0);
+          const pTip = p0.clone().addScaledVector(lDir, leafLen).addScaledVector(lArchVec, 0.55);
 
-          const spread = side * (0.58 + (p % 2) * 0.16);
-          const lift = 0.20 - t * 0.26 + ((p % 3) - 1) * 0.10;
-          let ldx = sdx * Math.cos(spread) + rx * Math.sin(spread);
-          let ldy = sdy + lift;
-          let ldz = sdz * Math.cos(spread) + rz * Math.sin(spread);
-          const lLen = Math.hypot(ldx, ldy, ldz) || 1;
-          ldx /= lLen; ldy /= lLen; ldz /= lLen;
+          const v0 = p0;
+          const v1 = pMid1.clone().addScaledVector(lWidthVec, -0.98);
+          const v2 = pMid1.clone().addScaledVector(lWidthVec, 0.98);
+          const v3 = pMid2.clone().addScaledVector(lWidthVec, -0.72);
+          const v4 = pMid2.clone().addScaledVector(lWidthVec, 0.72);
+          const v5 = pTip;
 
-          let lwx = rx * Math.cos(spread) - sdx * Math.sin(spread);
-          let lwy = ((s + p) % 2 === 0 ? 0.18 : -0.16) * side;
-          let lwz = rz * Math.cos(spread) - sdz * Math.sin(spread);
-          const wLen = Math.hypot(lwx, lwy, lwz) || 1;
-          lwx /= wLen; lwy /= wLen; lwz /= wLen;
+          const verts = [v0, v1, v2, v3, v4, v5];
+          // Outward-blended normal identical to the Olive Tree for soft, realistic sunlight & shadow gradation across the crown
+          const outNorm = pMid1.clone().normalize().lerp(axisNormal, 0.45).normalize();
 
-          const lnx = ldy * lwz - ldz * lwy;
-          const lny = Math.abs(ldz * lwx - ldx * lwz) + 0.35;
-          const lnz = ldx * lwy - ldy * lwx;
-          const nLen = Math.hypot(lnx, lny, lnz) || 1;
-          const nx = lnx / nLen, ny = lny / nLen, nz = lnz / nLen;
+          const isLighter = ((s * 3 + p * 5 + (sideSign > 0 ? 1 : 0)) % 9) < 3;
+          const baseCol = isLighter ? cSageCitrus : ((s + p) % 2 === 0 ? cDeepCitrus : cMidCitrus);
 
-          const p0x = bx, p0y = by, p0z = bz;
-          const p1x = bx + ldx * (leafL * 0.36) - lwx * leafW + nx * 0.005;
-          const p1y = by + ldy * (leafL * 0.36) - lwy * leafW + ny * 0.005;
-          const p1z = bz + ldz * (leafL * 0.36) - lwz * leafW + nz * 0.005;
-          const p2x = bx + ldx * (leafL * 0.36) + lwx * leafW + nx * 0.005;
-          const p2y = by + ldy * (leafL * 0.36) + lwy * leafW + ny * 0.005;
-          const p2z = bz + ldz * (leafL * 0.36) + lwz * leafW + nz * 0.005;
-          const p3x = bx + ldx * (leafL * 0.72) - lwx * (leafW * 0.68) - nx * 0.004;
-          const p3y = by + ldy * (leafL * 0.72) - lwy * (leafW * 0.68) - ny * 0.004;
-          const p3z = bz + ldz * (leafL * 0.72) - lwz * (leafW * 0.68) - nz * 0.004;
-          const p4x = bx + ldx * (leafL * 0.72) + lwx * (leafW * 0.68) - nx * 0.004;
-          const p4y = by + ldy * (leafL * 0.72) + lwy * (leafW * 0.68) - ny * 0.004;
-          const p4z = bz + ldz * (leafL * 0.72) + lwz * (leafW * 0.68) - nz * 0.004;
-          const p5x = bx + ldx * leafL - nx * 0.010;
-          const p5y = by + ldy * leafL - ny * 0.010;
-          const p5z = bz + ldz * leafL - nz * 0.010;
-
-          bPosArr.push(
-            p0x, p0y, p0z, p1x, p1y, p1z, p2x, p2y, p2z,
-            p3x, p3y, p3z, p4x, p4y, p4z, p5x, p5y, p5z
-          );
-
-          const heightLight = Math.min(1.0, Math.max(0.0, (by + 0.12) * 3.0 + t * 0.28));
-          for (let v = 0; v < 6; v++) {
-            bNormArr.push(nx, ny, nz);
-            const tipBoost = (v >= 3) ? 0.20 : 0.0;
-            const mixVal = Math.min(1.0, heightLight + tipBoost);
-            if ((s + p) % 3 === 0) {
-              tmpC.copy(cMidCitrus).lerp(cSunCitrus, mixVal);
-            } else if ((s + p) % 3 === 1) {
-              tmpC.copy(cDeepCitrus).lerp(cBrightCitrus, mixVal);
-            } else {
-              tmpC.copy(cDeepCitrus).lerp(cMidCitrus, mixVal);
-            }
-            bColArr.push(tmpC.r, tmpC.g, tmpC.b);
+          for (let vi = 0; vi < 6; vi++) {
+            const v = verts[vi];
+            positions.push(v.x, v.y, v.z);
+            normals.push(outNorm.x, outNorm.y, outNorm.z);
+            tmpColor.copy(baseCol);
+            if (vi === 5) tmpColor.lerp(cSunTip, 0.35);
+            else if (vi === 0) tmpColor.multiplyScalar(0.78);
+            colors.push(tmpColor.r, tmpColor.g, tmpColor.b);
           }
 
-          bIdxArr.push(
-            bVOff, bVOff + 1, bVOff + 2,
-            bVOff + 1, bVOff + 3, bVOff + 2,
-            bVOff + 2, bVOff + 3, bVOff + 4,
-            bVOff + 3, bVOff + 5, bVOff + 4
+          indices.push(
+            vOffset + 0, vOffset + 1, vOffset + 2,
+            vOffset + 1, vOffset + 3, vOffset + 2,
+            vOffset + 2, vOffset + 3, vOffset + 4,
+            vOffset + 3, vOffset + 5, vOffset + 4
           );
-          bVOff += 6;
+          vOffset += 6;
         }
       }
     }
 
     const bladeGeo = new THREE.BufferGeometry();
-    bladeGeo.setAttribute('position', new THREE.Float32BufferAttribute(bPosArr, 3));
-    bladeGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bNormArr, 3));
-    bladeGeo.setAttribute('color', new THREE.Float32BufferAttribute(bColArr, 3));
-    bladeGeo.setIndex(bIdxArr);
+    bladeGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    bladeGeo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    bladeGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    bladeGeo.setIndex(indices);
     bladeGeo.computeBoundingSphere();
 
-    // 18 Arched 3-Segment Broadleaf Citrus Sprig Ribbons for dense interior shadow & lush silhouette
-    const rPosArr = [], rNormArr = [], rUvArr = [], rIdxArr = [];
-    let rVOff = 0;
-    const cardCount = 18;
-    for (let c = 0; c < cardCount; c++) {
-      const cu = (c + 0.5) / cardCount;
-      const ang = c * 2.3999632 + 0.35;
-      const rad = 0.06 + Math.pow(cu, 0.6) * 0.16;
-      const ox = Math.cos(ang) * rad;
-      const oy = (1.0 - cu) * 0.10 - 0.03;
-      const oz = Math.sin(ang) * rad;
+    // 18 Curved 3D Botanical Sprig Ribbons with outward radial normals (matching getOliveSubClusterGeometries)
+    const rPos = [], rNorm = [], rUv = [], rIdx = [];
+    let rOff = 0;
+    const ribbonCount = 18;
+    for (let r = 0; r < ribbonCount; r++) {
+      const t = r / ribbonCount;
+      const yDir = 0.88 - t * 1.32;
+      const rHoriz = Math.sqrt(Math.max(0.08, 1.0 - yDir * yDir));
+      const theta = r * goldenAngle + 0.8;
+      const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.72, Math.sin(theta) * rHoriz).normalize();
+      const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+      const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
 
-      const pitch = 0.34 - cu * 0.42;
-      const len = 0.25 + (c % 3) * 0.04;
-      const wid = 0.115 + (c % 2) * 0.025;
+      const len = 0.44 + (r % 3) * 0.06;
+      const halfW = len * 0.45;
+      const segs = 3;
 
-      const fx = Math.cos(ang) * Math.cos(pitch);
-      const fy = Math.sin(pitch);
-      const fz = Math.sin(ang) * Math.cos(pitch);
-      const sx = -Math.sin(ang), sy = 0, sz = Math.cos(ang);
+      for (let j = 0; j <= segs; j++) {
+        const vFrac = j / segs;
+        const dist = 0.04 + vFrac * len;
+        const archLift = Math.sin(vFrac * Math.PI) * 0.065;
+        const center = dir.clone().multiplyScalar(dist).addScaledVector(localUp, archLift);
+        const twist = (vFrac - 0.5) * 0.42 + ((r % 2 === 0) ? 0.25 : -0.25);
+        const wVec = right.clone().multiplyScalar(Math.cos(twist) * halfW)
+          .addScaledVector(localUp, Math.sin(twist) * halfW);
+        const nVec = center.clone().normalize();
 
-      for (let seg = 0; seg <= 3; seg++) {
-        const st = seg / 3;
-        const drop = st * st * 0.06;
-        const px = ox + fx * (len * st);
-        const py = oy + fy * (len * st) - drop;
-        const pz = oz + fz * (len * st);
+        const pL = center.clone().sub(wVec);
+        const pR = center.clone().add(wVec);
 
-        rPosArr.push(
-          px - sx * wid, py - sy * wid, pz - sz * wid,
-          px + sx * wid, py + sy * wid, pz + sz * wid
-        );
-        rNormArr.push(0, 1, 0, 0, 1, 0);
-        rUvArr.push(0, 1 - st, 1, 1 - st);
+        rPos.push(pL.x, pL.y, pL.z, pR.x, pR.y, pR.z);
+        rNorm.push(nVec.x, nVec.y, nVec.z, nVec.x, nVec.y, nVec.z);
+        rUv.push(0, vFrac, 1, vFrac);
       }
-      for (let seg = 0; seg < 3; seg++) {
-        const b = rVOff + seg * 2;
-        rIdxArr.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+      for (let j = 0; j < segs; j++) {
+        const a = rOff + j * 2;
+        const b = a + 1;
+        const c = a + 2;
+        const d = a + 3;
+        rIdx.push(a, b, c, b, d, c);
       }
-      rVOff += 8;
+      rOff += (segs + 1) * 2;
     }
     const ribbonGeo = new THREE.BufferGeometry();
-    ribbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPosArr, 3));
-    ribbonGeo.setAttribute('normal', new THREE.Float32BufferAttribute(rNormArr, 3));
-    ribbonGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rUvArr, 2));
-    ribbonGeo.setIndex(rIdxArr);
+    ribbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPos, 3));
+    ribbonGeo.setAttribute('normal', new THREE.Float32BufferAttribute(rNorm, 3));
+    ribbonGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rUv, 2));
+    ribbonGeo.setIndex(rIdx);
     ribbonGeo.computeBoundingSphere();
 
     _cachedCitrusClusterGeos = { bladeGeo, ribbonGeo };
@@ -6619,6 +6673,10 @@ function updateSelectedHudText() {
   const el = document.getElementById('sel-name');
   const openBtn = document.getElementById('btn-hud-open');
   const deselBtn = document.getElementById('btn-hud-deselect');
+  const smallBtn = document.getElementById('btn-hud-smaller');
+  const bigBtn = document.getElementById('btn-hud-bigger');
+  if (smallBtn) smallBtn.textContent = t('btnSmaller');
+  if (bigBtn) bigBtn.textContent = t('btnBigger');
   if (!selectedObject) {
     el.textContent = t('hudDefault');
     if (openBtn) openBtn.style.display = 'none';
@@ -6627,7 +6685,9 @@ function updateSelectedHudText() {
     const lbl = state.lang === 'ar'
       ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
       : selectedObject.userData.labelEn;
-    el.textContent = t('hudSelected') + lbl;
+    const sf = selectedObject.userData.scaleFactor || 1.0;
+    const scaleTag = Math.abs(sf - 1.0) > 0.005 ? ` (${Math.round(sf * 100)}%)` : '';
+    el.textContent = t('hudSelected') + lbl + scaleTag;
     if (deselBtn) {
       deselBtn.style.display = 'inline-block';
       deselBtn.textContent = t('btnDeselect');
@@ -6764,11 +6824,31 @@ window.addEventListener('pointerup', (e) => {
 function rotateSelected(deltaRad) {
   if (!selectedObject) return;
   selectedObject.rotation.y += deltaRad;
+  selectedObject.updateMatrixWorld(true);
   requestShadowUpdate();
+}
+
+function scaleSelected(factor) {
+  if (!selectedObject) return;
+  const curFactor = selectedObject.userData.scaleFactor || 1.0;
+  const nextFactor = Math.max(0.25, Math.min(4.00, curFactor * factor));
+  selectedObject.userData.scaleFactor = nextFactor;
+  const bs = selectedObject.userData.baseScale || new THREE.Vector3(1, 1, 1);
+  // Uniform proportional scaling from the object's grounded base pivot (zero distortion, zero floating/sinking)
+  selectedObject.scale.set(bs.x * nextFactor, bs.y * nextFactor, bs.z * nextFactor);
+  selectedObject.updateMatrixWorld(true);
+  requestShadowUpdate();
+  updateSelectedHudText();
 }
 
 window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
+  // When any selectable 3D object is selected (in non-walk mode), ArrowUp = Bigger and ArrowDown = Smaller (preserving composition)
+  if (selectedObject && viewMode !== 'walk' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    e.preventDefault();
+    scaleSelected(e.key === 'ArrowUp' ? 1.12 : (1 / 1.12));
+    return;
+  }
   if (k === 'w' || e.key === 'ArrowUp') walkState.keys.forward = true;
   if (k === 's' || e.key === 'ArrowDown') walkState.keys.back = true;
   if (k === 'a' || e.key === 'ArrowLeft') walkState.keys.left = true;
@@ -7271,7 +7351,8 @@ function saveDesign() {
     x: o.position.x,
     y: o.position.y,
     z: o.position.z,
-    ry: o.rotation.y
+    ry: o.rotation.y,
+    s: o.userData.scaleFactor || 1.0
   }));
   localStorage.setItem('tunisia_modern_arabic_villa_v8', JSON.stringify({
     lang: state.lang,
@@ -9951,6 +10032,11 @@ async function initApp() {
       if (obj && obj.userData.labelEn === sp.labelEn) {
         obj.position.set(sp.x, sp.y, sp.z);
         obj.rotation.y = sp.ry;
+        if (typeof sp.s === 'number' && sp.s > 0.1) {
+          obj.userData.scaleFactor = sp.s;
+          const bs = obj.userData.baseScale || new THREE.Vector3(1, 1, 1);
+          obj.scale.set(bs.x * sp.s, bs.y * sp.s, bs.z * sp.s);
+        }
         obj.updateMatrixWorld(true);
       }
     });
