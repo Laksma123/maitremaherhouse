@@ -1988,39 +1988,82 @@ function buildStaticArchitecture() {
     envMapIntensity: 1.15
   });
 
-  // Recessed Pool Floor (bz = -1.85m) & 4 Inner Zellige Pool Walls (bz = -1.85m .. -0.40m)
-  addBoxMesh(2.16, 0.16, 8.16, -9.20, -3.10, -1.93, matPoolZellige, familyPoolGroup, true);
-  // East & West inner pool walls
-  addBoxMesh(0.18, 1.48, 8.16, -8.19, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
-  addBoxMesh(0.18, 1.48, 8.16, -10.21, -3.10, -1.14, matPoolZellige, familyPoolGroup, true);
-  // South & North inner pool walls
-  addBoxMesh(2.16, 1.48, 0.18, -9.20, -7.11, -1.14, matPoolZellige, familyPoolGroup, true);
-  addBoxMesh(2.16, 1.48, 0.18, -9.20, 0.91, -1.14, matPoolZellige, familyPoolGroup, true);
+  // ==========================================================================
+  // RAISED 3-STEP SWIMMING POOL BORDER (top at bz = +0.04m = 3 steps x 0.18m above -0.50m ground!)
+  // WITH 3-STEP STAIRS ON BOTH WIDTH SIDES OF THE POOL (South & North ends) + EAST WALKWAY STAIRS
+  // ("kolam aku ingin bordernya setinggi 3 step NPC naik tangga, dengan tangga di kedua sisi lebar kolam")
+  // ==========================================================================
+  const poolFloorBz = -1.50;
+  const poolBorderTopBz = 0.04; // Exactly 3 steps (3 x 0.18m = 0.54m) above the -0.50m exterior soil ground!
+  const poolWaterBz = -0.06;    // Deep reflective water surface 10cm below the raised lounging border deck
 
-  // Underwater Pool Steps at South-East Entry Corner (bx = -8.28 .. -8.88, by = -6.55 .. -5.55) aligned with Left Terrace Walkway!
+  // Recessed Pool Floor (bz = -1.50m) & 4 Inner Zellige Pool Walls + Outer Plastered Masonry Raised Pool Walls (bz = -1.50m .. +0.02m)
+  addBoxMesh(2.16, 0.16, 8.16, -9.20, -3.10, poolFloorBz - 0.08, matPoolZellige, familyPoolGroup, true);
+  // East & West inner Zellige pool walls
+  addBoxMesh(0.18, 1.52, 8.16, -8.19, -3.10, -0.74, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(0.18, 1.52, 8.16, -10.21, -3.10, -0.74, matPoolZellige, familyPoolGroup, true);
+  // South & North inner Zellige pool walls
+  addBoxMesh(2.16, 1.52, 0.18, -9.20, -7.11, -0.74, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(2.16, 1.52, 0.18, -9.20, 0.91, -0.74, matPoolZellige, familyPoolGroup, true);
+
+  // Outer Raised Pool Border Masonry Structure (rising 0.50m from exterior ground bz = -0.50m up to bz = 0.00m under the marble coping deck)
+  addBoxMesh(0.58, 0.50, 9.28, -7.89, -3.10, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  addBoxMesh(0.58, 0.50, 9.28, -10.51, -3.10, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  addBoxMesh(3.20, 0.50, 0.58, -9.20, -7.45, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  addBoxMesh(3.20, 0.50, 0.58, -9.20, 1.25, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+
+  // Wide Travertine & Carthage Marble Pool Lounging Border Deck framing all 4 sides (0.68m wide for comfortable NPC reclining, top at bz = +0.04m!)
+  addBoxMesh(0.68, 0.08, 9.36, -7.86, -3.10, 0.00, matMainFloor, familyPoolGroup, true);   // East (Right) Border Deck (bx = -7.86)
+  addBoxMesh(0.68, 0.08, 9.36, -10.54, -3.10, 0.00, matMainFloor, familyPoolGroup, true);  // West (Left) Border Deck (bx = -10.54)
+  addBoxMesh(3.36, 0.08, 0.68, -9.20, -7.44, 0.00, matMainFloor, familyPoolGroup, true);   // South Width Border Deck (by = -7.44)
+  addBoxMesh(3.36, 0.08, 0.68, -9.20, 1.24, 0.00, matMainFloor, familyPoolGroup, true);    // North Width Border Deck (by = +1.24)
+  // Golden Stone Bullnose Trim around the Raised Pool Border
+  addBoxMesh(0.74, 0.045, 9.44, -7.86, -3.10, -0.03, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(0.74, 0.045, 9.44, -10.54, -3.10, -0.03, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(3.44, 0.045, 0.74, -9.20, -7.44, -0.03, matArchTrim, familyPoolGroup, true);
+  addBoxMesh(3.44, 0.045, 0.74, -9.20, 1.24, -0.03, matArchTrim, familyPoolGroup, true);
+
+  // 1) EXTERIOR 3-STEP STAIRS ON BOTH WIDTH SIDES OF THE POOL ("dengan tangga di kedua sisi lebar kolam": South Width End & North Width End!)
+  //    Each stair has 3 crisp steps rising from ground (-0.50m) -> Step 1 (-0.32m) -> Step 2 (-0.14m) -> Step 3 / Pool Border (+0.04m)
   [0, 1, 2].forEach((si) => {
-    const stepW = 0.20 * (si + 1);
-    const stepTop = -0.64 - si * 0.32;
-    const stepH = stepTop - (-1.85);
-    addBoxMesh(stepW, stepH, 1.12, -8.28 - stepW * 0.5, -6.05, -1.85 + stepH * 0.5, matPoolZellige, familyPoolGroup, true);
-    addBoxMesh(stepW + 0.02, 0.03, 1.14, -8.28 - stepW * 0.5, -6.05, stepTop - 0.015, matMainFloor, familyPoolGroup, true);
+    const stepTop = -0.32 + si * 0.18;
+    const stepH = stepTop - (-0.50);
+    const stepRun = 0.28;
+    // South Width Side Exterior Stairs (at by = -8.46, -8.18, -7.90 leading up onto the South border at by = -7.44, spanning 2.16m width)
+    const sBy = -8.46 + si * stepRun;
+    addBoxMesh(2.16, stepH, stepRun + 0.02, -9.20, sBy, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
+    addBoxMesh(2.22, 0.036, stepRun + 0.04, -9.20, sBy, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
+    addBoxMesh(2.04, 0.014, 0.02, -9.20, sBy - stepRun * 0.48, stepTop - 0.036, matLedBorderOpening, familyPoolGroup, false);
+
+    // North Width Side Exterior Stairs (at by = +2.26, +1.98, +1.70 leading up onto the North border at by = +1.24, spanning 2.16m width)
+    const nBy = 2.26 - si * stepRun;
+    addBoxMesh(2.16, stepH, stepRun + 0.02, -9.20, nBy, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
+    addBoxMesh(2.22, 0.036, stepRun + 0.04, -9.20, nBy, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
+    addBoxMesh(2.04, 0.014, 0.02, -9.20, nBy + stepRun * 0.48, stepTop - 0.036, matLedBorderOpening, familyPoolGroup, false);
+
+    // East Walkway 3-Step Stairs (at by = -6.05, bx = -6.82, -7.10, -7.38 connecting the Left Terrace walkway directly up onto the East border!)
+    const eBx = -6.82 - si * stepRun;
+    addBoxMesh(stepRun + 0.02, stepH, 1.18, eBx, -6.05, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
+    addBoxMesh(stepRun + 0.04, 0.036, 1.24, eBx, -6.05, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
   });
 
-  // Wide Travertine & Carthage Marble Pool Coping Rim framing all 4 sides of the pool (top at bz = -0.41m)
-  addBoxMesh(0.46, 0.14, 8.84, -8.02, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(0.46, 0.14, 8.84, -10.38, -3.10, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(2.82, 0.14, 0.46, -9.20, -7.29, -0.48, matMainFloor, familyPoolGroup, true);
-  addBoxMesh(2.82, 0.14, 0.46, -9.20, 1.09, -0.48, matMainFloor, familyPoolGroup, true);
-  // Subtle outer coping trim
-  addBoxMesh(0.52, 0.06, 8.92, -8.02, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(0.52, 0.06, 8.92, -10.38, -3.10, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(2.90, 0.06, 0.52, -9.20, -7.29, -0.49, matArchTrim, familyPoolGroup, true);
-  addBoxMesh(2.90, 0.06, 0.52, -9.20, 1.09, -0.49, matArchTrim, familyPoolGroup, true);
+  // 2) UNDERWATER 3-STEP POOL STAIRS AT BOTH WIDTH ENDS OF THE POOL (South Inner End & North Inner End)
+  [0, 1, 2].forEach((si) => {
+    const uTop = -0.26 - si * 0.30;
+    const uH = uTop - poolFloorBz;
+    const uDepth = 0.24 * (si + 1);
+    // South Underwater Steps (by = -7.02 .. -6.30)
+    addBoxMesh(1.92, uH, uDepth, -9.20, -7.02 + uDepth * 0.5, poolFloorBz + uH * 0.5, matPoolZellige, familyPoolGroup, true);
+    addBoxMesh(1.94, 0.03, uDepth + 0.02, -9.20, -7.02 + uDepth * 0.5, uTop - 0.015, matMainFloor, familyPoolGroup, true);
+    // North Underwater Steps (by = +0.82 .. +0.10)
+    addBoxMesh(1.92, uH, uDepth, -9.20, 0.82 - uDepth * 0.5, poolFloorBz + uH * 0.5, matPoolZellige, familyPoolGroup, true);
+    addBoxMesh(1.94, 0.03, uDepth + 0.02, -9.20, 0.82 - uDepth * 0.5, uTop - 0.015, matMainFloor, familyPoolGroup, true);
+  });
 
-  // Underwater Warm LED Pool Lights along East & West inner walls
+  // Underwater Warm LED Pool Lights along East & West inner walls (sleek deep horizontal recessed fixtures at bz = -0.82m)
   [-5.60, -3.10, -0.60].forEach((ly) => {
-    addBoxMesh(0.03, 0.08, 0.36, -8.29, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
-    addBoxMesh(0.03, 0.08, 0.36, -10.11, ly, -0.92, matLedBorderOpening, familyPoolGroup, false);
+    addBoxMesh(0.02, 0.26, 0.05, -8.29, ly, -0.82, matLedBorderOpening, familyPoolGroup, false);
+    addBoxMesh(0.02, 0.26, 0.05, -10.11, ly, -0.82, matLedBorderOpening, familyPoolGroup, false);
   });
 
   // Procedural Animated Wave Normal Map for Deep Pool Water Reflection
@@ -2047,7 +2090,7 @@ function buildStaticArchitecture() {
   poolWaveNorTex.repeat.set(3, 8);
   window.poolWaveNorTex = poolWaveNorTex;
 
-  // Layer 1: Deep Optical Absorption Water Volume (bz = -0.98m) giving true deep-water optical richness ("airnya dalam")
+  // Layer 1: Deep Optical Absorption Water Volume (bz = -0.62m) giving true deep-water optical richness ("airnya dalam")
   const matPoolDeepAbsorption = new THREE.MeshStandardMaterial({
     color: 0x073b54,
     roughness: 0.14,
@@ -2059,11 +2102,12 @@ function buildStaticArchitecture() {
   });
   const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(1.96, 7.96), matPoolDeepAbsorption);
   poolDeepLayer.rotation.x = -Math.PI / 2;
-  poolDeepLayer.position.copy(bPos(-9.20, -3.10, -0.98));
+  poolDeepLayer.position.copy(bPos(-9.20, -3.10, -0.62));
+  poolDeepLayer.renderOrder = 5;
   poolDeepLayer.raycast = () => {};
   familyPoolGroup.add(poolDeepLayer);
 
-  // Layer 2: Specular Reflective Top Water Surface (bz = -0.44m) using the same HDRI mirror reflection technique as puddleWaterMat!
+  // Layer 2: Specular Reflective Top Water Surface (bz = -0.06m) using the same HDRI mirror reflection technique as puddleWaterMat!
   const matPoolSurfaceReflect = new THREE.MeshStandardMaterial({
     color: 0x126482,
     normalMap: poolWaveNorTex,
@@ -2079,23 +2123,24 @@ function buildStaticArchitecture() {
   const poolSurfGeo = new THREE.PlaneGeometry(1.96, 7.96, 16, 48);
   const poolWaterMesh = new THREE.Mesh(poolSurfGeo, matPoolSurfaceReflect);
   poolWaterMesh.rotation.x = -Math.PI / 2;
-  poolWaterMesh.position.copy(bPos(-9.20, -3.10, -0.44));
+  poolWaterMesh.position.copy(bPos(-9.20, -3.10, poolWaterBz));
+  poolWaterMesh.renderOrder = 6;
   poolWaterMesh.receiveShadow = true;
   poolWaterMesh.userData.npcActivityId = 'SWIM_POOL';
   window.poolWaterMesh = poolWaterMesh;
   familyPoolGroup.add(poolWaterMesh);
 
-  // Random Animated Water Ripples ("riak-riak air random") on the pool surface (bz = -0.434m)
+  // Random Animated Water Ripples ("riak-riak air random") + 3x Diminishing Big Dive Ripples ("riak besar 3x semakin kecil") on the pool surface (bz = -0.052m)
   const texRippleRing = (function() {
     const c = document.createElement('canvas');
     c.width = 128; c.height = 128;
     const ctx = c.getContext('2d');
     const g = ctx.createRadialGradient(64, 64, 8, 64, 64, 60);
     g.addColorStop(0.0, 'rgba(255,255,255,0.0)');
-    g.addColorStop(0.32, 'rgba(210,248,255,0.55)');
-    g.addColorStop(0.48, 'rgba(255,255,255,0.08)');
-    g.addColorStop(0.68, 'rgba(220,250,255,0.85)');
-    g.addColorStop(0.86, 'rgba(180,240,255,0.35)');
+    g.addColorStop(0.32, 'rgba(210,248,255,0.65)');
+    g.addColorStop(0.48, 'rgba(255,255,255,0.12)');
+    g.addColorStop(0.68, 'rgba(225,252,255,0.92)');
+    g.addColorStop(0.86, 'rgba(180,240,255,0.42)');
     g.addColorStop(1.0, 'rgba(255,255,255,0.0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 128, 128);
@@ -2120,7 +2165,8 @@ function buildStaticArchitecture() {
     rMesh.rotation.x = -Math.PI / 2;
     const initBx = -9.85 + Math.random() * 1.30;
     const initBy = -6.60 + Math.random() * 7.00;
-    rMesh.position.copy(bPos(initBx, initBy, -0.434));
+    rMesh.position.copy(bPos(initBx, initBy, poolWaterBz + 0.008));
+    rMesh.renderOrder = 7;
     rMesh.raycast = () => {};
     familyPoolGroup.add(rMesh);
     window.poolRippleRings.push({
@@ -2131,16 +2177,46 @@ function buildStaticArchitecture() {
       maxOpacity: 0.42 + Math.random() * 0.25
     });
   }
+
+  // Dedicated Pool of 6 Big Concentric Jump/Dive Ripple Rings ("riak besar 3x semakin kecil" when NPCs jump into the water!)
+  window.poolBigJumpRipples = [];
+  for (let bi = 0; bi < 6; bi++) {
+    const bMat = new THREE.MeshBasicMaterial({
+      map: texRippleRing,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3
+    });
+    const bMesh = new THREE.Mesh(rippleGeo, bMat);
+    bMesh.rotation.x = -Math.PI / 2;
+    bMesh.position.copy(bPos(-9.20, -3.10, poolWaterBz + 0.011));
+    bMesh.renderOrder = 8;
+    bMesh.visible = false;
+    bMesh.raycast = () => {};
+    familyPoolGroup.add(bMesh);
+    window.poolBigJumpRipples.push({
+      mesh: bMesh,
+      active: false,
+      delay: 0,
+      age: 0,
+      maxAge: 1.55,
+      targetScale: 3.2,
+      peakOpacity: 0.92
+    });
+  }
   archRoot.add(familyPoolGroup);
 
-  // Stepping-Stone Walkway with Manicured Grass from Left Terrace straight to the Pool (by = -6.05m, bx = -6.00 .. -7.79m)
-  // Matches the signature Mediterranean stepping-stone + flanked grass strip + wood-trim border design!
-  addBoxMesh(1.74, 0.056, 0.36, -6.90, -5.32, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(1.78, 0.038, 0.42, -6.90, -5.32, -0.474, matArchTrim, archRoot, false);
-  addBoxMesh(1.74, 0.056, 0.36, -6.90, -6.78, -0.468, matLawnBed, archRoot, false);
-  addBoxMesh(1.78, 0.038, 0.42, -6.90, -6.78, -0.474, matArchTrim, archRoot, false);
-  [-6.54, -7.02, -7.50].forEach(px => {
-    addBoxMesh(0.36, 0.038, 0.96, px, -6.05, -0.468, matMainFloor, archRoot, true);
+  // Stepping-Stone Walkway with Manicured Grass from Left Terrace straight to the Pool East 3-Step Stairs (by = -6.05m, bx = -6.00 .. -6.70m)
+  addBoxMesh(1.10, 0.056, 0.36, -6.42, -5.32, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.14, 0.038, 0.42, -6.42, -5.32, -0.474, matArchTrim, archRoot, false);
+  addBoxMesh(1.10, 0.056, 0.36, -6.42, -6.78, -0.468, matLawnBed, archRoot, false);
+  addBoxMesh(1.14, 0.038, 0.42, -6.42, -6.78, -0.474, matArchTrim, archRoot, false);
+  [-6.18, -6.52].forEach(px => {
+    addBoxMesh(0.28, 0.038, 0.96, px, -6.05, -0.468, matMainFloor, archRoot, true);
   });
 
   // ==========================================================================
@@ -4680,8 +4756,8 @@ async function buildStaticPolyHavenDecor() {
     tuftE.position.copy(bPos(3.64, gy, -0.455));
     neatGrassGroup.add(tuftE);
   }
-  // 3C. Along the Left Terrace-to-Swimming-Pool Walkway grass strips (by = -5.32 and by = -6.78, bx = -6.22 .. -7.60)
-  [-6.22, -6.68, -7.14, -7.60].forEach((px, pIdx) => {
+  // 3C. Along the Left Terrace-to-Swimming-Pool Walkway grass strips (by = -5.32 and by = -6.78, bx = -6.18 .. -6.52 before East 3-step Pool Stairs)
+  [-6.18, -6.52].forEach((px, pIdx) => {
     const tPoolN = createSpikyGrassTuft(0.26, 0.22 + (pIdx % 2) * 0.03, 48, px * 4.1 + 5.32);
     tPoolN.position.copy(bPos(px, -5.32, -0.452));
     neatGrassGroup.add(tPoolN);
@@ -4972,71 +5048,302 @@ async function buildStaticPolyHavenDecor() {
   }
 
   // ==========================================================================
-  // 3. GIANT DENSE NON-FRUITING MEDITERRANEAN SHADE TREE (~6.8M TALL = 2X LARGEST OLIVE TREE)
+  // 3. ACCURATE GIANT BROADLEAF SHADE TREE (~6.8M TALL = 2X LARGEST OLIVE TREE)
+  //    MODELED AFTER https://skfb.ly/osTNF ("tree big tree" by misitewang)
   //    PLACED TO THE LEFT (WEST) OF THE SWIMMING POOL (bx = -13.15, by = -3.10, bz = -0.50)
-  //    ("pohon besar d kiri kolam, pohon besar rindang ini tidak berbuah dan besarnya tingginya 2x lipat olives terbesar")
+  //    - Distinct fluted gray-brown bark, thick muscular trunk leaning slightly left + secondary lower-right side trunk
+  //    - 4 wide layered horizontal umbrella cloud tiers of broad rounded-ovate deciduous leaves (NO olive needles, NO fruit)
+  //    - Root-flare base with cracked soil decal & 3D spiky grass tufts
   // ==========================================================================
+  const makeCanvasTexture = (w, h, drawFn) => {
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+    drawFn(ctx, w, h);
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.needsUpdate = true;
+    return tex;
+  };
+
   const giantShadeTreeGroup = new THREE.Group();
   giantShadeTreeGroup.position.copy(bPos(-13.15, -3.10, -0.50));
 
-  const matShadeLeaf3D = new THREE.MeshStandardMaterial({
-    color: 0x286e22,
-    roughness: 0.46,
-    metalness: 0.02,
-    side: THREE.DoubleSide,
-    envMapIntensity: 0.50,
-    userData: { customEnvIntensity: 0.50 }
-  });
-  const matShadeLeafDark3D = new THREE.MeshStandardMaterial({
-    color: 0x194f16,
-    roughness: 0.52,
-    metalness: 0.02,
-    side: THREE.DoubleSide,
-    envMapIntensity: 0.45,
-    userData: { customEnvIntensity: 0.45 }
-  });
-  const matShadeLeafCard = matOliveLeafCard.clone();
-  matShadeLeafCard.color.setHex(0x388e2c);
-  matShadeLeafCard.userData = { customEnvIntensity: 0.48 };
+  const matBroadleafBark = matOliveBark.clone();
+  matBroadleafBark.color.setHex(0xb8a38c); // Warm gray-brown ancient fluted bark matching https://skfb.ly/osTNF
+  matBroadleafBark.roughness = 0.84;
+  matBroadleafBark.userData = { customEnvIntensity: 0.48 };
 
-  function createLushShadeCanopyPad(padRadius, padHeight, seed = 0) {
+  // Dedicated Broad Rounded-Ovate Deciduous Leaf Sprig Texture (ZERO silvery olive needles!)
+  const texBroadleafSprig = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = '#5c4936';
+    ctx.lineWidth = 6.0;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5, h * 0.96);
+    ctx.quadraticCurveTo(w * 0.48, h * 0.52, w * 0.50, h * 0.10);
+    ctx.stroke();
+
+    const drawBroadLeaf = (cx, cy, ang, len, wid, isSunlit) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(ang);
+      ctx.strokeStyle = '#554432';
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.moveTo(0, 4);
+      ctx.lineTo(0, -len * 0.16);
+      ctx.stroke();
+
+      // Broad rounded-ovate deciduous leaf silhouette (width:length ~ 1:1.45)
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-wid * 0.62, -len * 0.22, -wid * 0.56, -len * 0.76, 0, -len);
+      ctx.bezierCurveTo(wid * 0.56, -len * 0.76, wid * 0.62, -len * 0.22, 0, 0);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(-wid * 0.5, 0, wid * 0.5, -len);
+      if (isSunlit) {
+        grad.addColorStop(0, '#2b611b');
+        grad.addColorStop(0.55, '#3e8426');
+        grad.addColorStop(1, '#58a338');
+      } else {
+        grad.addColorStop(0, '#1c4612');
+        grad.addColorStop(0.6, '#2a631b');
+        grad.addColorStop(1, '#3b7d26');
+      }
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Prominent midrib + lateral pinnate veins
+      ctx.strokeStyle = isSunlit ? 'rgba(155, 215, 110, 0.55)' : 'rgba(95, 155, 65, 0.45)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(0, -len * 0.92);
+      for (let v = 1; v <= 4; v++) {
+        const vy = -len * (0.18 * v);
+        const vw = wid * (0.42 - v * 0.05);
+        ctx.moveTo(0, vy);
+        ctx.lineTo(-vw, vy - len * 0.10);
+        ctx.moveTo(0, vy);
+        ctx.lineTo(vw, vy - len * 0.10);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    const sprigLeaves = [
+      [0.50, 0.86, -1.05, 86, 58, false], [0.50, 0.84,  1.02, 88, 60, true],
+      [0.49, 0.72, -0.88, 94, 64, true],  [0.50, 0.70,  0.86, 92, 62, false],
+      [0.49, 0.56, -0.74, 98, 68, false], [0.50, 0.54,  0.76, 98, 68, true],
+      [0.50, 0.40, -0.58, 92, 64, true],  [0.50, 0.38,  0.60, 90, 62, true],
+      [0.50, 0.24, -0.38, 82, 56, false], [0.50, 0.24,  0.40, 84, 58, true],
+      [0.50, 0.14,  0.00, 86, 60, true]
+    ];
+    for (const [rx, ry, a, l, wd, sun] of sprigLeaves) {
+      drawBroadLeaf(w * rx, h * ry, a, l, wd, sun);
+    }
+  });
+  texBroadleafSprig.anisotropy = 4;
+
+  const matBroadleaf3D = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.62,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.36,
+    userData: { customEnvIntensity: 0.36 }
+  });
+  const matBroadleafSprigCard = new THREE.MeshStandardMaterial({
+    map: texBroadleafSprig,
+    alphaTest: 0.35,
+    roughness: 0.58,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.38,
+    userData: { customEnvIntensity: 0.38 }
+  });
+
+  // Build Volumetric 3D Broad Rounded-Ovate Leaf Cluster Geometry (width:length ~ 1:1.45, sRGB-to-Linear vertex colors, ZERO olive needles!)
+  let _cachedBroadleafClusterGeos = null;
+  function getBroadleafShadeClusterGeometries() {
+    if (_cachedBroadleafClusterGeos) return _cachedBroadleafClusterGeos;
+    const bPosArr = [], bNormArr = [], bColArr = [], bIdxArr = [];
+    let bVOff = 0;
+    // Convert sRGB botanical palette to linear space for rich, deep emerald foliage in Three.js r128!
+    const cDeepShade = new THREE.Color('#1c4212').convertSRGBToLinear();
+    const cMidEmerald = new THREE.Color('#2d611c').convertSRGBToLinear();
+    const cSunLeaf = new THREE.Color('#428228').convertSRGBToLinear();
+    const cBrightTip = new THREE.Color('#589c36').convertSRGBToLinear();
+    const tmpC = new THREE.Color();
+
+    const shootCount = 34;
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let s = 0; s < shootCount; s++) {
+      const t = s / shootCount;
+      // Wide umbrella-cloud ellipsoid distribution matching https://skfb.ly/osTNF
+      const yDir = 0.88 - t * 1.44;
+      const rHoriz = Math.sqrt(Math.max(0.08, 1.0 - yDir * yDir));
+      const theta = s * goldenAngle;
+      const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.62, Math.sin(theta) * rHoriz).normalize();
+      const shootLen = 0.38 + ((s * 7) % 5) * 0.045;
+      const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+      const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+      const pairs = 6;
+      for (let p = 0; p < pairs; p++) {
+        const frac = 0.18 + (p / (pairs - 1)) * 0.80;
+        const nodePos = dir.clone().multiplyScalar(shootLen * frac);
+        const rot90 = (p % 2 === 1);
+        const axisSide = rot90 ? localUp : right;
+        const axisNormal = rot90 ? right : localUp;
+
+        for (const sideSign of [-1, 1]) {
+          // Broad rounded-ovate deciduous leaf blade (width:length ~ 1:1.45, 3x wider than olive needles!)
+          const leafLen = (0.145 - frac * 0.020) * (0.94 + ((s + p) % 3) * 0.07);
+          const leafHalfW = leafLen * 0.34;
+
+          const lDir = dir.clone().multiplyScalar(0.66)
+            .addScaledVector(axisSide, sideSign * 0.74)
+            .addScaledVector(axisNormal, ((p + s) % 3 - 1) * 0.16)
+            .normalize();
+          const lWidthVec = new THREE.Vector3().crossVectors(lDir, axisNormal).normalize().multiplyScalar(leafHalfW);
+          const lArchVec = axisNormal.clone().multiplyScalar(leafLen * 0.10);
+
+          const p0 = nodePos.clone().addScaledVector(axisSide, sideSign * 0.010);
+          const pMid1 = p0.clone().addScaledVector(lDir, leafLen * 0.35).addScaledVector(lArchVec, 0.75);
+          const pMid2 = p0.clone().addScaledVector(lDir, leafLen * 0.74).addScaledVector(lArchVec, 1.0);
+          const pTip = p0.clone().addScaledVector(lDir, leafLen).addScaledVector(lArchVec, 0.45);
+
+          const v0 = p0;
+          const v1 = pMid1.clone().addScaledVector(lWidthVec, -0.96);
+          const v2 = pMid1.clone().addScaledVector(lWidthVec,  0.96);
+          const v3 = pMid2.clone().addScaledVector(lWidthVec, -0.82);
+          const v4 = pMid2.clone().addScaledVector(lWidthVec,  0.82);
+          const v5 = pTip;
+          const verts = [v0, v1, v2, v3, v4, v5];
+
+          const outNorm = pMid1.clone().normalize().lerp(axisNormal, 0.45).normalize();
+          const baseCol = ((s + p) % 3 === 0) ? cSunLeaf : (((s + p) % 2 === 0) ? cMidEmerald : cDeepShade);
+
+          for (let vi = 0; vi < 6; vi++) {
+            const v = verts[vi];
+            bPosArr.push(v.x, v.y, v.z);
+            bNormArr.push(outNorm.x, outNorm.y, outNorm.z);
+            tmpC.copy(baseCol);
+            if (vi === 5) tmpC.lerp(cBrightTip, 0.35);
+            else if (vi === 0) tmpC.multiplyScalar(0.76);
+            bColArr.push(tmpC.r, tmpC.g, tmpC.b);
+          }
+
+          bIdxArr.push(
+            bVOff + 0, bVOff + 1, bVOff + 2,
+            bVOff + 1, bVOff + 3, bVOff + 2,
+            bVOff + 2, bVOff + 3, bVOff + 4,
+            bVOff + 3, bVOff + 5, bVOff + 4
+          );
+          bVOff += 6;
+        }
+      }
+    }
+
+    const bladeGeo = new THREE.BufferGeometry();
+    bladeGeo.setAttribute('position', new THREE.Float32BufferAttribute(bPosArr, 3));
+    bladeGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bNormArr, 3));
+    bladeGeo.setAttribute('color', new THREE.Float32BufferAttribute(bColArr, 3));
+    bladeGeo.setIndex(bIdxArr);
+    bladeGeo.computeBoundingSphere();
+
+    // 18 Arched 3-Segment Broadleaf Sprig Ribbons for dense interior canopy fullness
+    const rPosArr = [], rNormArr = [], rUvArr = [], rIdxArr = [];
+    let rVOff = 0;
+    const ribbonCount = 18;
+    for (let r = 0; r < ribbonCount; r++) {
+      const t = r / ribbonCount;
+      const yDir = 0.84 - t * 1.28;
+      const rHoriz = Math.sqrt(Math.max(0.08, 1.0 - yDir * yDir));
+      const theta = r * goldenAngle + 0.75;
+      const dir = new THREE.Vector3(Math.cos(theta) * rHoriz, yDir * 0.62, Math.sin(theta) * rHoriz).normalize();
+      const upRef = Math.abs(dir.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(dir, upRef).normalize();
+      const localUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+      const len = 0.44 + (r % 3) * 0.06;
+      const halfW = len * 0.46;
+      const segs = 3;
+      for (let j = 0; j <= segs; j++) {
+        const vFrac = j / segs;
+        const dist = 0.04 + vFrac * len;
+        const archLift = Math.sin(vFrac * Math.PI) * 0.06;
+        const center = dir.clone().multiplyScalar(dist).addScaledVector(localUp, archLift);
+        const twist = (vFrac - 0.5) * 0.38 + ((r % 2 === 0) ? 0.22 : -0.22);
+        const wVec = right.clone().multiplyScalar(Math.cos(twist) * halfW)
+          .addScaledVector(localUp, Math.sin(twist) * halfW);
+        const nVec = center.clone().normalize();
+        const pL = center.clone().sub(wVec);
+        const pR = center.clone().add(wVec);
+        rPosArr.push(pL.x, pL.y, pL.z, pR.x, pR.y, pR.z);
+        rNormArr.push(nVec.x, nVec.y, nVec.z, nVec.x, nVec.y, nVec.z);
+        rUvArr.push(0, vFrac, 1, vFrac);
+      }
+      for (let j = 0; j < segs; j++) {
+        const a = rVOff + j * 2, b = a + 1, c = a + 2, d = a + 3;
+        rIdxArr.push(a, b, c, b, d, c);
+      }
+      rVOff += (segs + 1) * 2;
+    }
+    const ribbonGeo = new THREE.BufferGeometry();
+    ribbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPosArr, 3));
+    ribbonGeo.setAttribute('normal', new THREE.Float32BufferAttribute(rNormArr, 3));
+    ribbonGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rUvArr, 2));
+    ribbonGeo.setIndex(rIdxArr);
+    ribbonGeo.computeBoundingSphere();
+
+    _cachedBroadleafClusterGeos = { bladeGeo, ribbonGeo };
+    return _cachedBroadleafClusterGeos;
+  }
+
+  // Horizontal Layered Cloud/Umbrella Canopy Pad matching https://skfb.ly/osTNF
+  function createBroadleafCloudPad(padRadius, padHeight, seed = 0) {
     const padGrp = new THREE.Group();
-    const { bladeGeo, ribbonGeo } = getOliveSubClusterGeometries();
-    const subTwigCount = 8;
+    const { bladeGeo, ribbonGeo } = getBroadleafShadeClusterGeometries();
+    const subTwigCount = 9;
     const subClusters = [
-      { pos: new THREE.Vector3(0, -padHeight * 0.06, 0), scale: padRadius * 0.96, rotY: seed * 0.7 },
-      { pos: new THREE.Vector3(0, padHeight * 0.24, 0), scale: padRadius * 1.04, rotY: seed * 1.9 + 1.1 },
-      { pos: new THREE.Vector3(0, padHeight * 0.46, 0), scale: padRadius * 0.84, rotY: seed * 2.7 + 0.5 }
+      { pos: new THREE.Vector3(0, 0.0, 0), scale: padRadius * 1.05, rotY: seed * 0.7 },
+      { pos: new THREE.Vector3(0, padHeight * 0.26, 0), scale: padRadius * 0.92, rotY: seed * 1.9 + 1.1 }
     ];
     for (let i = 0; i < subTwigCount; i++) {
       const ang = (i / subTwigCount) * Math.PI * 2 + seed * 0.67;
-      const reach = padRadius * (0.50 + (i % 2) * 0.14);
-      const lift = ((i % 3) - 0.6) * padHeight * 0.25;
-      const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.52, lift * 0.45, Math.sin(ang) * reach * 0.52);
+      const reach = padRadius * (0.56 + (i % 3) * 0.14);
+      const lift = ((i % 3) - 1.0) * padHeight * 0.18;
+      const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.54, lift * 0.4, Math.sin(ang) * reach * 0.54);
       const endPt = new THREE.Vector3(Math.cos(ang) * reach, lift, Math.sin(ang) * reach);
       padGrp.add(createTaperedOliveBranchMesh(
-        [new THREE.Vector3(0, -padHeight * 0.12, 0), midPt, endPt],
-        Math.max(0.016, padRadius * 0.032),
-        Math.max(0.006, padRadius * 0.012),
-        8, 6, matOliveBark
+        [new THREE.Vector3(0, -padHeight * 0.08, 0), midPt, endPt],
+        Math.max(0.018, padRadius * 0.032),
+        Math.max(0.007, padRadius * 0.012),
+        8, 6, matBroadleafBark
       ));
       subClusters.push({
         pos: endPt,
-        scale: padRadius * (0.88 + (i % 3) * 0.09),
+        scale: padRadius * (0.90 + (i % 3) * 0.10),
         rotY: ang + i * 1.31
       });
     }
-    const flatRatio = Math.max(0.66, Math.min(0.95, padHeight / Math.max(0.25, padRadius)));
+    // Wide horizontal umbrella cloud silhouette (flatter aspect ratio like https://skfb.ly/osTNF)
+    const flatRatio = Math.max(0.48, Math.min(0.72, padHeight / Math.max(0.30, padRadius)));
     subClusters.forEach((sc, idx) => {
       const subG = new THREE.Group();
       subG.position.copy(sc.pos);
-      subG.rotation.set(Math.sin(seed + idx * 1.9) * 0.20, sc.rotY, Math.cos(seed + idx * 1.3) * 0.18);
-      subG.scale.set(sc.scale, sc.scale * flatRatio, sc.scale);
-      const bMesh = new THREE.Mesh(bladeGeo, idx % 2 === 0 ? matShadeLeaf3D : matShadeLeafDark3D);
+      subG.rotation.set(Math.sin(seed + idx * 1.9) * 0.14, sc.rotY, Math.cos(seed + idx * 1.3) * 0.14);
+      subG.scale.set(sc.scale * 1.12, sc.scale * flatRatio, sc.scale * 1.12);
+      const bMesh = new THREE.Mesh(bladeGeo, matBroadleaf3D);
       bMesh.castShadow = true;
       bMesh.receiveShadow = true;
       subG.add(bMesh);
-      const rMesh = new THREE.Mesh(ribbonGeo, matShadeLeafCard);
+      const rMesh = new THREE.Mesh(ribbonGeo, matBroadleafSprigCard);
       rMesh.castShadow = true;
       rMesh.receiveShadow = true;
       subG.add(rMesh);
@@ -5045,7 +5352,7 @@ async function buildStaticPolyHavenDecor() {
     return padGrp;
   }
 
-  // Massive cracked & root-heaved earth decal under the 6.8m Giant Shade Tree
+  // Root-flare base with cracked earth decal & spiky 3D grass tufts (preserved per user instructions)
   const giantCrackDecal = new THREE.Mesh(
     new THREE.PlaneGeometry(4.80, 4.80),
     new THREE.MeshBasicMaterial({
@@ -5074,11 +5381,11 @@ async function buildStaticPolyHavenDecor() {
     const ra = (r / 8) * Math.PI * 2 + 0.15;
     const ca = Math.cos(ra), sa = Math.sin(ra);
     giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
-      new THREE.Vector3(ca * 0.26, 0.88, sa * 0.26),
-      new THREE.Vector3(ca * 0.86, 0.42, sa * 0.86),
-      new THREE.Vector3(ca * 1.52, 0.18, sa * 1.52),
-      new THREE.Vector3(ca * 2.15, -0.03, sa * 2.15)
-    ], 0.24, 0.055, 14, 8, matOliveBark));
+      new THREE.Vector3(ca * 0.28, 0.92, sa * 0.28),
+      new THREE.Vector3(ca * 0.88, 0.44, sa * 0.88),
+      new THREE.Vector3(ca * 1.54, 0.18, sa * 1.54),
+      new THREE.Vector3(ca * 2.18, -0.03, sa * 2.18)
+    ], 0.25, 0.055, 14, 8, matBroadleafBark));
     const clod = new THREE.Mesh(
       new THREE.BoxGeometry(0.48, 0.12, 0.38),
       new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x5c4733, roughness: 0.9 })
@@ -5099,33 +5406,65 @@ async function buildStaticPolyHavenDecor() {
     giantShadeTreeGroup.add(gTuft);
   }
 
-  // Massive Gnarled Trunk (2x the diameter and height of the 3.2m Ancient Olive Tree!)
+  // Primary Thick Fluted Trunk leaning slightly left (-X) before rising into the main fork (matching https://skfb.ly/osTNF)
   giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
     new THREE.Vector3(0.0, 0.02, 0.0),
-    new THREE.Vector3(0.09, 0.92, -0.06),
-    new THREE.Vector3(-0.08, 1.85, 0.08),
-    new THREE.Vector3(0.0, 2.72, 0.0)
-  ], 0.58, 0.40, 22, 14, matOliveBark));
+    new THREE.Vector3(-0.14, 0.95, 0.05),
+    new THREE.Vector3(-0.24, 1.92, -0.04),
+    new THREE.Vector3(-0.18, 2.85, 0.02)
+  ], 0.62, 0.42, 22, 14, matBroadleafBark));
 
-  // 12 Primary & Secondary Spreading Boughs reaching 6.4m - 6.8m height (2x the 3.2m Big Olive Tree!) with lush non-fruiting shade canopy
-  const giantLimbs = [
-    { pts: [[0.0, 2.48, 0.0], [-0.85, 3.55, 0.52], [-1.76, 4.65, 0.96], [-2.45, 5.56, 1.24]], r0: 0.30, r1: 0.10, padR: 1.72, padH: 1.18 },
-    { pts: [[0.0, 2.52, 0.0], [0.88, 3.64, 0.56], [1.74, 4.76, 1.04], [2.36, 5.72, 1.32]], r0: 0.29, r1: 0.10, padR: 1.68, padH: 1.16 },
-    { pts: [[0.0, 2.56, 0.0], [0.40, 3.76, -0.80], [1.00, 4.90, -1.56], [1.44, 5.88, -2.04]], r0: 0.29, r1: 0.10, padR: 1.72, padH: 1.18 },
-    { pts: [[0.0, 2.50, 0.0], [-0.68, 3.68, -0.76], [-1.48, 4.80, -1.48], [-2.04, 5.68, -1.90]], r0: 0.28, r1: 0.095, padR: 1.66, padH: 1.14 },
-    { pts: [[0.0, 2.60, 0.0], [-0.12, 3.96, 0.12], [0.08, 5.24, -0.08], [0.0, 6.38, 0.04]], r0: 0.32, r1: 0.11, padR: 1.98, padH: 1.34 },
-    { pts: [[-0.85, 3.55, 0.52], [-1.24, 4.70, -0.10], [-1.56, 5.76, -0.36]], r0: 0.20, r1: 0.08, padR: 1.54, padH: 1.08 },
-    { pts: [[0.88, 3.64, 0.56], [1.24, 4.80, -0.16], [1.52, 5.84, -0.44]], r0: 0.20, r1: 0.08, padR: 1.54, padH: 1.08 },
-    { pts: [[0.40, 3.76, -0.80], [-0.16, 4.96, -1.16], [-0.44, 6.00, -1.04]], r0: 0.19, r1: 0.08, padR: 1.58, padH: 1.10 },
-    { pts: [[-0.12, 3.96, 0.12], [0.62, 5.10, 0.85], [1.05, 6.12, 1.25]], r0: 0.18, r1: 0.075, padR: 1.52, padH: 1.06 },
-    { pts: [[-0.12, 3.96, 0.12], [-0.72, 5.12, 0.82], [-1.15, 6.08, 1.20]], r0: 0.18, r1: 0.075, padR: 1.52, padH: 1.06 }
+  // Fluted Vertical Bark Buttress Ribs along the primary trunk for authentic ancient tree silhouette
+  for (let rib = 0; rib < 4; rib++) {
+    const rAng = (rib / 4) * Math.PI * 2 + 0.4;
+    const rx = Math.cos(rAng), rz = Math.sin(rAng);
+    giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
+      new THREE.Vector3(rx * 0.42, 0.05, rz * 0.42),
+      new THREE.Vector3(-0.14 + rx * 0.34, 1.05, 0.05 + rz * 0.34),
+      new THREE.Vector3(-0.22 + rx * 0.26, 2.25, -0.02 + rz * 0.26)
+    ], 0.18, 0.08, 12, 7, matBroadleafBark));
+  }
+
+  // Signature Secondary Lower-Right Side Trunk splitting off at y = 0.65m and curving out to (+1.55m, 2.68m) (exact feature from https://skfb.ly/osTNF!)
+  giantShadeTreeGroup.add(createTaperedOliveBranchMesh([
+    new THREE.Vector3(0.12, 0.62, 0.04),
+    new THREE.Vector3(0.68, 1.32, 0.18),
+    new THREE.Vector3(1.18, 2.02, 0.12),
+    new THREE.Vector3(1.56, 2.68, 0.04)
+  ], 0.36, 0.18, 18, 11, matBroadleafBark));
+
+  // 16 Twisting Horizontal S-Curved Boughs forming the 4 Layered Cloud Tiers (Wide Left Wing, High Central Dome at 6.8m, Mid-Right Tier, and Lower-Right Secondary Trunk Tier)
+  const giantCloudLimbs = [
+    // Tier 1: Lower-Right Secondary Trunk Cloud Tier (y = 2.68m .. 3.75m, x = +1.56m .. +3.15m)
+    { pts: [[1.56, 2.68, 0.04], [2.25, 2.98, 0.42], [2.92, 3.22, 0.68]], r0: 0.16, r1: 0.06, padR: 1.48, padH: 0.78 },
+    { pts: [[1.56, 2.68, 0.04], [2.18, 3.12, -0.45], [2.76, 3.42, -0.82]], r0: 0.15, r1: 0.055, padR: 1.42, padH: 0.75 },
+    { pts: [[1.18, 2.02, 0.12], [1.68, 2.48, 0.88], [2.15, 2.82, 1.36]], r0: 0.14, r1: 0.05, padR: 1.32, padH: 0.70 },
+
+    // Tier 2: Wide Left Wing Horizontal S-Curved Boughs (y = 2.85m .. 4.95m, x = -0.18m .. -3.45m)
+    { pts: [[-0.18, 2.75, 0.02], [-1.15, 3.35, 0.48], [-2.28, 3.72, 0.82], [-3.25, 4.05, 1.02]], r0: 0.28, r1: 0.085, padR: 1.85, padH: 0.92 },
+    { pts: [[-0.18, 2.78, 0.02], [-1.22, 3.48, -0.52], [-2.35, 3.92, -0.96], [-3.18, 4.28, -1.24]], r0: 0.26, r1: 0.08, padR: 1.78, padH: 0.88 },
+    { pts: [[-1.15, 3.35, 0.48], [-1.85, 4.18, -0.08], [-2.58, 4.76, -0.28]], r0: 0.18, r1: 0.065, padR: 1.65, padH: 0.84 },
+    { pts: [[-0.18, 2.72, 0.02], [-0.88, 3.28, 1.18], [-1.68, 3.75, 2.05], [-2.35, 4.08, 2.58]], r0: 0.22, r1: 0.07, padR: 1.68, padH: 0.85 },
+
+    // Tier 3: Mid-Right & Front/Back Spreading Boughs (y = 3.80m .. 5.35m)
+    { pts: [[-0.18, 2.82, 0.02], [0.68, 3.68, 0.58], [1.58, 4.35, 1.02], [2.38, 4.78, 1.34]], r0: 0.26, r1: 0.08, padR: 1.74, padH: 0.88 },
+    { pts: [[-0.18, 2.82, 0.02], [0.58, 3.74, -0.68], [1.42, 4.46, -1.28], [2.18, 4.92, -1.68]], r0: 0.25, r1: 0.08, padR: 1.72, padH: 0.86 },
+    { pts: [[-0.18, 2.80, 0.02], [-0.42, 3.82, -1.12], [-0.82, 4.58, -2.02], [-1.18, 5.02, -2.62]], r0: 0.23, r1: 0.075, padR: 1.68, padH: 0.85 },
+    { pts: [[0.68, 3.68, 0.58], [0.22, 4.48, 1.48], [-0.08, 5.05, 2.24]], r0: 0.18, r1: 0.065, padR: 1.62, padH: 0.82 },
+
+    // Tier 4: High Central & Upper Crown Umbrella Dome reaching 6.8m height (2x Largest Olive Tree!)
+    { pts: [[-0.18, 2.85, 0.02], [-0.32, 4.15, 0.14], [-0.12, 5.38, 0.06], [0.0, 6.32, 0.0]], r0: 0.32, r1: 0.10, padR: 2.12, padH: 1.05 },
+    { pts: [[-0.32, 4.15, 0.14], [-1.08, 5.08, 0.64], [-1.72, 5.78, 0.98]], r0: 0.20, r1: 0.07, padR: 1.76, padH: 0.88 },
+    { pts: [[-0.32, 4.15, 0.14], [0.64, 5.12, 0.52], [1.28, 5.84, 0.84]], r0: 0.20, r1: 0.07, padR: 1.74, padH: 0.86 },
+    { pts: [[-0.32, 4.15, 0.14], [-0.82, 5.16, -0.68], [-1.36, 5.88, -1.12]], r0: 0.19, r1: 0.065, padR: 1.70, padH: 0.85 },
+    { pts: [[-0.32, 4.15, 0.14], [0.54, 5.18, -0.64], [1.06, 5.92, -1.04]], r0: 0.19, r1: 0.065, padR: 1.70, padH: 0.85 }
   ];
-  giantLimbs.forEach((limb, idx) => {
+  giantCloudLimbs.forEach((limb, idx) => {
     const vPts = limb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
-    giantShadeTreeGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 9, matOliveBark));
+    giantShadeTreeGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 9, matBroadleafBark));
     const tip = vPts[vPts.length - 1];
-    const pad = createLushShadeCanopyPad(limb.padR, limb.padH, idx * 2.1 + 0.8);
-    pad.position.set(tip.x, tip.y + 0.08, tip.z);
+    const pad = createBroadleafCloudPad(limb.padR, limb.padH, idx * 2.1 + 0.8);
+    pad.position.set(tip.x, tip.y + 0.06, tip.z);
     giantShadeTreeGroup.add(pad);
   });
 
@@ -5134,39 +5473,299 @@ async function buildStaticPolyHavenDecor() {
   g.add(giantShadeTreeGroup);
 
   // ==========================================================================
-  // 4. DETAILED MEDITERRANEAN FRUITING ORANGE TREE (~4.45M TALL > BIG OLIVE TREE)
+  // 4. ACCURATE FRUITING ORANGE TREE (~4.45M TALL > BIG OLIVE TREE)
+  //    MODELED AFTER https://skfb.ly/oQ8nW ("Orange Tree #10" by meshshape)
   //    PLACED TO THE LEFT (WEST) OF THE NEW RIGHT EXTRA CABIN TERRACE (bx = 4.25, by = -14.95, bz = -0.50)
-  //    ("lalu pohon orange d kiri terrace ekstra kanan, tingginya lebih dari pohon olives besar. buat detail")
+  //    - Slender, gently S-curved warm gray-brown trunk branching asymmetrically at multiple heights (1.05m..2.65m)
+  //    - Broad pointed-ovate waxy green Citrus sinensis leaves (NO silvery olive needles!)
+  //    - 160+ vibrant ripe Valencia oranges hanging densely throughout the crown + root-flare with cracked soil & grass
   // ==========================================================================
   const orangeTreeGroup = new THREE.Group();
   orangeTreeGroup.position.copy(bPos(4.25, -14.95, -0.50));
 
   const matCitrusBark = matOliveBark.clone();
-  matCitrusBark.color.setHex(0x6b533e);
-  matCitrusBark.roughness = 0.84;
-  matCitrusBark.userData = { customEnvIntensity: 0.42 };
-  const matCitrusLeaf3D = new THREE.MeshStandardMaterial({
-    color: 0x18681d,
-    roughness: 0.34, // Glossy waxy Citrus sinensis leaf sheen
-    metalness: 0.04,
-    side: THREE.DoubleSide,
-    envMapIntensity: 0.58,
-    userData: { customEnvIntensity: 0.58 }
+  matCitrusBark.color.setHex(0xa8927a); // Warm gray-brown smooth/striated citrus bark matching https://skfb.ly/oQ8nW
+  matCitrusBark.roughness = 0.80;
+  matCitrusBark.userData = { customEnvIntensity: 0.44 };
+
+  // Dedicated Citrus sinensis Broad Pointed-Ovate Leaf Sprig Texture (with winged petioles & glossy green sheen)
+  const texCitrusLeaves = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = '#4a5c2f';
+    ctx.lineWidth = 6.0;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5, h * 0.96);
+    ctx.quadraticCurveTo(w * 0.52, h * 0.50, w * 0.50, h * 0.08);
+    ctx.stroke();
+
+    const drawCitrusLeaf = (cx, cy, ang, len, wid, isBright) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(ang);
+
+      // Characteristic Citrus sinensis winged petiole at leaf base
+      ctx.fillStyle = '#367523';
+      ctx.beginPath();
+      ctx.ellipse(0, 4, wid * 0.15, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Broad pointed-ovate Citrus leaf blade (width:length ~ 1:1.95)
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-wid * 0.60, -len * 0.25, -wid * 0.54, -len * 0.72, 0, -len);
+      ctx.bezierCurveTo(wid * 0.54, -len * 0.72, wid * 0.60, -len * 0.25, 0, 0);
+      ctx.closePath();
+
+      const grad = ctx.createLinearGradient(-wid * 0.4, 0, wid * 0.4, -len);
+      if (isBright) {
+        grad.addColorStop(0, '#296e1c');
+        grad.addColorStop(0.5, '#3e8c28');
+        grad.addColorStop(1, '#58ab38');
+      } else {
+        grad.addColorStop(0, '#1e5414');
+        grad.addColorStop(0.55, '#2e731e');
+        grad.addColorStop(1, '#438f2c');
+      }
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Glossy central midrib & citrus venation
+      ctx.strokeStyle = isBright ? 'rgba(175, 230, 120, 0.60)' : 'rgba(115, 175, 75, 0.48)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(0, -len * 0.94);
+      for (let v = 1; v <= 4; v++) {
+        const vy = -len * (0.19 * v);
+        const vw = wid * (0.38 - v * 0.045);
+        ctx.moveTo(0, vy);
+        ctx.lineTo(-vw, vy - len * 0.09);
+        ctx.moveTo(0, vy);
+        ctx.lineTo(vw, vy - len * 0.09);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    const citrusSprigs = [
+      [0.50, 0.90, -0.95, 108, 56, false], [0.50, 0.88,  0.95, 110, 56, true],
+      [0.50, 0.74, -0.82, 116, 60, true],  [0.51, 0.72,  0.80, 114, 58, false],
+      [0.50, 0.58, -0.68, 120, 62, true],  [0.51, 0.56,  0.70, 118, 60, true],
+      [0.50, 0.42, -0.52, 114, 58, false], [0.50, 0.40,  0.54, 114, 58, true],
+      [0.50, 0.26, -0.35, 104, 54, true],  [0.50, 0.26,  0.36, 104, 54, false],
+      [0.50, 0.15,  0.00, 108, 56, true]
+    ];
+    for (const [rx, ry, a, l, wd, br] of citrusSprigs) {
+      drawCitrusLeaf(w * rx, h * ry, a, l, wd, br);
+    }
   });
-  const matCitrusLeafCard = matOliveLeafCard.clone();
-  matCitrusLeafCard.color.setHex(0x28842a);
-  matCitrusLeafCard.userData = { customEnvIntensity: 0.55 };
+  texCitrusLeaves.encoding = THREE.sRGBEncoding;
+  texCitrusLeaves.anisotropy = 4;
+
+  const matCitrusLeaf3D = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.36, // Glossy waxy Citrus sinensis leaf sheen
+    metalness: 0.03,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.44,
+    userData: { customEnvIntensity: 0.44 }
+  });
+  const matCitrusLeafCard = new THREE.MeshStandardMaterial({
+    color: 0x529e36,
+    map: texCitrusLeaves,
+    alphaTest: 0.32,
+    roughness: 0.40,
+    metalness: 0.02,
+    side: THREE.DoubleSide,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+
+  // Build Dense 3D Broad Pointed-Ovate Citrus Leaf Cluster Geometry (34 shoots x 12 broad citrus leaves + 18 arched sprig ribbons, linear sRGB vertex colors)
+  let _cachedCitrusClusterGeos = null;
+  function getCitrusLeafClusterGeometries() {
+    if (_cachedCitrusClusterGeos) return _cachedCitrusClusterGeos;
+    const bPosArr = [], bNormArr = [], bColArr = [], bIdxArr = [];
+    let bVOff = 0;
+    const cDeepCitrus = new THREE.Color(0x1b4d12).convertSRGBToLinear();
+    const cMidCitrus = new THREE.Color(0x2d701d).convertSRGBToLinear();
+    const cBrightCitrus = new THREE.Color(0x45942b).convertSRGBToLinear();
+    const cSunCitrus = new THREE.Color(0x60b03c).convertSRGBToLinear();
+    const tmpC = new THREE.Color();
+
+    const shootCount = 34;
+    const pairsPerShoot = 6;
+    for (let s = 0; s < shootCount; s++) {
+      const su = (s + 0.5) / shootCount;
+      const phi = s * 2.3999632;
+      const rHoriz = Math.pow(su, 0.52) * 0.25;
+      const yDome = (1.0 - su * 0.65) * 0.14 - 0.04 + ((s % 5) - 2.0) * 0.016;
+      const sx0 = Math.cos(phi) * rHoriz * 0.35;
+      const sy0 = yDome * 0.5;
+      const sz0 = Math.sin(phi) * rHoriz * 0.35;
+
+      const sYaw = phi + ((s % 3) - 1) * 0.24;
+      const sPitch = (1.0 - su) * 0.55 - 0.10 + ((s % 4) - 1.5) * 0.10;
+      const sLen = 0.21 + (s % 3) * 0.035;
+
+      const sdx = Math.cos(sYaw) * Math.cos(sPitch);
+      const sdy = Math.sin(sPitch);
+      const sdz = Math.sin(sYaw) * Math.cos(sPitch);
+
+      const rx = -Math.sin(sYaw), ry = 0, rz = Math.cos(sYaw);
+      const upx = ry * sdz - rz * sdy, upy = rz * sdx - rx * sdz, upz = rx * sdy - ry * sdx;
+
+      for (let p = 0; p < pairsPerShoot; p++) {
+        const t = (p + 0.4) / pairsPerShoot;
+        const archDrop = t * t * 0.045;
+        const bx = sx0 + sdx * (sLen * t);
+        const by = sy0 + sdy * (sLen * t) - archDrop;
+        const bz = sz0 + sdz * (sLen * t);
+
+        for (let side = -1; side <= 1; side += 2) {
+          // Broad pointed-ovate Citrus sinensis leaf (length ~9.6cm, full width ~4.8cm -> ratio 1:2.0)
+          const leafL = (0.092 + (1.0 - Math.abs(t - 0.5) * 0.75) * 0.024) * (0.92 + ((s + p) % 3) * 0.08);
+          const leafW = leafL * 0.25; // half-width -> full width = 0.50 * leafL
+
+          const spread = side * (0.58 + (p % 2) * 0.16);
+          const lift = 0.20 - t * 0.26 + ((p % 3) - 1) * 0.10;
+          let ldx = sdx * Math.cos(spread) + rx * Math.sin(spread);
+          let ldy = sdy + lift;
+          let ldz = sdz * Math.cos(spread) + rz * Math.sin(spread);
+          const lLen = Math.hypot(ldx, ldy, ldz) || 1;
+          ldx /= lLen; ldy /= lLen; ldz /= lLen;
+
+          let lwx = rx * Math.cos(spread) - sdx * Math.sin(spread);
+          let lwy = ((s + p) % 2 === 0 ? 0.18 : -0.16) * side;
+          let lwz = rz * Math.cos(spread) - sdz * Math.sin(spread);
+          const wLen = Math.hypot(lwx, lwy, lwz) || 1;
+          lwx /= wLen; lwy /= wLen; lwz /= wLen;
+
+          const lnx = ldy * lwz - ldz * lwy;
+          const lny = Math.abs(ldz * lwx - ldx * lwz) + 0.35;
+          const lnz = ldx * lwy - ldy * lwx;
+          const nLen = Math.hypot(lnx, lny, lnz) || 1;
+          const nx = lnx / nLen, ny = lny / nLen, nz = lnz / nLen;
+
+          const p0x = bx, p0y = by, p0z = bz;
+          const p1x = bx + ldx * (leafL * 0.36) - lwx * leafW + nx * 0.005;
+          const p1y = by + ldy * (leafL * 0.36) - lwy * leafW + ny * 0.005;
+          const p1z = bz + ldz * (leafL * 0.36) - lwz * leafW + nz * 0.005;
+          const p2x = bx + ldx * (leafL * 0.36) + lwx * leafW + nx * 0.005;
+          const p2y = by + ldy * (leafL * 0.36) + lwy * leafW + ny * 0.005;
+          const p2z = bz + ldz * (leafL * 0.36) + lwz * leafW + nz * 0.005;
+          const p3x = bx + ldx * (leafL * 0.72) - lwx * (leafW * 0.68) - nx * 0.004;
+          const p3y = by + ldy * (leafL * 0.72) - lwy * (leafW * 0.68) - ny * 0.004;
+          const p3z = bz + ldz * (leafL * 0.72) - lwz * (leafW * 0.68) - nz * 0.004;
+          const p4x = bx + ldx * (leafL * 0.72) + lwx * (leafW * 0.68) - nx * 0.004;
+          const p4y = by + ldy * (leafL * 0.72) + lwy * (leafW * 0.68) - ny * 0.004;
+          const p4z = bz + ldz * (leafL * 0.72) + lwz * (leafW * 0.68) - nz * 0.004;
+          const p5x = bx + ldx * leafL - nx * 0.010;
+          const p5y = by + ldy * leafL - ny * 0.010;
+          const p5z = bz + ldz * leafL - nz * 0.010;
+
+          bPosArr.push(
+            p0x, p0y, p0z, p1x, p1y, p1z, p2x, p2y, p2z,
+            p3x, p3y, p3z, p4x, p4y, p4z, p5x, p5y, p5z
+          );
+
+          const heightLight = Math.min(1.0, Math.max(0.0, (by + 0.12) * 3.0 + t * 0.28));
+          for (let v = 0; v < 6; v++) {
+            bNormArr.push(nx, ny, nz);
+            const tipBoost = (v >= 3) ? 0.20 : 0.0;
+            const mixVal = Math.min(1.0, heightLight + tipBoost);
+            if ((s + p) % 3 === 0) {
+              tmpC.copy(cMidCitrus).lerp(cSunCitrus, mixVal);
+            } else if ((s + p) % 3 === 1) {
+              tmpC.copy(cDeepCitrus).lerp(cBrightCitrus, mixVal);
+            } else {
+              tmpC.copy(cDeepCitrus).lerp(cMidCitrus, mixVal);
+            }
+            bColArr.push(tmpC.r, tmpC.g, tmpC.b);
+          }
+
+          bIdxArr.push(
+            bVOff, bVOff + 1, bVOff + 2,
+            bVOff + 1, bVOff + 3, bVOff + 2,
+            bVOff + 2, bVOff + 3, bVOff + 4,
+            bVOff + 3, bVOff + 5, bVOff + 4
+          );
+          bVOff += 6;
+        }
+      }
+    }
+
+    const bladeGeo = new THREE.BufferGeometry();
+    bladeGeo.setAttribute('position', new THREE.Float32BufferAttribute(bPosArr, 3));
+    bladeGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bNormArr, 3));
+    bladeGeo.setAttribute('color', new THREE.Float32BufferAttribute(bColArr, 3));
+    bladeGeo.setIndex(bIdxArr);
+    bladeGeo.computeBoundingSphere();
+
+    // 18 Arched 3-Segment Broadleaf Citrus Sprig Ribbons for dense interior shadow & lush silhouette
+    const rPosArr = [], rNormArr = [], rUvArr = [], rIdxArr = [];
+    let rVOff = 0;
+    const cardCount = 18;
+    for (let c = 0; c < cardCount; c++) {
+      const cu = (c + 0.5) / cardCount;
+      const ang = c * 2.3999632 + 0.35;
+      const rad = 0.06 + Math.pow(cu, 0.6) * 0.16;
+      const ox = Math.cos(ang) * rad;
+      const oy = (1.0 - cu) * 0.10 - 0.03;
+      const oz = Math.sin(ang) * rad;
+
+      const pitch = 0.34 - cu * 0.42;
+      const len = 0.25 + (c % 3) * 0.04;
+      const wid = 0.115 + (c % 2) * 0.025;
+
+      const fx = Math.cos(ang) * Math.cos(pitch);
+      const fy = Math.sin(pitch);
+      const fz = Math.sin(ang) * Math.cos(pitch);
+      const sx = -Math.sin(ang), sy = 0, sz = Math.cos(ang);
+
+      for (let seg = 0; seg <= 3; seg++) {
+        const st = seg / 3;
+        const drop = st * st * 0.06;
+        const px = ox + fx * (len * st);
+        const py = oy + fy * (len * st) - drop;
+        const pz = oz + fz * (len * st);
+
+        rPosArr.push(
+          px - sx * wid, py - sy * wid, pz - sz * wid,
+          px + sx * wid, py + sy * wid, pz + sz * wid
+        );
+        rNormArr.push(0, 1, 0, 0, 1, 0);
+        rUvArr.push(0, 1 - st, 1, 1 - st);
+      }
+      for (let seg = 0; seg < 3; seg++) {
+        const b = rVOff + seg * 2;
+        rIdxArr.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+      }
+      rVOff += 8;
+    }
+    const ribbonGeo = new THREE.BufferGeometry();
+    ribbonGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPosArr, 3));
+    ribbonGeo.setAttribute('normal', new THREE.Float32BufferAttribute(rNormArr, 3));
+    ribbonGeo.setAttribute('uv', new THREE.Float32BufferAttribute(rUvArr, 2));
+    ribbonGeo.setIndex(rIdxArr);
+    ribbonGeo.computeBoundingSphere();
+
+    _cachedCitrusClusterGeos = { bladeGeo, ribbonGeo };
+    return _cachedCitrusClusterGeos;
+  }
+
   const matOrangeFruitPeel = new THREE.MeshStandardMaterial({
-    color: 0xff6a00,
-    emissive: 0x521a00,
-    emissiveIntensity: 0.45,
+    color: 0xff6e00,
+    emissive: 0x4d1800,
+    emissiveIntensity: 0.38,
     map: plasterDiffTex,
     normalMap: plasterNorTex,
-    normalScale: new THREE.Vector2(0.95, 0.95), // Realistic dimpled Valencia orange rind texture
-    roughness: 0.30,
-    metalness: 0.04,
-    envMapIntensity: 0.75,
-    userData: { customEnvIntensity: 0.75 }
+    normalScale: new THREE.Vector2(0.85, 0.85), // Realistic dimpled Valencia orange rind texture
+    roughness: 0.28,
+    metalness: 0.03,
+    envMapIntensity: 0.72,
+    userData: { customEnvIntensity: 0.72 }
   });
   const matOrangeCalyx = new THREE.MeshStandardMaterial({
     color: 0x26581c,
@@ -5187,31 +5786,31 @@ async function buildStaticPolyHavenDecor() {
     roughness: 0.40
   });
 
-  // Reusable Detailed 3D Valencia Orange Fruit Geometry + Calyx Stem + Navel Dimple
-  const orangeSphereGeo = new THREE.SphereGeometry(0.094, 16, 14);
-  const orangeCalyxGeo = new THREE.CylinderGeometry(0.008, 0.030, 0.022, 5);
-  const orangeStemGeo = new THREE.CylinderGeometry(0.005, 0.006, 0.044, 6);
-  const orangeNavelGeo = new THREE.CylinderGeometry(0.015, 0.008, 0.010, 8);
-  const blossomPetalGeo = new THREE.SphereGeometry(0.026, 8, 6);
-  const blossomCenterGeo = new THREE.SphereGeometry(0.014, 8, 8);
+  // Reusable Detailed 3D Valencia Orange Fruit Geometry + Calyx Stem + Navel Dimple (realistic Valencia orange size matching https://skfb.ly/oQ8nW)
+  const orangeSphereGeo = new THREE.SphereGeometry(0.058, 16, 14);
+  const orangeCalyxGeo = new THREE.CylinderGeometry(0.006, 0.020, 0.014, 5);
+  const orangeStemGeo = new THREE.CylinderGeometry(0.004, 0.005, 0.032, 6);
+  const orangeNavelGeo = new THREE.CylinderGeometry(0.010, 0.006, 0.008, 8);
+  const blossomPetalGeo = new THREE.SphereGeometry(0.020, 8, 6);
+  const blossomCenterGeo = new THREE.SphereGeometry(0.011, 8, 8);
 
   function createDetailedSingleOrangeFruit(scaleMul = 1.0) {
     const fGrp = new THREE.Group();
     const rind = new THREE.Mesh(orangeSphereGeo, matOrangeFruitPeel);
-    rind.scale.set(1.0 * scaleMul, 0.94 * scaleMul, 1.0 * scaleMul);
+    rind.scale.set(1.0 * scaleMul, 0.95 * scaleMul, 1.0 * scaleMul);
     rind.castShadow = true;
     rind.receiveShadow = true;
     fGrp.add(rind);
     // 5-Pointed Green Calyx Star & Woody Stem at top of orange
     const calyx = new THREE.Mesh(orangeCalyxGeo, matOrangeCalyx);
-    calyx.position.y = 0.086 * scaleMul;
+    calyx.position.y = 0.054 * scaleMul;
     fGrp.add(calyx);
     const stem = new THREE.Mesh(orangeStemGeo, matCitrusBark);
-    stem.position.y = 0.106 * scaleMul;
+    stem.position.y = 0.068 * scaleMul;
     fGrp.add(stem);
     // Navel dimple at bottom of orange
     const navel = new THREE.Mesh(orangeNavelGeo, matCitrusBark);
-    navel.position.y = -0.085 * scaleMul;
+    navel.position.y = -0.054 * scaleMul;
     fGrp.add(navel);
     return fGrp;
   }
@@ -5224,7 +5823,7 @@ async function buildStaticPolyHavenDecor() {
       const pa = (p / 5) * Math.PI * 2;
       const petal = new THREE.Mesh(blossomPetalGeo, matOrangeBlossomPetal);
       petal.scale.set(0.55, 0.22, 1.35);
-      petal.position.set(Math.sin(pa) * 0.028, 0.002, Math.cos(pa) * 0.028);
+      petal.position.set(Math.sin(pa) * 0.022, 0.002, Math.cos(pa) * 0.022);
       petal.rotation.y = pa;
       petal.rotation.x = -0.22;
       bGrp.add(petal);
@@ -5234,16 +5833,16 @@ async function buildStaticPolyHavenDecor() {
 
   function createDetailedOrangeCanopyPad(padRadius, padHeight, seed = 0) {
     const padGrp = new THREE.Group();
-    const { bladeGeo, ribbonGeo } = getOliveSubClusterGeometries();
-    const subTwigCount = 7;
+    const { bladeGeo, ribbonGeo } = getCitrusLeafClusterGeometries();
+    const subTwigCount = 6;
     const subClusters = [
-      { pos: new THREE.Vector3(0, -padHeight * 0.04, 0), scale: padRadius * 0.92, rotY: seed * 0.7 },
-      { pos: new THREE.Vector3(0, padHeight * 0.24, 0), scale: padRadius * 0.98, rotY: seed * 1.9 + 1.1 }
+      { pos: new THREE.Vector3(0, -padHeight * 0.04, 0), scale: padRadius * 0.95, rotY: seed * 0.7 },
+      { pos: new THREE.Vector3(0, padHeight * 0.22, 0), scale: padRadius * 0.98, rotY: seed * 1.9 + 1.1 }
     ];
     for (let i = 0; i < subTwigCount; i++) {
       const ang = (i / subTwigCount) * Math.PI * 2 + seed * 0.79;
-      const reach = padRadius * (0.48 + (i % 2) * 0.13);
-      const lift = ((i % 3) - 0.65) * padHeight * 0.24;
+      const reach = padRadius * (0.48 + (i % 2) * 0.14);
+      const lift = ((i % 3) - 0.75) * padHeight * 0.24;
       const midPt = new THREE.Vector3(Math.cos(ang) * reach * 0.52, lift * 0.45, Math.sin(ang) * reach * 0.52);
       const endPt = new THREE.Vector3(Math.cos(ang) * reach, lift, Math.sin(ang) * reach);
       padGrp.add(createTaperedOliveBranchMesh(
@@ -5254,51 +5853,44 @@ async function buildStaticPolyHavenDecor() {
       ));
       subClusters.push({
         pos: endPt,
-        scale: padRadius * (0.84 + (i % 3) * 0.08),
+        scale: padRadius * (0.86 + (i % 3) * 0.08),
         rotY: ang + i * 1.37
       });
 
-      // Hang 2-3 ripe Valencia oranges naturally around the outer & lower perimeter of each fruiting sub-branch!
-      const fruit1 = createDetailedSingleOrangeFruit(1.0 + (i % 3) * 0.12);
+      // Hang realistic ripe Valencia oranges nestled among the outer leaves (matching https://skfb.ly/oQ8nW!)
+      const fruit1 = createDetailedSingleOrangeFruit(0.96 + (i % 3) * 0.10);
       fruit1.position.set(
-        endPt.x * 1.12 + Math.cos(ang + 0.35) * 0.18,
-        endPt.y - 0.04 - (i % 2) * 0.08,
-        endPt.z * 1.12 + Math.sin(ang + 0.35) * 0.18
+        endPt.x * 1.14 + Math.cos(ang + 0.22) * 0.14,
+        endPt.y - 0.05 - (i % 2) * 0.05,
+        endPt.z * 1.14 + Math.sin(ang + 0.22) * 0.14
       );
       padGrp.add(fruit1);
 
-      const fruit2 = createDetailedSingleOrangeFruit(0.94 + ((i + 1) % 3) * 0.10);
+      const fruit2 = createDetailedSingleOrangeFruit(0.92 + ((i + 1) % 3) * 0.10);
       fruit2.position.set(
-        endPt.x * 0.92 + Math.cos(ang - 0.45) * 0.22,
-        endPt.y + 0.16 + (i % 2) * 0.06,
-        endPt.z * 0.92 + Math.sin(ang - 0.45) * 0.22
+        endPt.x * 1.10 + Math.cos(ang - 0.35) * 0.15,
+        endPt.y + 0.10 + (i % 2) * 0.05,
+        endPt.z * 1.10 + Math.sin(ang - 0.35) * 0.15
       );
       padGrp.add(fruit2);
 
       if (i % 2 === 0) {
-        const fruit3 = createDetailedSingleOrangeFruit(0.92 + (i % 2) * 0.12);
+        const fruit3 = createDetailedSingleOrangeFruit(1.02);
         fruit3.position.set(
-          midPt.x * 1.25 + Math.cos(ang + 0.8) * 0.20,
-          midPt.y - 0.14,
-          midPt.z * 1.25 + Math.sin(ang + 0.8) * 0.20
+          midPt.x * 1.25 + Math.cos(ang + 0.55) * 0.16,
+          midPt.y - 0.12,
+          midPt.z * 1.25 + Math.sin(ang + 0.55) * 0.16
         );
         padGrp.add(fruit3);
-      }
-
-      // Fragrant white Tunisian orange blossom (Zahar) on the sunny outer canopy tips
-      if (i % 2 === 1) {
+      } else {
         const blossom = createOrangeBlossomFlower();
-        blossom.position.set(
-          endPt.x * 1.16,
-          endPt.y + 0.18,
-          endPt.z * 1.16
-        );
+        blossom.position.set(endPt.x * 1.18, endPt.y + 0.14, endPt.z * 1.18);
         blossom.rotation.set(0.35, ang, 0.20);
         padGrp.add(blossom);
       }
     }
 
-    const flatRatio = Math.max(0.68, Math.min(0.96, padHeight / Math.max(0.22, padRadius)));
+    const flatRatio = Math.max(0.72, Math.min(0.98, padHeight / Math.max(0.22, padRadius)));
     subClusters.forEach((sc, idx) => {
       const subG = new THREE.Group();
       subG.position.copy(sc.pos);
@@ -5317,7 +5909,7 @@ async function buildStaticPolyHavenDecor() {
     return padGrp;
   }
 
-  // Cracked & root-heaved earth decal under the 4.45m Orange Tree
+  // Root-flare base with cracked soil decal & 3D spiky grass tufts ("pangkal akar kita buat mirip yg sekarang dengan rumput dan sdikit retakan tanah sudah bagus")
   const orangeCrackDecal = new THREE.Mesh(
     new THREE.PlaneGeometry(3.25, 3.25),
     new THREE.MeshBasicMaterial({
@@ -5336,7 +5928,7 @@ async function buildStaticPolyHavenDecor() {
   orangeTreeGroup.add(orangeCrackDecal);
 
   if (stumpProto) {
-    const orangeStumpW = fitAndPlaceModel(stumpProto.clone(true), [1.90, 1.90, 0.64], null, 1.15, '#8c765c');
+    const orangeStumpW = fitAndPlaceModel(stumpProto.clone(true), [1.75, 1.75, 0.58], null, 1.15, '#8c765c');
     orangeStumpW.position.y = -0.02;
     orangeTreeGroup.add(orangeStumpW);
   }
@@ -5346,65 +5938,77 @@ async function buildStaticPolyHavenDecor() {
     const ra = (r / 6) * Math.PI * 2 + 0.42;
     const ca = Math.cos(ra), sa = Math.sin(ra);
     orangeTreeGroup.add(createTaperedOliveBranchMesh([
-      new THREE.Vector3(ca * 0.16, 0.56, sa * 0.16),
-      new THREE.Vector3(ca * 0.56, 0.28, sa * 0.56),
-      new THREE.Vector3(ca * 0.98, 0.12, sa * 0.98),
-      new THREE.Vector3(ca * 1.35, -0.02, sa * 1.35)
-    ], 0.15, 0.035, 14, 8, matCitrusBark));
+      new THREE.Vector3(ca * 0.14, 0.50, sa * 0.14),
+      new THREE.Vector3(ca * 0.52, 0.25, sa * 0.52),
+      new THREE.Vector3(ca * 0.92, 0.11, sa * 0.92),
+      new THREE.Vector3(ca * 1.28, -0.02, sa * 1.28)
+    ], 0.13, 0.032, 14, 8, matCitrusBark));
     const clod = new THREE.Mesh(
       new THREE.BoxGeometry(0.35, 0.09, 0.28),
       new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x5c4733, roughness: 0.9 })
     );
-    clod.position.set(ca * 0.82, 0.06, sa * 0.82);
+    clod.position.set(ca * 0.80, 0.06, sa * 0.80);
     clod.rotation.set(sa * 0.35, ra, -ca * 0.35);
     clod.castShadow = true;
     clod.receiveShadow = true;
     orangeTreeGroup.add(clod);
   }
 
-  // 12 Spiky 3D Grass Tufts + 4 Fallen Ripe Oranges at the base of the Orange Tree
+  // 12 Spiky 3D Grass Tufts + 6 Fallen Ripe Oranges at the base of the Orange Tree
   for (let gi = 0; gi < 12; gi++) {
     const ga = (gi / 12) * Math.PI * 2 + 0.22;
-    const grDist = 0.68 + (gi % 3) * 0.24;
+    const grDist = 0.66 + (gi % 3) * 0.24;
     const gTuft = createSpikyGrassTuft(0.35, 0.34 + (gi % 2) * 0.05, 60, gi * 1.9 + 4.4);
     gTuft.position.set(Math.cos(ga) * grDist, 0.0, Math.sin(ga) * grDist);
     orangeTreeGroup.add(gTuft);
   }
   [
-    [0.52, 0.068, 0.44], [-0.58, 0.068, 0.36], [0.34, 0.068, -0.62], [-0.42, 0.068, -0.48]
+    [0.52, 0.078, 0.44], [-0.58, 0.078, 0.36], [0.34, 0.078, -0.62],
+    [-0.42, 0.078, -0.48], [0.74, 0.078, -0.15], [-0.22, 0.078, 0.68]
   ].forEach(([fx, fy, fz], fIdx) => {
-    const fallenOrange = createDetailedSingleOrangeFruit(0.95 + (fIdx % 2) * 0.08);
+    const fallenOrange = createDetailedSingleOrangeFruit(1.0 + (fIdx % 2) * 0.08);
     fallenOrange.position.set(fx, fy, fz);
     fallenOrange.rotation.set(fIdx * 0.6, fIdx * 1.1, fIdx * 0.4);
     orangeTreeGroup.add(fallenOrange);
   });
 
-  // Main Citrus Trunk rising to 1.82m (Taller than the 1.36m Ancient Olive Tree trunk!)
+  // Slender, gently S-curved central Citrus trunk rising from y = 0.02m up to y = 2.85m (matching https://skfb.ly/oQ8nW!)
   orangeTreeGroup.add(createTaperedOliveBranchMesh([
     new THREE.Vector3(0.0, 0.02, 0.0),
-    new THREE.Vector3(0.05, 0.64, -0.04),
-    new THREE.Vector3(-0.04, 1.26, 0.05),
-    new THREE.Vector3(0.0, 1.82, 0.0)
-  ], 0.36, 0.25, 20, 12, matCitrusBark));
+    new THREE.Vector3(0.08, 0.72, -0.05),
+    new THREE.Vector3(-0.07, 1.48, 0.06),
+    new THREE.Vector3(0.05, 2.18, -0.04),
+    new THREE.Vector3(-0.02, 2.85, 0.02)
+  ], 0.23, 0.095, 22, 12, matCitrusBark));
 
-  // 9 Structural Citrus Limbs reaching 3.65m - 4.15m (total crown height ~4.55m, strictly taller than the 3.2m Big Olive Tree!)
+  // Asymmetrical Multi-Height Citrus Branches (splitting at y = 1.05m, 1.45m, 1.95m, 2.45m, 2.85m up to 4.45m height, with lower sweeping skirt branches just like https://skfb.ly/oQ8nW!)
   const orangeLimbs = [
-    { pts: [[0.0, 1.68, 0.0], [-0.52, 2.38, 0.32], [-1.08, 3.08, 0.60], [-1.46, 3.68, 0.78]], r0: 0.18, r1: 0.065, padR: 1.08, padH: 0.78 },
-    { pts: [[0.0, 1.70, 0.0], [0.54, 2.42, 0.34], [1.08, 3.14, 0.64], [1.42, 3.76, 0.82]], r0: 0.17, r1: 0.065, padR: 1.06, padH: 0.76 },
-    { pts: [[0.0, 1.72, 0.0], [0.26, 2.48, -0.48], [0.62, 3.22, -0.92], [0.88, 3.84, -1.20]], r0: 0.17, r1: 0.065, padR: 1.08, padH: 0.78 },
-    { pts: [[0.0, 1.69, 0.0], [-0.42, 2.44, -0.46], [-0.88, 3.16, -0.88], [-1.22, 3.74, -1.14]], r0: 0.16, r1: 0.06, padR: 1.04, padH: 0.74 },
-    { pts: [[0.0, 1.75, 0.0], [-0.06, 2.58, 0.06], [0.05, 3.42, -0.05], [0.0, 4.16, 0.02]], r0: 0.19, r1: 0.07, padR: 1.24, padH: 0.88 },
-    { pts: [[-0.52, 2.38, 0.32], [-0.76, 3.12, -0.06], [-0.94, 3.78, -0.22]], r0: 0.12, r1: 0.05, padR: 0.96, padH: 0.70 },
-    { pts: [[0.54, 2.42, 0.34], [0.76, 3.18, -0.10], [0.92, 3.82, -0.26]], r0: 0.12, r1: 0.05, padR: 0.96, padH: 0.70 },
-    { pts: [[0.26, 2.48, -0.48], [-0.10, 3.26, -0.68], [-0.26, 3.92, -0.62]], r0: 0.11, r1: 0.05, padR: 0.98, padH: 0.72 },
-    { pts: [[-0.06, 2.58, 0.06], [0.32, 3.32, 0.48], [0.52, 3.96, 0.72]], r0: 0.11, r1: 0.05, padR: 0.96, padH: 0.70 }
+    // Lower sweeping skirt branches (y = 1.05m .. 1.95m)
+    { pts: [[0.06, 1.05, -0.03], [-0.58, 1.28, 0.42], [-1.18, 1.46, 0.76]], r0: 0.11, r1: 0.038, padR: 0.76, padH: 0.58 },
+    { pts: [[0.04, 1.18, 0.02], [0.62, 1.42, 0.38], [1.22, 1.58, 0.68]], r0: 0.11, r1: 0.038, padR: 0.76, padH: 0.58 },
+    { pts: [[-0.04, 1.32, 0.04], [0.28, 1.56, -0.62], [0.58, 1.72, -1.16]], r0: 0.10, r1: 0.036, padR: 0.74, padH: 0.56 },
+    { pts: [[-0.06, 1.42, 0.05], [-0.52, 1.68, -0.54], [-1.04, 1.86, -0.98]], r0: 0.10, r1: 0.036, padR: 0.74, padH: 0.56 },
+
+    // Mid-crown crooked lateral branches (y = 1.65m .. 2.95m)
+    { pts: [[-0.05, 1.68, 0.04], [-0.68, 2.15, 0.38], [-1.32, 2.52, 0.68]], r0: 0.12, r1: 0.042, padR: 0.88, padH: 0.68 },
+    { pts: [[-0.02, 1.82, 0.02], [0.72, 2.28, 0.34], [1.36, 2.66, 0.58]], r0: 0.12, r1: 0.042, padR: 0.88, padH: 0.68 },
+    { pts: [[0.02, 1.95, -0.02], [0.38, 2.42, -0.64], [0.76, 2.78, -1.14]], r0: 0.11, r1: 0.040, padR: 0.86, padH: 0.66 },
+    { pts: [[0.04, 2.08, -0.03], [-0.48, 2.54, -0.58], [-0.96, 2.88, -1.04]], r0: 0.11, r1: 0.040, padR: 0.84, padH: 0.65 },
+    { pts: [[0.04, 2.15, -0.03], [-0.14, 2.58, 0.72], [-0.28, 2.94, 1.26]], r0: 0.10, r1: 0.038, padR: 0.84, padH: 0.65 },
+
+    // Upper-crown ascending crooked branches reaching 4.45m height (> 3.2m Big Olive Tree!)
+    { pts: [[0.02, 2.48, -0.01], [-0.54, 3.12, 0.36], [-0.96, 3.62, 0.62]], r0: 0.10, r1: 0.038, padR: 0.86, padH: 0.68 },
+    { pts: [[0.0, 2.56, 0.0], [0.56, 3.18, 0.32], [0.98, 3.68, 0.54]], r0: 0.10, r1: 0.038, padR: 0.86, padH: 0.68 },
+    { pts: [[-0.01, 2.66, 0.01], [0.24, 3.26, -0.52], [0.48, 3.74, -0.88]], r0: 0.095, r1: 0.036, padR: 0.84, padH: 0.66 },
+    { pts: [[-0.02, 2.74, 0.02], [-0.42, 3.34, -0.46], [-0.76, 3.78, -0.78]], r0: 0.095, r1: 0.036, padR: 0.82, padH: 0.64 },
+    { pts: [[-0.02, 2.85, 0.02], [0.06, 3.48, 0.04], [-0.02, 4.08, -0.02]], r0: 0.11, r1: 0.042, padR: 0.96, padH: 0.76 }
   ];
   orangeLimbs.forEach((limb, idx) => {
     const vPts = limb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
     orangeTreeGroup.add(createTaperedOliveBranchMesh(vPts, limb.r0, limb.r1, 16, 8, matCitrusBark));
     const tip = vPts[vPts.length - 1];
     const pad = createDetailedOrangeCanopyPad(limb.padR, limb.padH, idx * 2.3 + 1.4);
-    pad.position.set(tip.x, tip.y + 0.06, tip.z);
+    pad.position.set(tip.x, tip.y + 0.05, tip.z);
     orangeTreeGroup.add(pad);
   });
 
@@ -6838,10 +7442,10 @@ const matWaterDrop = new THREE.MeshStandardMaterial({
   transparent: true,
   opacity: 0.82
 });
-const waterDropGeo = new THREE.SphereGeometry(0.014, 6, 6);
-for (let i = 0; i < 52; i++) {
+const waterDropGeo = new THREE.SphereGeometry(0.015, 6, 6);
+for (let i = 0; i < 96; i++) {
   const m = new THREE.Mesh(waterDropGeo, matWaterDrop);
-  m.scale.set(0.8, 1.7, 0.8);
+  m.scale.set(0.85, 1.75, 0.85);
   m.visible = false;
   m.raycast = () => {};
   vfxGroup.add(m);
@@ -6895,13 +7499,223 @@ function spawnWaterDroplet(worldX, worldY, worldZ, dirX, dirZ) {
       p.vx = dirX * speed + (Math.random() - 0.5) * 0.28;
       p.vy = -0.35 - Math.random() * 0.35;
       p.vz = dirZ * speed + (Math.random() - 0.5) * 0.28;
+      p.mesh.scale.set(0.85, 1.75, 0.85);
       p.mesh.visible = true;
       return;
     }
   }
 }
 
+// Spawn 3D Water Splash Burst ("percikan air saat masuk") + 3x Diminishing Big Ripples ("riak besar 3x semakin kecil") when an NPC jumps into the pool!
+function spawnPoolDiveSplashAndBigRipples(worldX, worldZ, slotGroupIdx = 0) {
+  // 1. Burst of 28 3D water splash droplets arcing upward & radially outward from the water entry point (wy = -0.05m)
+  let spawned = 0;
+  for (let i = 0; i < waterParticles.length && spawned < 28; i++) {
+    const p = waterParticles[i];
+    if (!p.active) {
+      p.active = true;
+      p.age = 0;
+      p.maxAge = 0.65 + Math.random() * 0.32;
+      const ang = (spawned / 28) * Math.PI * 2 + (Math.random() - 0.5) * 0.25;
+      const rad = 0.06 + Math.random() * 0.16;
+      p.mesh.position.set(
+        worldX + Math.cos(ang) * rad,
+        -0.04,
+        worldZ + Math.sin(ang) * rad
+      );
+      const outSpeed = 0.65 + Math.random() * 1.15;
+      p.vx = Math.cos(ang) * outSpeed;
+      p.vy = 1.65 + Math.random() * 1.65;
+      p.vz = Math.sin(ang) * outSpeed;
+      p.mesh.scale.set(1.55, 2.25, 1.55);
+      p.mesh.visible = true;
+      spawned++;
+    }
+  }
+  // Also spawn 4 fine white spray mist puffs right at water entry
+  for (let s = 0; s < 4; s++) {
+    spawnSmokePuff(worldX + (Math.random() - 0.5) * 0.28, -0.02, worldZ + (Math.random() - 0.5) * 0.28, 0.55, 0.42);
+  }
+
+  // 2. Activate 3 Concentric Big Ripples Getting Progressively Smaller ("riak besar 3x semakin kecil": 5.4x -> 3.6x -> 2.1x)
+  if (window.poolBigJumpRipples && window.poolBigJumpRipples.length >= 6) {
+    const baseIdx = (slotGroupIdx % 2) * 3;
+    const specs = [
+      { delay: 0.00, startScale: 0.28, targetScale: 5.4, peakOpacity: 0.96, maxAge: 1.65 }, // Ripple #1: Largest
+      { delay: 0.16, startScale: 0.24, targetScale: 3.6, peakOpacity: 0.85, maxAge: 1.45 }, // Ripple #2: Medium
+      { delay: 0.32, startScale: 0.20, targetScale: 2.1, peakOpacity: 0.74, maxAge: 1.25 }  // Ripple #3: Smallest
+    ];
+    for (let k = 0; k < 3; k++) {
+      const br = window.poolBigJumpRipples[baseIdx + k];
+      if (!br || !br.mesh) continue;
+      br.active = true;
+      br.delay = specs[k].delay;
+      br.age = 0;
+      br.maxAge = specs[k].maxAge;
+      br.startScale = specs[k].startScale;
+      br.targetScale = specs[k].targetScale;
+      br.maxOpacity = specs[k].peakOpacity;
+      br.peakOpacity = specs[k].peakOpacity;
+      br.mesh.position.set(worldX, -0.049 + k * 0.001, worldZ);
+      br.mesh.scale.set(specs[k].startScale, specs[k].startScale, 1);
+      br.mesh.material.opacity = 0.0;
+      br.mesh.visible = false;
+    }
+  }
+}
+
+// Build 3D Poolside Lounge Mat, Beverage Bottle ("botol minuman") & Food Plate ("piring makanan") for Mid-Swim Pool Border Reclining
+function createPoolsideLoungeAndSnackSet(isWife = false) {
+  const grp = new THREE.Group();
+
+  // 1. Woven Tunisian Poolside Towel Mat (0.50m x 1.56m, fits cleanly on the 0.68m-wide marble pool border coping deck!)
+  const matTowel = new THREE.MeshStandardMaterial({
+    color: isWife ? 0xd946ef : 0x0ea5e9,
+    normalMap: rugNorTex,
+    normalScale: new THREE.Vector2(0.75, 0.75),
+    roughness: 0.82
+  });
+  const matTowelStripe = new THREE.MeshStandardMaterial({
+    color: 0xfef3c7,
+    roughness: 0.80
+  });
+  const towelBase = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.014, 1.54), matTowel);
+  towelBase.position.set(0, 0.007, -0.04);
+  towelBase.castShadow = true;
+  towelBase.receiveShadow = true;
+  grp.add(towelBase);
+
+  for (const sz of [-0.66, -0.46, 0.38, 0.58]) {
+    const st = new THREE.Mesh(new THREE.BoxGeometry(0.484, 0.016, 0.055), matTowelStripe);
+    st.position.set(0, 0.008, sz);
+    grp.add(st);
+  }
+
+  // Soft Rolled Head Cushion at the head end (-Z) of the poolside mat
+  const headRoll = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.42, 14), matTowelStripe);
+  headRoll.rotation.z = Math.PI / 2;
+  headRoll.position.set(0, 0.068, -0.64);
+  headRoll.castShadow = true;
+  grp.add(headRoll);
+
+  // 2. Ceramic Food Plate ("piring makanan") placed right beside the NPC on the poolside edge of the marble border (x = -0.22, z = +0.04)
+  const matCeramicPlate = new THREE.MeshStandardMaterial({
+    color: 0xfdfaf2,
+    roughness: 0.18,
+    metalness: 0.05
+  });
+  const matCobaltRim = new THREE.MeshStandardMaterial({
+    color: 0x1d4ed8,
+    roughness: 0.22
+  });
+  const plateGrp = new THREE.Group();
+  plateGrp.position.set(-0.22, 0.015, 0.04);
+  const plateBase = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.105, 0.022, 20), matCeramicPlate);
+  plateBase.position.y = 0.011;
+  plateBase.castShadow = true;
+  plateGrp.add(plateBase);
+  const plateRim = new THREE.Mesh(new THREE.TorusGeometry(0.125, 0.010, 8, 20), matCobaltRim);
+  plateRim.rotation.x = Math.PI / 2;
+  plateRim.position.y = 0.022;
+  plateGrp.add(plateRim);
+
+  // Golden Tunisian Brik Pastry, Grilled Mediterranean Skewers & Fresh Orange Wedges on the plate
+  const matPastry = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.45 });
+  const matGrilledMeat = new THREE.MeshStandardMaterial({ color: 0x7c2d12, roughness: 0.42 });
+  const matOrangeSlice = new THREE.MeshStandardMaterial({ color: 0xff6a00, emissive: 0x451a03, emissiveIntensity: 0.25, roughness: 0.30 });
+  const matGarnish = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.50 });
+
+  const pastry = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.028, 0.065), matPastry);
+  pastry.position.set(-0.03, 0.032, 0.02);
+  pastry.rotation.y = 0.4;
+  plateGrp.add(pastry);
+
+  const meat1 = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.024, 0.085, 10), matGrilledMeat);
+  meat1.rotation.z = Math.PI / 2;
+  meat1.rotation.y = -0.35;
+  meat1.position.set(0.035, 0.034, -0.025);
+  plateGrp.add(meat1);
+
+  for (let oi = 0; oi < 3; oi++) {
+    const oSlice = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), matOrangeSlice);
+    oSlice.scale.set(1.0, 0.55, 0.85);
+    oSlice.position.set(-0.02 + oi * 0.032, 0.032, -0.045 + (oi % 2) * 0.025);
+    plateGrp.add(oSlice);
+  }
+  const mintLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), matGarnish);
+  mintLeaf.scale.set(1.2, 0.35, 0.7);
+  mintLeaf.position.set(0.01, 0.045, 0.01);
+  plateGrp.add(mintLeaf);
+  grp.add(plateGrp);
+
+  // 3. Chilled Beverage Bottle ("botol minuman") & Frosted Juice Glass placed beside the NPC's left hand (x = -0.20, z = -0.18) and head tray
+  const matGlassBottle = new THREE.MeshStandardMaterial({
+    color: isWife ? 0x10b981 : 0x15803d,
+    emissive: isWife ? 0x064e3b : 0x052e16,
+    emissiveIntensity: 0.25,
+    roughness: 0.08,
+    metalness: 0.15,
+    transparent: true,
+    opacity: 0.90
+  });
+  const matBottleLabel = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.35 });
+  const matBottleCap = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.25, metalness: 0.70 });
+  const matJuiceGlass = new THREE.MeshStandardMaterial({
+    color: 0xf97316,
+    emissive: 0x7c2d12,
+    emissiveIntensity: 0.22,
+    roughness: 0.12,
+    transparent: true,
+    opacity: 0.88
+  });
+
+  function buildChilledBottleMesh() {
+    const bGrp = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.040, 0.042, 0.18, 14), matGlassBottle);
+    body.position.y = 0.09;
+    body.castShadow = true;
+    bGrp.add(body);
+    const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.040, 0.055, 14), matGlassBottle);
+    shoulder.position.y = 0.207;
+    bGrp.add(shoulder);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.016, 0.065, 12), matGlassBottle);
+    neck.position.y = 0.265;
+    bGrp.add(neck);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.022, 12), matBottleCap);
+    cap.position.y = 0.302;
+    bGrp.add(cap);
+    const label = new THREE.Mesh(new THREE.CylinderGeometry(0.0415, 0.0425, 0.075, 14), matBottleLabel);
+    label.position.y = 0.095;
+    bGrp.add(label);
+    return bGrp;
+  }
+
+  const bottle1 = buildChilledBottleMesh();
+  bottle1.position.set(-0.22, 0.014, -0.22);
+  grp.add(bottle1);
+
+  // Chilled Fresh Orange Juice Glass with Straw right next to the bottle & food plate
+  const glassCup = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.028, 0.125, 14), matJuiceGlass);
+  glassCup.position.set(-0.21, 0.076, -0.36);
+  glassCup.castShadow = true;
+  grp.add(glassCup);
+  const straw = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.16, 8), matCeramicPlate);
+  straw.position.set(-0.20, 0.115, -0.35);
+  straw.rotation.z = -0.25;
+  grp.add(straw);
+
+  grp.visible = false;
+  scene.add(grp);
+  return grp;
+}
+
+const maherPoolSnackGroup = createPoolsideLoungeAndSnackSet(false);
+const wifePoolSnackGroup = createPoolsideLoungeAndSnackSet(true);
+window.maherPoolSnackGroup = maherPoolSnackGroup;
+window.wifePoolSnackGroup = wifePoolSnackGroup;
+
 // Waypoint coordinates in Floorplan (bx, by, bz) -> converted via bPos(bx, by, bz)
+// Pool border coping deck is raised 3 steps (3 x 0.18m = 0.54m above -0.50m ground -> bz = +0.04m), water at bz = -0.06m!
 const MAHER_WAYPOINTS = {
   DOOR_OUT:          [2.60,  -5.85, -0.25],
   DOOR_IN:           [2.60,  -4.15,  0.00],
@@ -6910,8 +7724,9 @@ const MAHER_WAYPOINTS = {
   ARCH_GATE:         [2.38,  -9.85, -0.50],
   LEFT_ENTRY:        [1.40,  -6.05, -0.25],
   LEFT_TERRACE_WEST: [-5.85, -6.05, -0.25], // West edge of Left Terrace where stepping-stone walkway to Pool & Left Staircase starts
-  POOL_WALKWAY:      [-7.65, -6.05, -0.45], // Poolside edge at stepping-stone walkway leading to Left Terrace
-  POOL_STEPS_IN:     [-8.70, -6.05, -1.48], // Underwater SE pool entry/exit steps aligned with walkway
+  POOL_WALKWAY:      [-6.55, -6.05, -0.45], // Base of 3-step East Pool Stairs on the stepping-stone walkway
+  POOL_BORDER_EAST:  [-7.86, -6.05,  0.04], // Top of 3-step Raised Pool Border Coping Deck (bz = +0.04m)
+  POOL_STEPS_IN:     [-8.55, -6.05, -1.14], // Underwater SE pool entry/exit steps aligned with walkway
   LEFT_STAIR_BASE:   [-6.75, -5.00, -0.25], // Base of Left Exterior Diagonal Staircase
   LEFT_STAIR_MID:    [-6.75, -2.70,  1.78], // Mid-slope of Left Exterior Diagonal Staircase
   LEFT_STAIR_TOP:    [-6.75, -0.35,  3.78], // Top landing of Left Exterior Diagonal Staircase
@@ -6945,13 +7760,13 @@ const MAHER_ACTIVITIES = {
   SWIM_POOL: {
     id: 'SWIM_POOL',
     zone: 'pool',
-    bx: -9.20, by: -3.40, bz: -1.52, // Submerged to upper stomach (-0.44m water surface - (-1.52m feet) = 1.08m submerged!)
+    bx: -9.20, by: -3.40, bz: -1.14, // Submerged to upper stomach (-0.06m water surface - (-1.14m feet) = 1.08m submerged!)
     ry: 0,
     clip: 'Stand_Idle',
     prop: null,
-    duration: [55, 80],
-    en: 'Swimming & Floating in Family Pool',
-    ar: 'يعوم ويطفو في المسبح العائلي'
+    duration: [60, 82],
+    en: 'Swimming & Lounging on Pool Border with Drinks & Food',
+    ar: 'يعوم ويستجم على حافة المسبح مع المشروبات والمأكولات'
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
@@ -6999,7 +7814,7 @@ const MAHER_ACTIVITIES = {
   },
   ROOF_BBQ: {
     id: 'ROOF_BBQ',
-    zone: 'roof', // Spawns directly on the 2nd Floor Roof! ("d roof (spawn saja khusus d roof)")
+    zone: 'roof',
     bx: -3.88, by: 2.65, bz: 3.78,
     ry: -Math.PI / 2, // Faces West (-bx) toward the Rooftop Stone BBQ Fire Pit at bx = -4.65, by = 2.65
     clip: 'Cook_Action',
@@ -7010,7 +7825,7 @@ const MAHER_ACTIVITIES = {
   },
   ROOF_LOUNGE: {
     id: 'ROOF_LOUNGE',
-    zone: 'roof', // Spawns directly on the 2nd Floor Roof!
+    zone: 'roof',
     bx: 2.85, by: -0.38, bz: 3.80,
     ry: Math.PI, // Faces North (+by) sitting on the South Rooftop Lounge Sofa looking toward the rooftop coffee table!
     clip: 'Seated_Idle',
@@ -7030,6 +7845,7 @@ const maherNpcState = {
   activeAction: null,
   handBoneR: null,
   swimBones: {},
+  hipsRestPos: new THREE.Vector3(0, 0.967, 0.007),
   propSpatula: null,
   propWateringCan: null,
   spoutTip: null,
@@ -7038,7 +7854,14 @@ const maherNpcState = {
   currentAct: MAHER_ACTIVITIES.GRILL_TERRACE,
   currentZone: 'terrace_right',
   pathQueue: [],
-  swimTargetPos: new THREE.Vector3(-9.20, -1.52, 3.40),
+  swimPhase: 'DIVE_JUMP_1', // 'DIVE_JUMP_1' | 'SWIM_1' | 'BORDER_LOUNGE' | 'DIVE_JUMP_2' | 'SWIM_2'
+  swimPhaseTimer: 1.20,
+  diveDuration: 1.20,
+  diveStartPos: new THREE.Vector3(-7.86, 0.04, 5.60),
+  diveEndPos: new THREE.Vector3(-9.15, -1.14, 4.85),
+  diveSplashTriggered: false,
+  borderLoungeSpot: null,
+  swimTargetPos: new THREE.Vector3(-9.20, -1.14, 3.40),
   swimSubTimer: 5.5,
   swimSpeed: 0.74,
   timer: 65.0,
@@ -7050,7 +7873,7 @@ const maherNpcState = {
 window.maherNpcState = maherNpcState;
 
 function pickRandomPoolSwimTarget(isWife = false) {
-  const swimY = isWife ? -1.46 : -1.52;
+  const swimY = isWife ? -1.08 : -1.14;
   const otherState = isWife ? maherNpcState : wifeNpcState;
   for (let attempt = 0; attempt < 10; attempt++) {
     const bx = -9.75 + Math.random() * 1.10; // [-9.75 .. -8.65] inside the 2.0m-wide pool (bx = -10.20 .. -8.20)
@@ -7066,10 +7889,92 @@ function pickRandomPoolSwimTarget(isWife = false) {
   return new THREE.Vector3(isWife ? -9.55 : -8.85, swimY, isWife ? 1.85 : 4.25);
 }
 
+// Pick a random pool border spot (West/Left, East/Right, North, or South border at bz = +0.04m) for mid-swim reclining with drinks & food!
+function pickRandomPoolBorderLoungeSpot(isWife = false, preferredSide = null) {
+  const swimY = isWife ? -1.08 : -1.14;
+  const otherState = isWife ? maherNpcState : wifeNpcState;
+  const sides = preferredSide ? [preferredSide] : ['west', 'east', 'south', 'north'];
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const side = sides[Math.floor(Math.random() * sides.length)];
+    let bx, by, ry, diveBx, diveBy, diveRy;
+    if (side === 'west') {
+      // Left (West) Pool Border (bx = -10.50, by = -5.20 .. -1.00)
+      bx = -10.50;
+      by = -4.90 + Math.random() * 3.80;
+      ry = Math.PI; // Local -X faces East toward pool water
+      diveBx = -9.32;
+      diveBy = by;
+      diveRy = Math.PI / 2; // Jumps East (+X) into the water
+    } else if (side === 'east') {
+      // Right (East) Pool Border (bx = -7.92, by = -4.40 .. -0.80, north of the East walkway stairs, clear of bx = -7.52 wall)
+      bx = -7.92;
+      by = -4.35 + Math.random() * 3.45;
+      ry = 0; // Local -X faces West toward pool water
+      diveBx = -9.08;
+      diveBy = by;
+      diveRy = -Math.PI / 2; // Jumps West (-X) into the water
+    } else if (side === 'north') {
+      // Back (North) Width Border (by = +1.24, bx = -9.20, where North 3-step stairs meet the border)
+      bx = -9.20 + (isWife ? -0.25 : 0.25);
+      by = 1.24;
+      ry = Math.PI / 2; // Local -X faces South toward pool water
+      diveBx = bx;
+      diveBy = -0.15;
+      diveRy = 0; // Jumps South (+Z) into the water
+    } else {
+      // Front (South) Width Border (by = -7.44, bx = -9.20, where South 3-step stairs meet the border)
+      bx = -9.20 + (isWife ? 0.25 : -0.25);
+      by = -7.44;
+      ry = -Math.PI / 2; // Local -X faces North toward pool water
+      diveBx = bx;
+      diveBy = -5.85;
+      diveRy = Math.PI; // Jumps North (-Z) into the water
+    }
+    const pos = bPos(bx, by, 0.04);
+    if (otherState && otherState.borderLoungeSpot && otherState.swimPhase === 'BORDER_LOUNGE') {
+      const d = Math.hypot(pos.x - otherState.borderLoungeSpot.pos.x, pos.z - otherState.borderLoungeSpot.pos.z);
+      if (d < 1.85 && attempt < 10 && !preferredSide) continue;
+    }
+    return {
+      side,
+      pos,
+      ry,
+      diveStartPos: bPos(bx, by, 0.04),
+      diveEndPos: bPos(diveBx, diveBy, swimY),
+      diveRy
+    };
+  }
+  const fallbackBy = isWife ? -1.80 : -4.40;
+  return {
+    side: isWife ? 'west' : 'east',
+    pos: bPos(isWife ? -10.54 : -7.86, fallbackBy, 0.04),
+    ry: 0,
+    diveStartPos: bPos(isWife ? -10.54 : -7.86, fallbackBy, 0.04),
+    diveEndPos: bPos(isWife ? -9.35 : -9.05, fallbackBy, swimY),
+    diveRy: isWife ? Math.PI / 2 : -Math.PI / 2
+  };
+}
+
+function resetNpcSwimBones(npcState) {
+  const sb = npcState && npcState.swimBones;
+  if (!sb) return;
+  if (sb.hips && npcState.hipsRestPos) {
+    sb.hips.position.copy(npcState.hipsRestPos);
+    sb.hips.rotation.set(0, 0, 0);
+  }
+  if (sb.spine) sb.spine.rotation.set(0, 0, 0);
+  if (sb.chest) sb.chest.rotation.set(0, 0, 0);
+  if (sb.neck) sb.neck.rotation.set(0, 0, 0);
+}
+
 // Procedural treading-water / floating arm & hand animation ("menggerakkan tangan seperti berusaha mengambang")
 function applyNpcSwimTreadPose(npcState, tSec, isWife = false) {
   const sb = npcState.swimBones;
   if (!sb) return;
+  if (sb.hips && npcState.hipsRestPos) {
+    sb.hips.position.copy(npcState.hipsRestPos);
+    sb.hips.rotation.set(0.08 * Math.sin(tSec * 2.2), 0, 0);
+  }
   const ph = tSec * 3.45 + (isWife ? 1.85 : 0.0);
   // Raise both upper arms & forearms near the water surface and sweep outward/inward in a floating sculling motion
   if (sb.upperArmL) {
@@ -7118,6 +8023,104 @@ function applyNpcSwimTreadPose(npcState, tSec, isWife = false) {
   if (sb.lowLegL) sb.lowLegL.rotation.set(0.40 + Math.max(0, Math.cos(ph * 1.1)) * 0.32, 0, 0);
   if (sb.upLegR) sb.upLegR.rotation.set(-0.26 + Math.sin(ph * 1.1 + Math.PI) * 0.24, 0, -0.05);
   if (sb.lowLegR) sb.lowLegR.rotation.set(0.40 + Math.max(0, Math.cos(ph * 1.1 + Math.PI)) * 0.32, 0, 0);
+}
+
+// Procedural Dive/Jump into Pool Pose ("animasi loncat ke air")
+function applyNpcPoolDiveJumpPose(npcState, jumpProg, isWife = false) {
+  const sb = npcState.swimBones;
+  if (!sb) return;
+  if (sb.hips && npcState.hipsRestPos) {
+    sb.hips.position.copy(npcState.hipsRestPos);
+    // Forward airborne lean during the jump arc, straightening as they enter the water
+    const pitch = (jumpProg < 0.65) ? Math.sin((jumpProg / 0.65) * Math.PI) * 0.42 : 0.0;
+    sb.hips.rotation.set(pitch, 0, 0);
+  }
+  // Both arms raised high in an exuberant cannonball/dive leap into the pool
+  if (sb.upperArmL) sb.upperArmL.rotation.set(-2.15, 0.15, 0.28);
+  if (sb.foreArmL) sb.foreArmL.rotation.set(-0.35, 0, 0);
+  if (sb.upperArmR) sb.upperArmR.rotation.set(-2.15, -0.15, -0.28);
+  if (sb.foreArmR) sb.foreArmR.rotation.set(-0.35, 0, 0);
+  // Knees tucked slightly in mid-air
+  const tuck = Math.sin(Math.min(1.0, jumpProg * 1.3) * Math.PI);
+  if (sb.upLegL) sb.upLegL.rotation.set(-0.55 * tuck, 0, 0.05);
+  if (sb.lowLegL) sb.lowLegL.rotation.set(0.85 * tuck, 0, 0);
+  if (sb.upLegR) sb.upLegR.rotation.set(-0.45 * tuck, 0, -0.05);
+  if (sb.lowLegR) sb.lowLegR.rotation.set(0.75 * tuck, 0, 0);
+}
+
+// Procedural Mid-Swim Pool Border Reclining/Lying-Down Pose ("tiduran d border kolam sambil menikmati botol minuman dan piring makanan")
+function applyNpcPoolBorderLoungePose(npcState, tSec, isWife = false) {
+  const sb = npcState.swimBones;
+  if (!sb) return;
+  // Lower Hips right onto the woven poolside lounge mat (y = 0.14m above the bz = +0.04m marble border) and recline torso backward (-1.34 rad = -77 deg)!
+  if (sb.hips) {
+    sb.hips.position.set(0, 0.145, -0.06);
+    sb.hips.rotation.set(-1.34, 0, 0);
+  }
+  // Prop upper spine, chest & head gently up on the rolled pillow so the NPC looks comfortably at their drink bottle, food plate & pool
+  if (sb.spine) sb.spine.rotation.set(0.22, 0, 0);
+  if (sb.chest) sb.chest.rotation.set(0.26, 0, 0);
+  if (sb.neck) sb.neck.rotation.set(0.26, Math.sin(tSec * 0.9 + (isWife ? 1.2 : 0)) * 0.14, 0);
+
+  // Stretch both legs horizontally forward along the marble border coping deck with relaxed knees
+  if (sb.upLegL) sb.upLegL.rotation.set(-0.18, 0.06, 0.06);
+  if (sb.lowLegL) sb.lowLegL.rotation.set(0.34, 0, 0);
+  if (sb.upLegR) sb.upLegR.rotation.set(-0.24, -0.06, -0.06);
+  if (sb.lowLegR) sb.lowLegR.rotation.set(0.42, 0, 0);
+
+  // Animated arms: right hand reaches to the Ceramic Food Plate ("piring makanan") & brings a snack toward mouth; left hand reaches to the Beverage Bottle ("botol minuman")!
+  const sipWave = Math.sin(tSec * 1.85 + (isWife ? 1.6 : 0.0));
+  const eatWave = Math.cos(tSec * 1.85 + (isWife ? 1.6 : 0.0));
+  if (sb.upperArmR) {
+    sb.upperArmR.rotation.set(-0.55 - Math.max(0, eatWave) * 0.35, -0.18, -0.32);
+  }
+  if (sb.foreArmR) {
+    sb.foreArmR.rotation.set(-0.58 - Math.max(0, eatWave) * 0.52, -0.15, -0.12);
+  }
+  if (sb.handR) {
+    sb.handR.rotation.set(0.18 * eatWave, 0, -0.15);
+  }
+  if (sb.upperArmL) {
+    sb.upperArmL.rotation.set(-0.48 - Math.max(0, sipWave) * 0.26, -0.22, 0.06);
+  }
+  if (sb.foreArmL) {
+    sb.foreArmL.rotation.set(-0.72 - Math.max(0, sipWave) * 0.35, -0.25, 0.08);
+  }
+  if (sb.handL) {
+    sb.handL.rotation.set(0.16 * sipWave, 0, 0.08);
+  }
+}
+
+function initNpcSwimCycle(npcState, isWife = false, startFromWalkedBorder = false) {
+  const swimY = isWife ? -1.08 : -1.14;
+  const snackGrp = isWife ? wifePoolSnackGroup : maherPoolSnackGroup;
+  if (snackGrp) snackGrp.visible = false;
+  resetNpcSwimBones(npcState);
+
+  // Pick a random border for their mid-swim reclining break
+  npcState.borderLoungeSpot = pickRandomPoolBorderLoungeSpot(isWife);
+
+  // Start SWIM_POOL with DIVE_JUMP_1 from the raised pool border (bz = +0.04m) into the water!
+  npcState.swimPhase = 'DIVE_JUMP_1';
+  npcState.diveDuration = 1.18;
+  npcState.swimPhaseTimer = npcState.diveDuration;
+  npcState.diveSplashTriggered = false;
+
+  if (startFromWalkedBorder && npcState.root) {
+    npcState.diveStartPos.set(npcState.root.position.x, 0.04, npcState.root.position.z);
+    npcState.diveEndPos.set(-9.15, swimY, Math.max(-0.40, Math.min(6.20, npcState.root.position.z - 0.65)));
+  } else {
+    const startBy = isWife ? -2.20 : -5.65;
+    const startBx = isWife ? -10.54 : -7.86;
+    npcState.diveStartPos.copy(bPos(startBx, startBy, 0.04));
+    npcState.diveEndPos.copy(bPos(isWife ? -9.45 : -8.95, startBy + 0.35, swimY));
+    if (npcState.root) {
+      npcState.root.position.copy(npcState.diveStartPos);
+      npcState.root.rotation.y = isWife ? Math.PI / 2 : -Math.PI / 2;
+    }
+  }
+  npcState.swimTargetPos.copy(npcState.diveEndPos);
+  npcState.swimSubTimer = 5.2 + Math.random() * 3.0;
 }
 
 function buildMaherHandheldProps(handBone) {
@@ -7194,10 +8197,11 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
   let effFrom = fromZone;
   let effTo = toZone;
 
-  // Task 5: Exiting the Swimming Pool ALWAYS climbs out onto the poolside edge at the stepping-stone walkway leading to the Left Terrace!
+  // Exiting the Swimming Pool climbs up the underwater & exterior 3-step stairs onto the raised border and East walkway to the Left Terrace!
   if (effFrom === 'pool') {
     prefixPts.push(
       MAHER_WAYPOINTS.POOL_STEPS_IN,
+      MAHER_WAYPOINTS.POOL_BORDER_EAST,
       MAHER_WAYPOINTS.POOL_WALKWAY,
       MAHER_WAYPOINTS.LEFT_TERRACE_WEST
     );
@@ -7215,10 +8219,11 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
   }
 
   if (effTo === 'pool') {
+    // Walking to the Swimming Pool climbs up the 3-step East stairs onto the raised Pool Border (bz = +0.04m) ready to jump into the water!
     suffixPts.push(
       MAHER_WAYPOINTS.LEFT_TERRACE_WEST,
       MAHER_WAYPOINTS.POOL_WALKWAY,
-      MAHER_WAYPOINTS.POOL_STEPS_IN
+      MAHER_WAYPOINTS.POOL_BORDER_EAST
     );
     effTo = 'terrace_left';
   } else if (effTo === 'roof') {
@@ -7342,7 +8347,7 @@ const _tmpSmokeWorld = new THREE.Vector3();
 function getZoneFromWorldPos(wx, wy, wz) {
   if (wy > 2.0) return 'roof';
   // Note: wx = bx, wz = -by (so by = -wz)
-  if (wx <= -8.15 && wx >= -10.25 && wz >= -0.95 && wz <= 7.15 && wy < -0.55) {
+  if (wx <= -7.45 && wx >= -10.95 && wz >= -1.65 && wz <= 7.85 && wy < 0.25) {
     return 'pool';
   }
   if (wx >= -6.05 && wx <= 6.05 && wz >= -5.05 && wz <= 5.05) {
@@ -7366,6 +8371,14 @@ function getDynamicActivityTarget(actId, isWife = false) {
 
   if (actId === 'SWIM_POOL') {
     const swimState = isWife ? wifeNpcState : maherNpcState;
+    if (swimState.mode === 'WALKING') {
+      // Walk to the raised East Pool Border (bz = +0.04m) before diving into the pool!
+      return {
+        pos: bPos(-7.86, isWife ? -5.55 : -6.05, 0.04),
+        ry: -Math.PI / 2,
+        zone: 'pool'
+      };
+    }
     return {
       pos: swimState.swimTargetPos.clone(),
       ry: act.ry,
@@ -7428,8 +8441,6 @@ function getDynamicActivityTarget(actId, isWife = false) {
     targetObj.userData.npcLookNode.getWorldPosition(_tmpLookWorld);
 
     // Obstacle-Aware Dynamic Standing Adjustment for Terrace Grill (GRILL_TERRACE):
-    // Automatically detects if the Front Terrace Wall (by = -9.20, bx = 3.35..6.00) or Left Terrace Wall (bx = 1.40, by = -7.10..-9.20)
-    // sits between the grill and the NPC's cooking position when the grill is moved/rotated.
     if (!isWife && actId === 'GRILL_TERRACE') {
       const gx = _tmpLookWorld.x;
       const gy = -_tmpLookWorld.z;
@@ -7441,20 +8452,15 @@ function getDynamicActivityTarget(actId, isWife = false) {
       // 1. Check Front Terrace Wall (by = -9.20, bx = 3.35 .. 6.00)
       const nearFrontWallX = (gx >= 3.15 && gx <= 6.20) || (sx >= 3.15 && sx <= 6.20);
       if (nearFrontWallX) {
-        // Condition A: Grill is placed outside/behind the Front Terrace Wall (gy < -9.20) and its open cooking side faces toward the wall / into the terrace (openDy > 0.15)
         if (gy < -9.20 && gy >= -10.85 && openDy > 0.15) {
           sx = Math.max(3.52, Math.min(5.72, sx));
           sy = Math.max(-8.72, sy);
           _tmpStandWorld.set(sx, -0.25, -sy);
-        }
-        // Reverse across Front Wall: Grill is inside terrace close to Front Wall (gy >= -9.20 && gy < -8.35) with open side facing South across the wall (openDy < -0.15 && sy <= -8.88)
-        else if (gy >= -9.20 && gy < -8.35 && openDy < -0.15 && sy <= -8.88) {
+        } else if (gy >= -9.20 && gy < -8.35 && openDy < -0.15 && sy <= -8.88) {
           sx = Math.max(3.45, Math.min(5.85, sx));
           sy = Math.min(-9.68, sy);
           _tmpStandWorld.set(sx, -0.50, -sy);
-        }
-        // Prevent standing inside the physical wall thickness (-9.58 .. -8.82)
-        else if (sy > -9.58 && sy < -8.82 && sx >= 3.25 && sx <= 6.10) {
+        } else if (sy > -9.58 && sy < -8.82 && sx >= 3.25 && sx <= 6.10) {
           if (gy < -9.20) {
             sy = -9.68;
             _tmpStandWorld.set(sx, -0.50, -sy);
@@ -7468,14 +8474,11 @@ function getDynamicActivityTarget(actId, isWife = false) {
       // 2. Check Left Terrace Wall (bx = 1.40, by = -7.10 .. -9.20)
       const nearLeftWallY = (gy >= -9.35 && gy <= -7.05) || (sy >= -9.35 && sy <= -7.05);
       if (nearLeftWallY) {
-        // Condition A (Left Wall): Grill is outside the Left Terrace Wall (gx < 1.40) and its open cooking side faces East into the terrace (openDx > 0.15)
         if (gx < 1.40 && gx >= -0.25 && openDx > 0.15) {
           sx = Math.max(1.88, sx);
           sy = Math.max(-8.75, Math.min(-7.15, sy));
           _tmpStandWorld.set(sx, -0.25, -sy);
-        }
-        // Reverse across Left Wall: Grill is inside terrace close to Left Wall with open side facing West across the wall
-        else if (gx >= 1.40 && gx < 2.25 && openDx < -0.15 && sx <= 1.72 && sy < -7.05) {
+        } else if (gx >= 1.40 && gx < 2.25 && openDx < -0.15 && sx <= 1.72 && sy < -7.05) {
           sx = Math.min(0.92, sx);
           _tmpStandWorld.set(sx, -0.50, -sy);
         }
@@ -7492,8 +8495,6 @@ function getDynamicActivityTarget(actId, isWife = false) {
     const distLook = Math.hypot(dx, dz);
     const ry = (distLook > 0.0001) ? Math.atan2(dx, dz) : act.ry;
 
-    // Anti-collision side-by-side co-seating on Tunisian Floor Sofa (RELAX_FLOOR_SOFA):
-    // When both Maître Maher and his Wife sit on the 2.20m Tunisian Floor Sofa, offset them laterally along the cushion so they sit side by side without clipping!
     if (actId === 'RELAX_FLOOR_SOFA' && distLook > 0.0001) {
       const rightX = -dz / distLook;
       const rightZ = dx / distLook;
@@ -7523,13 +8524,22 @@ function startMaherActivity(actKey, immediateSpawn = false) {
   const prevZone = maherNpcState.currentZone;
   maherNpcState.currentAct = act;
   maherNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
-  if (act.id === 'SWIM_POOL') {
-    maherNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(false));
-    maherNpcState.swimSubTimer = 5.5 + Math.random() * 3.5;
-  }
+  maherPoolSnackGroup.visible = false;
+  resetNpcSwimBones(maherNpcState);
   updateMaherFloatingBadge();
 
   if (!maherNpcState.root) return;
+
+  if (act.id === 'SWIM_POOL' && immediateSpawn) {
+    maherNpcState.pathQueue = [];
+    maherNpcState.mode = 'PERFORMING';
+    maherNpcState.currentZone = 'pool';
+    setMaherProp(null);
+    playMaherClip('Stand_Idle', 0.18);
+    initNpcSwimCycle(maherNpcState, false, false);
+    requestShadowUpdate();
+    return;
+  }
 
   const dynTarget = getDynamicActivityTarget(act.id);
 
@@ -7550,7 +8560,11 @@ function startMaherActivity(actKey, immediateSpawn = false) {
   // Otherwise (including ground floor, swimming pool walkway, and Left Staircase to/from the 2nd Floor Roof!), walk naturally along waypoints:
   const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
   maherNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
-  maherNpcState.pathQueue.push(dynTarget.pos.clone());
+  if (act.id === 'SWIM_POOL') {
+    maherNpcState.pathQueue.push(bPos(-7.86, -6.05, 0.04));
+  } else {
+    maherNpcState.pathQueue.push(dynTarget.pos.clone());
+  }
   maherNpcState.currentZone = dynTarget.zone;
   maherNpcState.mode = 'WALKING';
   setMaherProp(null);
@@ -7605,13 +8619,13 @@ const WIFE_ACTIVITIES = {
   SWIM_POOL: {
     id: 'SWIM_POOL',
     zone: 'pool',
-    bx: -9.55, by: -2.20, bz: -1.46, // Submerged to upper stomach (-0.44m water surface - (-1.46m feet) = 1.02m submerged!)
+    bx: -9.55, by: -2.20, bz: -1.08, // Submerged to upper stomach (-0.06m water surface - (-1.08m feet) = 1.02m submerged!)
     ry: 0,
     clip: 'Stand_Idle',
     prop: null,
-    duration: [55, 80],
-    en: 'Swimming & Floating in Family Pool',
-    ar: 'تعوم وتطفو في المسبح العائلي'
+    duration: [60, 82],
+    en: 'Swimming & Lounging on Pool Border with Drinks & Food',
+    ar: 'تعوم وتستجم على حافة المسبح مع المشروبات والمأكولات'
   },
   SWEEP_INSIDE: {
     id: 'SWEEP_INSIDE',
@@ -7734,6 +8748,7 @@ const wifeNpcState = {
   activeAction: null,
   handBoneR: null,
   swimBones: {},
+  hipsRestPos: null,
   propWateringCan: null,
   propBroom: null,
   broomBristleTip: null,
@@ -7745,9 +8760,16 @@ const wifeNpcState = {
   subIndex: 0,
   subTimer: 16.0,
   pathQueue: [],
-  swimTargetPos: new THREE.Vector3(-9.55, -1.46, 2.20),
+  swimTargetPos: new THREE.Vector3(-9.55, -1.08, 2.20),
   swimSubTimer: 5.2,
   swimSpeed: 0.70,
+  swimPhase: 'SWIM_1',
+  swimPhaseTimer: 0,
+  diveDuration: 1.18,
+  diveStartPos: new THREE.Vector3(-10.54, 0.04, 2.20),
+  diveEndPos: new THREE.Vector3(-9.45, -1.08, 2.20),
+  diveSplashTriggered: false,
+  borderLoungeSpot: null,
   timer: 85.0,
   walkSpeed: 1.42,
   waterAccum: 0
@@ -7900,6 +8922,9 @@ function startWifeActivity(actKey, immediateSpawn = false) {
   wifeNpcState.currentAct = act;
   wifeNpcState.subIndex = 0;
 
+  if (wifePoolSnackGroup) wifePoolSnackGroup.visible = false;
+  resetNpcSwimBones(wifeNpcState);
+
   if (act.id === 'WATER_FRONT_OLIVES' || act.id === 'WATER_LEFT_POTS') {
     const perPlantDur = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
     wifeNpcState.subTimer = perPlantDur;
@@ -7908,13 +8933,20 @@ function startWifeActivity(actKey, immediateSpawn = false) {
     wifeNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
     wifeNpcState.subTimer = 14.0;
   }
-  if (act.id === 'SWIM_POOL') {
-    wifeNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(true));
-    wifeNpcState.swimSubTimer = 5.2 + Math.random() * 3.5;
-  }
   updateWifeFloatingBadge();
 
   if (!wifeNpcState.root) return;
+
+  if (act.id === 'SWIM_POOL' && immediateSpawn) {
+    wifeNpcState.pathQueue = [];
+    wifeNpcState.mode = 'PERFORMING';
+    wifeNpcState.currentZone = 'pool';
+    setWifeProp(null);
+    playWifeClip('Stand_Idle', 0.18);
+    initNpcSwimCycle(wifeNpcState, true, false);
+    requestShadowUpdate();
+    return;
+  }
 
   const dynTarget = getDynamicActivityTarget(act.id, true);
   // Point 3: Rooftop activities now walk up/down the Left Exterior Diagonal Staircase ("kegiatan NPC d roof kini tidak spawn lagi tapi jalan lewat tangga ke atas")!
@@ -7933,7 +8965,11 @@ function startWifeActivity(actKey, immediateSpawn = false) {
 
   const wps = computeGroundFloorWaypoints(prevZone, dynTarget.zone);
   wifeNpcState.pathQueue = wps.map(p => bPos(p[0], p[1], p[2]));
-  wifeNpcState.pathQueue.push(dynTarget.pos.clone());
+  if (act.id === 'SWIM_POOL') {
+    wifeNpcState.pathQueue.push(bPos(-7.86, -5.55, 0.04));
+  } else {
+    wifeNpcState.pathQueue.push(dynTarget.pos.clone());
+  }
   wifeNpcState.currentZone = dynTarget.zone;
   wifeNpcState.mode = 'WALKING';
   setWifeProp(null);
@@ -7953,169 +8989,242 @@ function pickNextRandomWifeActivity() {
   startWifeActivity(nextKey, false);
 }
 
+// Helper to inspect or trigger any specific SWIM_POOL sub-phase (DIVE_JUMP_1, SWIM_1, BORDER_LOUNGE, DIVE_JUMP_2, SWIM_2)
+window.setNpcSwimPhase = function(isWife, phaseName, preferredSide = null) {
+  const npcState = isWife ? wifeNpcState : maherNpcState;
+  const snackGrp = isWife ? wifePoolSnackGroup : maherPoolSnackGroup;
+  if (isWife) {
+    if (wifeNpcState.currentAct.id !== 'SWIM_POOL') startWifeActivity('SWIM_POOL', true);
+  } else {
+    if (maherNpcState.currentAct.id !== 'SWIM_POOL') startMaherActivity('SWIM_POOL', true);
+  }
+  npcState.mode = 'PERFORMING';
+  npcState.currentZone = 'pool';
+  if (preferredSide || !npcState.borderLoungeSpot) {
+    npcState.borderLoungeSpot = pickRandomPoolBorderLoungeSpot(isWife, preferredSide);
+  }
+  const spot = npcState.borderLoungeSpot;
+  if (phaseName === 'BORDER_LOUNGE') {
+    npcState.swimPhase = 'BORDER_LOUNGE';
+    npcState.swimPhaseTimer = 20.0;
+    npcState.root.position.copy(spot.pos);
+    npcState.root.rotation.y = spot.ry;
+    if (snackGrp) {
+      snackGrp.position.copy(spot.pos);
+      snackGrp.rotation.y = spot.ry;
+      snackGrp.visible = true;
+    }
+  } else if (phaseName === 'DIVE_JUMP_1' || phaseName === 'DIVE_JUMP_2') {
+    if (snackGrp) snackGrp.visible = false;
+    resetNpcSwimBones(npcState);
+    npcState.swimPhase = phaseName;
+    npcState.diveDuration = 1.18;
+    npcState.swimPhaseTimer = npcState.diveDuration;
+    npcState.diveSplashTriggered = false;
+    npcState.diveStartPos.copy(spot.diveStartPos);
+    npcState.diveEndPos.copy(spot.diveEndPos);
+    npcState.root.position.copy(spot.diveStartPos);
+    npcState.root.rotation.y = spot.diveRy;
+  } else {
+    if (snackGrp) snackGrp.visible = false;
+    resetNpcSwimBones(npcState);
+    npcState.swimPhase = phaseName || 'SWIM_1';
+    npcState.swimPhaseTimer = 18.0;
+    npcState.root.position.copy(spot.diveEndPos);
+    npcState.swimTargetPos.copy(pickRandomPoolSwimTarget(isWife));
+  }
+};
+
 function fixNpcClothingAndBackGlitches(armRoot, isWife) {
   if (!armRoot) return;
-  let boneMap = {};
+
+  // Definitive Fix for NPC Back Flickering ("glitch kelap kelip di punggung kedua NPC"):
+  // 1) All NPC SkinnedMeshes have receiveShadow = false (set in loadMaherWifeNPC / loadMaitreMaherNPC) so the 15 Hz shadow-map update tick
+  //    never projects a stale frame-lagged self-shadow silhouette onto the moving character's back.
+  // 2) Surgically cull ONLY hidden overlapping inner sub-shells (lower neck stub under shirt/hijab, upper arm stub inside sleeve,
+  //    shorts waistband under shirt hem, pants waist under tunic skirt, lower skirt waist overlap under tunic bodice, and upper back bodice under hijab)
+  //    while keeping 100% of visible hands, wrists, arms, face, neck, and outer clothing completely intact!
+  let chestBoneIdx = -1;
+  const armBoneIndices = new Set();
   armRoot.traverse((ch) => {
     if (ch.isSkinnedMesh && ch.skeleton && ch.skeleton.bones) {
       ch.skeleton.bones.forEach((b, idx) => {
-        boneMap[b.name] = idx;
+        if (b.name === 'Chest') chestBoneIdx = idx;
+        if (b.name.includes('UpperArm') || b.name.includes('Clavicle')) armBoneIndices.add(idx);
       });
     }
   });
-  const hipsIdx = boneMap['Hips'] !== undefined ? boneMap['Hips'] : 0;
-  const spineIdx = boneMap['Spine'] !== undefined ? boneMap['Spine'] : 1;
-  const chestIdx = boneMap['Chest'] !== undefined ? boneMap['Chest'] : 3;
-  const upLegLIdx = boneMap['UpLeg.L'] !== undefined ? boneMap['UpLeg.L'] : 44;
-  const upLegRIdx = boneMap['UpLeg.R'] !== undefined ? boneMap['UpLeg.R'] : 48;
-  const upperArmLIdx = boneMap['UpperArm.L'] !== undefined ? boneMap['UpperArm.L'] : 5;
-  const upperArmRIdx = boneMap['UpperArm.R'] !== undefined ? boneMap['UpperArm.R'] : 24;
-  const clavLIdx = boneMap['Clavicle.L'] !== undefined ? boneMap['Clavicle.L'] : 4;
-  const clavRIdx = boneMap['Clavicle.R'] !== undefined ? boneMap['Clavicle.R'] : 23;
 
   armRoot.traverse((ch) => {
     if (!ch.isMesh || !ch.geometry || !ch.material) return;
     const matName = Array.isArray(ch.material) ? (ch.material[0] && ch.material[0].name) : ch.material.name;
     if (!matName) return;
 
-    const geo = ch.geometry;
+    const geo = ch.geometry.clone();
+    ch.geometry = geo;
     const pos = geo.attributes.position;
+    const idxAttr = geo.index;
     const skinIdx = geo.attributes.skinIndex;
-    const skinW = geo.attributes.skinWeight;
-    if (!pos) return;
+    const skinWgt = geo.attributes.skinWeight;
+    if (!pos || !idxAttr) return;
 
-    // 1. Shrink hidden underlying torso/pelvis/armpit skin inward so skin can NEVER poke through shirt/tunic/sleeves during swimming or walking
-    if (matName.includes('Mat_Skin_Maher')) {
-      for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        if (y >= 0.56 && y <= 1.46 && Math.abs(x) < 0.245) {
-          pos.setXYZ(i, x * 0.72, y, z * 0.62);
-        }
+    const getVertArmWeight = (vi) => {
+      if (!skinIdx || !skinWgt || armBoneIndices.size === 0) return 0;
+      let w = 0;
+      if (armBoneIndices.has(skinIdx.getX(vi))) w += skinWgt.getX(vi);
+      if (armBoneIndices.has(skinIdx.getY(vi))) w += skinWgt.getY(vi);
+      if (armBoneIndices.has(skinIdx.getZ(vi))) w += skinWgt.getZ(vi);
+      if (armBoneIndices.has(skinIdx.getW(vi))) w += skinWgt.getW(vi);
+      return w;
+    };
+
+    const srcIndices = idxAttr.array;
+    const keepIndices = [];
+
+    const shouldCullTri = (cx, cy, cz, triIdx, avgArmW) => {
+      // A. Cull hidden lower neck back & hidden upper-arm skin stub inside Maître Maher's shirt sleeves (keeps 100% of head, neck, forearms, hands & calves intact!)
+      if (matName.includes('Mat_Skin_Maher')) {
+        if (cy >= 1.42 && cy <= 1.495 && cz < 0.03) return true;
+        if (cy >= 1.285 && cy <= 1.40) return true;
+        if (cy >= 0.52 && cy <= 0.56) return true;
+        return false;
       }
-      pos.needsUpdate = true;
-    } else if (matName.includes('Mat_Skin_Wife')) {
-      for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        if (y >= 0.25 && y <= 1.45 && Math.abs(x) < 0.32) {
-          pos.setXYZ(i, x * 0.70, y, z * 0.62);
-        }
+      // B. Cull hidden lower neck/back-head under Mme Maher's hijab and hidden upper-wrist stub inside her tunic sleeves (keeps 100% of face, wrists & hands cy < 0.885 intact!)
+      if (matName.includes('Mat_Skin_Wife')) {
+        if (cy >= 1.32 && cy <= 1.435) return true;
+        if (cy >= 1.435 && cz < -0.005) return true;
+        if (cy >= 0.885 && cy <= 1.06) return true;
+        return false;
       }
-      pos.needsUpdate = true;
+      // C. Cull the upper waist of Maître Maher's shorts (y >= 0.935) that sits underneath the lower hem of Mat_Top_Maher (y = 0.916..1.539)
+      if (matName.includes('Mat_Shorts_Maher')) {
+        if (cy >= 0.935) return true;
+        return false;
+      }
+      // D. Cull the upper ankle/calf top of Mme Maher's pants (y >= 0.555) that sits underneath the long skirt of Mat_Tunic_Wife (y = 0.537..0.983)
+      if (matName.includes('Mat_Pants_Wife')) {
+        if (cy >= 0.555) return true;
+        return false;
+      }
+      // E. Cull ONLY the tucked inner underarm sleeve end-cap of Mat_Top_Maher (where avgArmW > 0.65 inside |x| < 0.174, y = 1.26..1.365),
+      //    leaving 100% of the back torso panel (Comp 1, avgArmW < 0.35) completely intact with zero holes!
+      if (matName.includes('Mat_Top_Maher')) {
+        if (avgArmW > 0.65 && Math.abs(cx) < 0.174 && cy >= 1.26 && cy <= 1.365) {
+          return true;
+        }
+        return false;
+      }
+      // F. Cull internal overlapping layers inside Mat_Tunic_Wife:
+      //    1) Lower skirt waist rim (triIdx < 728, y >= 0.925) overlapping the upper bodice (triIdx >= 968, y = 0.903..1.412)
+      //    2) Upper back bodice (y >= 1.255, cz < 0) sitting directly underneath the back drape of Mat_Hijab_Wife (y = 1.231..1.678)
+      if (matName.includes('Mat_Tunic_Wife')) {
+        if (triIdx < 728 && cy >= 0.925) return true;
+        if (cy >= 1.255 && cz < 0.0) return true;
+        return false;
+      }
+      return false;
+    };
+
+    const numTris = Math.floor(srcIndices.length / 3);
+    for (let t = 0; t < numTris; t++) {
+      const i0 = srcIndices[t * 3];
+      const i1 = srcIndices[t * 3 + 1];
+      const i2 = srcIndices[t * 3 + 2];
+      const cx = (pos.getX(i0) + pos.getX(i1) + pos.getX(i2)) / 3;
+      const cy = (pos.getY(i0) + pos.getY(i1) + pos.getY(i2)) / 3;
+      const cz = (pos.getZ(i0) + pos.getZ(i1) + pos.getZ(i2)) / 3;
+      const avgArmW = (getVertArmWeight(i0) + getVertArmWeight(i1) + getVertArmWeight(i2)) / 3;
+      if (!shouldCullTri(cx, cy, cz, t, avgArmW)) {
+        keepIndices.push(i0, i1, i2);
+      }
     }
-    // 2. Pull upper waist of shorts/pants inward & reassign back-waist leg weights to Hips so they never clip through the lower back of the shirt/tunic
-    else if (matName.includes('Mat_Shorts_Maher')) {
-      for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        if (y >= 0.87 && y <= 1.06) {
-          const t = Math.min(1.0, (y - 0.86) / 0.14);
-          pos.setXYZ(i, x * (1.0 - 0.24 * t), y, z * (1.0 - 0.28 * t));
-        }
-      }
-      pos.needsUpdate = true;
-    } else if (matName.includes('Mat_Pants_Wife')) {
-      for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        if (y >= 0.52 && y <= 1.06) {
-          const t = Math.min(1.0, (y - 0.50) / 0.18);
-          pos.setXYZ(i, x * (1.0 - 0.25 * t), y, z * (1.0 - 0.30 * t));
-        }
-      }
-      pos.needsUpdate = true;
-    } else if (matName.includes('Mat_Hijab_Wife')) {
-      for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        if (y <= 1.45 && z < -0.02) {
-          pos.setZ(i, z - 0.012);
-        }
-      }
-      pos.needsUpdate = true;
+
+    if (keepIndices.length !== srcIndices.length) {
+      geo.setIndex(keepIndices);
     }
-    // 3. Smooth the sculpted vertical back crease & eliminate leg/arm bone-weight tearing on Mat_Top_Maher and Mat_Tunic_Wife
-    else if (matName.includes('Mat_Top_Maher') || matName.includes('Mat_Tunic_Wife')) {
-      const isMaherTop = matName.includes('Mat_Top_Maher');
-      const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
-      mats.forEach((m) => {
-        m.polygonOffset = true;
-        m.polygonOffsetFactor = -1;
-        m.polygonOffsetUnits = -1;
-        m.needsUpdate = true;
-      });
 
+    // Smoothly blend the back-shoulder / underarm sleeve seam of Mat_Top_Maher with the Chest bone so raising the arms during swimming/walking
+    // never folds the back of the sleeve inward through the back torso panel!
+    if (matName.includes('Mat_Top_Maher') && skinIdx && skinWgt && chestBoneIdx >= 0) {
       for (let i = 0; i < pos.count; i++) {
-        let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-
-        // Smooth out the sculpted vertical spine fold on the back so the back of the shirt/tunic is a clean, rounded, wrinkle-free surface
-        if (z < -0.015 && y >= (isMaherTop ? 0.90 : 0.65) && y <= 1.49 && Math.abs(x) < 0.165) {
-          const baseDepth = isMaherTop ? -0.120 : -0.106;
-          const roundedZ = baseDepth * Math.cos(Math.min(1.25, Math.abs(x) / 0.185) * 0.68);
-          z = Math.min(z, roundedZ);
-          if (isMaherTop && y <= 1.05) {
-            z -= 0.012; // Flare lower back hem slightly outward over shorts waist
-          }
-          pos.setZ(i, z);
-        }
-
-        // Fix skin weights so leg swings (Walk_Cycle / SWIM_POOL) and shoulder sculling never tear or pinch the back
-        if (skinIdx && skinW) {
-          let i0 = skinIdx.getX(i), i1 = skinIdx.getY(i), i2 = skinIdx.getZ(i), i3 = skinIdx.getW(i);
-          let w0 = skinW.getX(i), w1 = skinW.getY(i), w2 = skinW.getZ(i), w3 = skinW.getW(i);
-          const idxs = [i0, i1, i2, i3];
-          const ws = [w0, w1, w2, w3];
-
-          for (let k = 0; k < 4; k++) {
-            if (ws[k] <= 0.0001) continue;
-            // Reassign thigh (UpLeg.L / UpLeg.R) weights on the shirt/upper-tunic to Hips so leg rotation never pulls the back inward
-            if ((idxs[k] === upLegLIdx || idxs[k] === upLegRIdx) && y >= (isMaherTop ? 0.88 : 0.72)) {
-              idxs[k] = (y > 1.05) ? spineIdx : hipsIdx;
-            }
-            // On the central back torso, reassign UpperArm/Clavicle weights to Chest so arm sculling in SWIM_POOL never pinches the spine
-            if (z < -0.02 && Math.abs(x) < 0.135 && y >= 1.08 && y <= 1.47) {
-              if (idxs[k] === upperArmLIdx || idxs[k] === upperArmRIdx || idxs[k] === clavLIdx || idxs[k] === clavRIdx) {
-                idxs[k] = chestIdx;
+        const ax = Math.abs(pos.getX(i));
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        if (y >= 1.25 && y <= 1.48 && ax < 0.205 && z < 0.01) {
+          const blendT = Math.max(0.0, Math.min(0.82, (0.205 - ax) / 0.045));
+          if (blendT > 0.01) {
+            const j0 = skinIdx.getX(i), j1 = skinIdx.getY(i), j2 = skinIdx.getZ(i), j3 = skinIdx.getW(i);
+            let w0 = skinWgt.getX(i), w1 = skinWgt.getY(i), w2 = skinWgt.getZ(i), w3 = skinWgt.getW(i);
+            let transferred = 0;
+            if (armBoneIndices.has(j0)) { const d = w0 * blendT; w0 -= d; transferred += d; }
+            if (armBoneIndices.has(j1)) { const d = w1 * blendT; w1 -= d; transferred += d; }
+            if (armBoneIndices.has(j2)) { const d = w2 * blendT; w2 -= d; transferred += d; }
+            if (armBoneIndices.has(j3)) { const d = w3 * blendT; w3 -= d; transferred += d; }
+            if (transferred > 0) {
+              if (j0 === chestBoneIdx) w0 += transferred;
+              else if (j1 === chestBoneIdx) w1 += transferred;
+              else if (j2 === chestBoneIdx) w2 += transferred;
+              else if (j3 === chestBoneIdx) w3 += transferred;
+              else {
+                skinIdx.setW(i, chestBoneIdx);
+                w3 += transferred;
               }
+              const sum = (w0 + w1 + w2 + w3) || 1.0;
+              skinWgt.setXYZW(i, w0 / sum, w1 / sum, w2 / sum, w3 / sum);
             }
           }
-          skinIdx.setXYZW(i, idxs[0], idxs[1], idxs[2], idxs[3]);
+        }
+      }
+      skinIdx.needsUpdate = true;
+      skinWgt.needsUpdate = true;
+    }
+
+    // Gently push the lower-back hem of Mat_Hijab_Wife 8mm outward so its bottom edge at y = 1.231..1.260 clears Mat_Tunic_Wife cleanly
+    if (matName.includes('Mat_Hijab_Wife')) {
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        if (y <= 1.32 && z < -0.02) {
+          pos.setZ(i, z - 0.008);
         }
       }
       pos.needsUpdate = true;
-      if (skinIdx) skinIdx.needsUpdate = true;
+    }
 
-      // Recompute smooth vertex normals and weld normals across coincident UV seam vertices
-      geo.computeVertexNormals();
-      const norm = geo.attributes.normal;
-      if (norm) {
-        const seamBuckets = new Map();
-        for (let i = 0; i < pos.count; i++) {
-          const kx = Math.round(pos.getX(i) * 400);
-          const ky = Math.round(pos.getY(i) * 400);
-          const kz = Math.round(pos.getZ(i) * 400);
-          const key = `${kx}_${ky}_${kz}`;
-          let b = seamBuckets.get(key);
-          if (!b) {
-            b = [];
-            seamBuckets.set(key, b);
-          }
-          b.push(i);
+    // Recompute clean vertex normals and weld normals across coincident UV seam vertices so there is zero hard lighting seam on the back
+    geo.computeVertexNormals();
+    const norm = geo.attributes.normal;
+    if (norm) {
+      const seamBuckets = new Map();
+      for (let i = 0; i < pos.count; i++) {
+        const kx = Math.round(pos.getX(i) * 500);
+        const ky = Math.round(pos.getY(i) * 500);
+        const kz = Math.round(pos.getZ(i) * 500);
+        const key = `${kx}_${ky}_${kz}`;
+        let b = seamBuckets.get(key);
+        if (!b) {
+          b = [];
+          seamBuckets.set(key, b);
         }
-        seamBuckets.forEach((vList) => {
-          if (vList.length > 1) {
-            let nx = 0, ny = 0, nz = 0;
-            for (let j = 0; j < vList.length; j++) {
-              const vi = vList[j];
-              nx += norm.getX(vi);
-              ny += norm.getY(vi);
-              nz += norm.getZ(vi);
-            }
-            const len = Math.hypot(nx, ny, nz) || 1.0;
-            nx /= len; ny /= len; nz /= len;
-            for (let j = 0; j < vList.length; j++) {
-              norm.setXYZ(vList[j], nx, ny, nz);
-            }
-          }
-        });
-        norm.needsUpdate = true;
+        b.push(i);
       }
+      seamBuckets.forEach((vList) => {
+        if (vList.length > 1) {
+          let nx = 0, ny = 0, nz = 0;
+          for (let j = 0; j < vList.length; j++) {
+            const vi = vList[j];
+            nx += norm.getX(vi);
+            ny += norm.getY(vi);
+            nz += norm.getZ(vi);
+          }
+          const len = Math.hypot(nx, ny, nz) || 1.0;
+          nx /= len; ny /= len; nz /= len;
+          for (let j = 0; j < vList.length; j++) {
+            norm.setXYZ(vList[j], nx, ny, nz);
+          }
+        }
+      });
+      norm.needsUpdate = true;
     }
   });
 }
@@ -8132,7 +9241,8 @@ function loadMaherWifeNPC() {
     armRoot.traverse((ch) => {
       if (ch.isMesh) {
         ch.castShadow = true;
-        ch.receiveShadow = true;
+        // Disable self-shadow receiving on moving NPC SkinnedMeshes to prevent 15Hz shadow-map lag strobing ("kelap-kelip") on the back!
+        ch.receiveShadow = false;
         ch.frustumCulled = false;
         if (ch.material) {
           const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
@@ -8145,7 +9255,16 @@ function loadMaherWifeNPC() {
       }
       if (ch.isBone) {
         const bn = ch.name;
-        if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
+        if (bn === 'Hips') {
+          wifeNpcState.swimBones.hips = ch;
+          wifeNpcState.hipsRestPos = ch.position.clone();
+        } else if (bn === 'Spine') {
+          wifeNpcState.swimBones.spine = ch;
+        } else if (bn === 'Chest') {
+          wifeNpcState.swimBones.chest = ch;
+        } else if (bn === 'Neck') {
+          wifeNpcState.swimBones.neck = ch;
+        } else if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
           wifeNpcState.handBoneR = ch;
           wifeNpcState.swimBones.handR = ch;
         } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L') {
@@ -8193,7 +9312,7 @@ function loadMaherWifeNPC() {
     });
 
     wifeNpcState.loaded = true;
-    // Start immediately watering the 5 small potted olive trees in the front yard sequentially!
+    // Start immediately watering the 11 small potted olive trees in the front yard sequentially!
     startWifeActivity('WATER_FRONT_OLIVES', true);
 
     loadingActive--;
@@ -8245,7 +9364,8 @@ function loadMaitreMaherNPC() {
     armRoot.traverse((ch) => {
       if (ch.isMesh) {
         ch.castShadow = true;
-        ch.receiveShadow = true;
+        // Disable self-shadow receiving on moving NPC SkinnedMeshes to prevent 15Hz shadow-map lag strobing ("kelap-kelip") on the back!
+        ch.receiveShadow = false;
         ch.frustumCulled = false;
         if (ch.material) {
           const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
@@ -8258,7 +9378,16 @@ function loadMaitreMaherNPC() {
       }
       if (ch.isBone) {
         const bn = ch.name;
-        if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
+        if (bn === 'Hips') {
+          maherNpcState.swimBones.hips = ch;
+          maherNpcState.hipsRestPos = ch.position.clone();
+        } else if (bn === 'Spine') {
+          maherNpcState.swimBones.spine = ch;
+        } else if (bn === 'Chest') {
+          maherNpcState.swimBones.chest = ch;
+        } else if (bn === 'Neck') {
+          maherNpcState.swimBones.neck = ch;
+        } else if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
           maherNpcState.handBoneR = ch;
           maherNpcState.swimBones.handR = ch;
         } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L') {
@@ -8350,17 +9479,156 @@ function loadMaitreMaherNPC() {
   loadFromUrlWithFallback();
 }
 
+// Shared 5-phase SWIM_POOL controller for Maître Maher & Mme Maher:
+// Phase 1 (DIVE_JUMP_1) -> Phase 2 (SWIM_1) -> Phase 3 (BORDER_LOUNGE on random border with Drink Bottle & Food Plate) -> Phase 4 (DIVE_JUMP_2) -> Phase 5 (SWIM_2)
+function updateNpcPoolSwimCycle(npcState, dt, nowSec, isWife) {
+  const pos = npcState.root.position;
+  const swimY = isWife ? -1.08 : -1.14;
+  const snackGrp = isWife ? wifePoolSnackGroup : maherPoolSnackGroup;
+
+  if (npcState.swimPhase === 'DIVE_JUMP_1' || npcState.swimPhase === 'DIVE_JUMP_2') {
+    if (snackGrp) snackGrp.visible = false;
+    npcState.swimPhaseTimer -= dt;
+    const dur = npcState.diveDuration || 1.18;
+    const jumpProg = Math.max(0, Math.min(1, 1.0 - npcState.swimPhaseTimer / dur));
+
+    pos.x = THREE.MathUtils.lerp(npcState.diveStartPos.x, npcState.diveEndPos.x, jumpProg);
+    pos.z = THREE.MathUtils.lerp(npcState.diveStartPos.z, npcState.diveEndPos.z, jumpProg);
+    npcState.root.rotation.y = Math.atan2(
+      npcState.diveEndPos.x - npcState.diveStartPos.x,
+      npcState.diveEndPos.z - npcState.diveStartPos.z
+    );
+
+    // Parabolic leap from raised pool border (y = +0.04m) up to peak (+0.71m), hitting water (-0.06m) at jumpProg = 0.64, then plunging to swimY
+    if (jumpProg <= 0.64) {
+      const u = jumpProg / 0.64;
+      pos.y = (0.04 * (1.0 - u) + (-0.06) * u) + Math.sin(u * Math.PI) * 0.72;
+    } else {
+      const v = (jumpProg - 0.64) / 0.36;
+      pos.y = -0.06 + (swimY - (-0.06)) * (1.0 - Math.pow(1.0 - v, 2));
+    }
+
+    // Trigger 3D water splash burst ("percikan air saat masuk") & 3x diminishing big ripples ("riak besar 3x semakin kecil") upon water entry!
+    if (jumpProg >= 0.60 && !npcState.diveSplashTriggered) {
+      npcState.diveSplashTriggered = true;
+      spawnPoolDiveSplashAndBigRipples(pos.x, pos.z, isWife ? 1 : 0);
+    }
+
+    if (npcState.swimPhaseTimer <= 0) {
+      const nextPhase = (npcState.swimPhase === 'DIVE_JUMP_1') ? 'SWIM_1' : 'SWIM_2';
+      npcState.swimPhase = nextPhase;
+      npcState.swimPhaseTimer = (nextPhase === 'SWIM_1') ? (14.0 + Math.random() * 5.0) : 999.0;
+      npcState.swimTargetPos.copy(pickRandomPoolSwimTarget(isWife));
+      npcState.swimSubTimer = 4.6 + Math.random() * 3.5;
+    }
+  } else if (npcState.swimPhase === 'BORDER_LOUNGE') {
+    // Mid-swim reclining on a random pool border (West/Left, East/Right, North, or South at bz = +0.04m) enjoying Drink Bottle & Food Plate!
+    if (!npcState.borderLoungeSpot) {
+      npcState.borderLoungeSpot = pickRandomPoolBorderLoungeSpot(isWife);
+    }
+    const spot = npcState.borderLoungeSpot;
+    pos.copy(spot.pos);
+    npcState.root.rotation.y = spot.ry;
+    if (snackGrp) {
+      snackGrp.position.copy(spot.pos);
+      snackGrp.rotation.y = spot.ry;
+      snackGrp.visible = true;
+    }
+
+    npcState.swimPhaseTimer -= dt;
+    if (npcState.swimPhaseTimer <= 0) {
+      // Finished mid-swim snack break -> jump back into the pool with splash & 3x diminishing big ripples!
+      if (snackGrp) snackGrp.visible = false;
+      resetNpcSwimBones(npcState);
+      npcState.swimPhase = 'DIVE_JUMP_2';
+      npcState.diveDuration = 1.18;
+      npcState.swimPhaseTimer = npcState.diveDuration;
+      npcState.diveSplashTriggered = false;
+      npcState.diveStartPos.copy(spot.diveStartPos);
+      npcState.diveEndPos.copy(spot.diveEndPos);
+      pos.copy(spot.diveStartPos);
+      npcState.root.rotation.y = spot.diveRy;
+    }
+  } else {
+    // SWIM_1 or SWIM_2: Swimming & floating around the pool in random directions at upper-stomach depth!
+    if (snackGrp) snackGrp.visible = false;
+    const target = npcState.swimTargetPos;
+    const dx = target.x - pos.x;
+    const dz = target.z - pos.z;
+    const dist = Math.hypot(dx, dz);
+    const step = npcState.swimSpeed * dt;
+    npcState.swimSubTimer -= dt;
+
+    if (dist <= step + 0.08 || npcState.swimSubTimer <= 0) {
+      npcState.swimTargetPos.copy(pickRandomPoolSwimTarget(isWife));
+      npcState.swimSubTimer = 4.8 + Math.random() * 4.2;
+    } else {
+      pos.x += (dx / dist) * step;
+      pos.z += (dz / dist) * step;
+      const targetYaw = Math.atan2(dx, dz);
+      let diff = targetYaw - npcState.root.rotation.y;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      npcState.root.rotation.y += diff * Math.min(1.0, dt * 4.5);
+    }
+    pos.y = swimY + Math.sin(nowSec * 2.4 + (isWife ? 1.4 : 0.0)) * 0.024;
+
+    npcState.swimPhaseTimer -= dt;
+    if (npcState.swimPhase === 'SWIM_1' && npcState.swimPhaseTimer <= 0) {
+      // Climb onto a random pool border in the middle of swimming to lie down & enjoy the drink bottle and food plate!
+      npcState.borderLoungeSpot = pickRandomPoolBorderLoungeSpot(isWife);
+      npcState.swimPhase = 'BORDER_LOUNGE';
+      npcState.swimPhaseTimer = 15.0 + Math.random() * 5.0;
+      pos.copy(npcState.borderLoungeSpot.pos);
+      npcState.root.rotation.y = npcState.borderLoungeSpot.ry;
+      if (snackGrp) {
+        snackGrp.position.copy(npcState.borderLoungeSpot.pos);
+        snackGrp.rotation.y = npcState.borderLoungeSpot.ry;
+        snackGrp.visible = true;
+      }
+    }
+  }
+
+  npcState.timer -= dt;
+  if (npcState.timer <= 0 && npcState.swimPhase !== 'DIVE_JUMP_1' && npcState.swimPhase !== 'DIVE_JUMP_2') {
+    if (snackGrp) snackGrp.visible = false;
+    resetNpcSwimBones(npcState);
+    if (isWife) {
+      pickNextRandomWifeActivity();
+    } else {
+      pickNextRandomMaherActivity();
+    }
+  }
+}
+
+function applyNpcActiveSwimPoseAfterMixer(npcState, nowSec, isWife) {
+  const act = npcState.currentAct;
+  if (act && act.id === 'SWIM_POOL' && npcState.mode === 'PERFORMING') {
+    if (npcState.swimPhase === 'DIVE_JUMP_1' || npcState.swimPhase === 'DIVE_JUMP_2') {
+      const dur = npcState.diveDuration || 1.18;
+      const jumpProg = Math.max(0, Math.min(1, 1.0 - npcState.swimPhaseTimer / dur));
+      applyNpcPoolDiveJumpPose(npcState, jumpProg, isWife);
+    } else if (npcState.swimPhase === 'BORDER_LOUNGE') {
+      applyNpcPoolBorderLoungePose(npcState, nowSec, isWife);
+    } else {
+      applyNpcSwimTreadPose(npcState, nowSec, isWife);
+    }
+  } else if (npcState.root && npcState.root.position.x < -8.12 && npcState.root.position.y < -0.35) {
+    applyNpcSwimTreadPose(npcState, nowSec, isWife);
+  }
+}
+
 function updateMaherNpcAndParticles(dt) {
   const nowSec = performance.now() * 0.001;
 
-  // 0. Animate Pool Water Wave Normal Map & 18 Random 3D Water Ripple Rings (Task 3 & 5)
+  // 0. Animate Pool Water Wave Normal Map, 18 Random 3D Water Ripple Rings & 3x Diminishing Big Jump Ripples!
   if (window.poolWaveNorTex) {
     window.poolWaveNorTex.offset.x = (window.poolWaveNorTex.offset.x + dt * 0.048) % 1.0;
     window.poolWaveNorTex.offset.y = (window.poolWaveNorTex.offset.y + dt * 0.034) % 1.0;
   }
   if (window.poolRippleRings && window.poolRippleRings.length > 0) {
-    const maherInPool = maherNpcState.loaded && maherNpcState.root && maherNpcState.root.position.x < -8.12 && maherNpcState.root.position.y < -0.68;
-    const wifeInPool = wifeNpcState.loaded && wifeNpcState.root && wifeNpcState.root.position.x < -8.12 && wifeNpcState.root.position.y < -0.68;
+    const maherInPool = maherNpcState.loaded && maherNpcState.root && maherNpcState.root.position.x < -8.12 && maherNpcState.root.position.y < -0.35;
+    const wifeInPool = wifeNpcState.loaded && wifeNpcState.root && wifeNpcState.root.position.x < -8.12 && wifeNpcState.root.position.y < -0.35;
     for (let i = 0; i < window.poolRippleRings.length; i++) {
       const r = window.poolRippleRings[i];
       if (!r || !r.mesh || !r.mesh.material) continue;
@@ -8395,6 +9663,31 @@ function updateMaherNpcAndParticles(dt) {
     }
   }
 
+  // 0B. Animate the 3 concentric diminishing big ripples ("riak besar 3x semakin kecil") spawned when an NPC jumps into the pool!
+  if (window.poolBigJumpRipples && window.poolBigJumpRipples.length > 0) {
+    for (let i = 0; i < window.poolBigJumpRipples.length; i++) {
+      const br = window.poolBigJumpRipples[i];
+      if (!br || !br.active || !br.mesh) continue;
+      if (br.delay > 0) {
+        br.delay -= dt;
+        continue;
+      }
+      br.mesh.visible = true;
+      br.age += dt;
+      if (br.age >= br.maxAge) {
+        br.active = false;
+        br.mesh.visible = false;
+        br.mesh.material.opacity = 0;
+        continue;
+      }
+      const prog = Math.max(0, Math.min(1, br.age / br.maxAge));
+      const sc = br.startScale + prog * (br.targetScale - br.startScale);
+      br.mesh.scale.set(sc, sc, 1);
+      br.mesh.updateMatrix();
+      br.mesh.material.opacity = Math.sin(prog * Math.PI) * br.maxOpacity;
+    }
+  }
+
   // 1. Update Maître Maher NPC state machine & animation mixer
   if (maherNpcState.loaded && maherNpcState.root && maherNpcState.mixer) {
     // Hide rooftop NPC only when actually on the 2nd floor (> 2.2m) and viewing 1st-floor cutaway top view or when roof is hidden
@@ -8410,13 +9703,15 @@ function updateMaherNpcAndParticles(dt) {
     if (maherNpcState.mode === 'WALKING') {
       // Continuously keep final path destination locked to the target object's live position!
       if (maherNpcState.pathQueue.length > 0) {
-        maherNpcState.pathQueue[maherNpcState.pathQueue.length - 1].copy(dynTarget.pos);
+        if (act.id !== 'SWIM_POOL') {
+          maherNpcState.pathQueue[maherNpcState.pathQueue.length - 1].copy(dynTarget.pos);
+        }
         const target = maherNpcState.pathQueue[0];
         const pos = maherNpcState.root.position;
         const dx = target.x - pos.x;
         const dz = target.z - pos.z;
         const dist = Math.hypot(dx, dz);
-        const inWaterNow = (pos.x < -8.12 && pos.y < -0.68);
+        const inWaterNow = (pos.x < -8.12 && pos.y < -0.35);
         const step = (inWaterNow ? maherNpcState.swimSpeed : maherNpcState.walkSpeed) * dt;
 
         if (dist <= step + 0.04) {
@@ -8435,44 +9730,20 @@ function updateMaherNpcAndParticles(dt) {
           maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 10.0);
         }
       } else {
-        // Arrived at destination activity! Lock to live object position & orientation!
+        // Arrived at destination activity!
         maherNpcState.mode = 'PERFORMING';
         maherNpcState.currentZone = dynTarget.zone;
-        maherNpcState.root.position.copy(dynTarget.pos);
-        maherNpcState.root.rotation.y = dynTarget.ry;
         setMaherProp(act.prop);
         playMaherClip(act.clip, 0.25);
+        if (act.id === 'SWIM_POOL') {
+          initNpcSwimCycle(maherNpcState, false, true);
+        } else {
+          maherNpcState.root.position.copy(dynTarget.pos);
+          maherNpcState.root.rotation.y = dynTarget.ry;
+        }
       }
     } else if (act.id === 'SWIM_POOL') {
-      // Task 5: Swimming in Family Pool — body submerged to upper stomach (-1.52m under -0.44m water surface),
-      // moving around randomly inside the pool for the duration of the loop!
-      const pos = maherNpcState.root.position;
-      const target = maherNpcState.swimTargetPos;
-      const dx = target.x - pos.x;
-      const dz = target.z - pos.z;
-      const dist = Math.hypot(dx, dz);
-      const step = maherNpcState.swimSpeed * dt;
-      maherNpcState.swimSubTimer -= dt;
-
-      if (dist <= step + 0.08 || maherNpcState.swimSubTimer <= 0) {
-        maherNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(false));
-        maherNpcState.swimSubTimer = 5.0 + Math.random() * 4.5;
-      } else {
-        pos.x += (dx / dist) * step;
-        pos.z += (dz / dist) * step;
-        const targetYaw = Math.atan2(dx, dz);
-        let diff = targetYaw - maherNpcState.root.rotation.y;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        maherNpcState.root.rotation.y += diff * Math.min(1.0, dt * 4.5);
-      }
-      // Subtle buoyancy bobbing right at upper-stomach immersion depth (-1.52m)
-      pos.y = -1.52 + Math.sin(nowSec * 2.4) * 0.024;
-
-      maherNpcState.timer -= dt;
-      if (maherNpcState.timer <= 0) {
-        pickNextRandomMaherActivity();
-      }
+      updateNpcPoolSwimCycle(maherNpcState, dt, nowSec, false);
     } else {
       // PERFORMING current activity:
       // If the user moved or rotated/flipped the target object, automatically walk to the new position & open/front side!
@@ -8501,11 +9772,7 @@ function updateMaherNpcAndParticles(dt) {
     }
 
     maherNpcState.mixer.update(dt);
-    // Apply treading-water / floating hand & arm motion whenever Maître Maher is in the pool water!
-    if ((act.id === 'SWIM_POOL' && maherNpcState.mode === 'PERFORMING') ||
-        (maherNpcState.root.position.x < -8.12 && maherNpcState.root.position.y < -0.68)) {
-      applyNpcSwimTreadPose(maherNpcState, nowSec, false);
-    }
+    applyNpcActiveSwimPoseAfterMixer(maherNpcState, nowSec, false);
     maherNpcState.shadowTick = (maherNpcState.shadowTick + 1) % 4;
     if (maherNpcState.shadowTick === 0) requestShadowUpdate();
   }
@@ -8577,13 +9844,15 @@ function updateMaherNpcAndParticles(dt) {
 
     if (wifeNpcState.mode === 'WALKING') {
       if (wifeNpcState.pathQueue.length > 0) {
-        wifeNpcState.pathQueue[wifeNpcState.pathQueue.length - 1].copy(wDynTarget.pos);
+        if (wAct.id !== 'SWIM_POOL') {
+          wifeNpcState.pathQueue[wifeNpcState.pathQueue.length - 1].copy(wDynTarget.pos);
+        }
         const target = wifeNpcState.pathQueue[0];
         const pos = wifeNpcState.root.position;
         const dx = target.x - pos.x;
         const dz = target.z - pos.z;
         const dist = Math.hypot(dx, dz);
-        const inWaterNow = (pos.x < -8.12 && pos.y < -0.68);
+        const inWaterNow = (pos.x < -8.12 && pos.y < -0.35);
         const step = (inWaterNow ? wifeNpcState.swimSpeed : wifeNpcState.walkSpeed) * dt;
 
         if (dist <= step + 0.04) {
@@ -8602,40 +9871,17 @@ function updateMaherNpcAndParticles(dt) {
       } else {
         wifeNpcState.mode = 'PERFORMING';
         wifeNpcState.currentZone = wDynTarget.zone;
-        wifeNpcState.root.position.copy(wDynTarget.pos);
-        wifeNpcState.root.rotation.y = wDynTarget.ry;
         setWifeProp(wAct.prop);
         playWifeClip(wAct.clip, 0.25);
+        if (wAct.id === 'SWIM_POOL') {
+          initNpcSwimCycle(wifeNpcState, true, true);
+        } else {
+          wifeNpcState.root.position.copy(wDynTarget.pos);
+          wifeNpcState.root.rotation.y = wDynTarget.ry;
+        }
       }
     } else if (wAct.id === 'SWIM_POOL') {
-      // Task 5: Mme Maher Swimming in Family Pool — submerged to upper stomach (-1.46m under -0.44m water surface),
-      // moving around randomly inside the pool for the duration of the loop!
-      const pos = wifeNpcState.root.position;
-      const target = wifeNpcState.swimTargetPos;
-      const dx = target.x - pos.x;
-      const dz = target.z - pos.z;
-      const dist = Math.hypot(dx, dz);
-      const step = wifeNpcState.swimSpeed * dt;
-      wifeNpcState.swimSubTimer -= dt;
-
-      if (dist <= step + 0.08 || wifeNpcState.swimSubTimer <= 0) {
-        wifeNpcState.swimTargetPos.copy(pickRandomPoolSwimTarget(true));
-        wifeNpcState.swimSubTimer = 4.8 + Math.random() * 4.2;
-      } else {
-        pos.x += (dx / dist) * step;
-        pos.z += (dz / dist) * step;
-        const targetYaw = Math.atan2(dx, dz);
-        let diff = targetYaw - wifeNpcState.root.rotation.y;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-        wifeNpcState.root.rotation.y += diff * Math.min(1.0, dt * 4.5);
-      }
-      pos.y = -1.46 + Math.sin(nowSec * 2.5 + 1.4) * 0.022;
-
-      wifeNpcState.timer -= dt;
-      if (wifeNpcState.timer <= 0) {
-        pickNextRandomWifeActivity();
-      }
+      updateNpcPoolSwimCycle(wifeNpcState, dt, nowSec, true);
     } else {
       const pos = wifeNpcState.root.position;
       const distToTarget = Math.hypot(wDynTarget.pos.x - pos.x, wDynTarget.pos.z - pos.z);
@@ -8655,7 +9901,7 @@ function updateMaherNpcAndParticles(dt) {
         wifeNpcState.root.rotation.y += diff * Math.min(1.0, dt * 12.0);
       }
 
-      // Advance per-plant / per-tree / per-sweep-spot subTimer so she steps sequentially from olive #1..#5, pot #1..#6, or across the floor while sweeping!
+      // Advance per-plant / per-tree / per-sweep-spot subTimer so she steps sequentially from olive #1..#11, pot #1..#6, or across the floor while sweeping!
       wifeNpcState.subTimer -= dt;
       if (wifeNpcState.subTimer <= 0) {
         if (wAct.id === 'WATER_FRONT_OLIVES' || wAct.id === 'WATER_LEFT_POTS') {
@@ -8676,11 +9922,7 @@ function updateMaherNpcAndParticles(dt) {
     }
 
     wifeNpcState.mixer.update(dt);
-    // Apply treading-water / floating hand & arm motion whenever Mme Maher is in the pool water!
-    if ((wAct.id === 'SWIM_POOL' && wifeNpcState.mode === 'PERFORMING') ||
-        (wifeNpcState.root.position.x < -8.12 && wifeNpcState.root.position.y < -0.68)) {
-      applyNpcSwimTreadPose(wifeNpcState, nowSec, true);
-    }
+    applyNpcActiveSwimPoseAfterMixer(wifeNpcState, nowSec, true);
 
     // Ensure the broom bristles always touch the floor cleanly when sweeping!
     if (wifeNpcState.propBroom && wifeNpcState.propBroom.visible && wifeNpcState.broomBristleTip) {
@@ -8695,7 +9937,7 @@ function updateMaherNpcAndParticles(dt) {
       wifeNpcState.propBroom.position.y = Math.max(-0.35, Math.min(0.35, -0.02 + tipSign * errY));
     }
 
-    // Pour water droplets from Wife's watering can spout when she is watering the 5 olive trees or left terrace pots!
+    // Pour water droplets from Wife's watering can spout when she is watering the 11 olive trees or rooftop pots!
     if (wifeNpcState.mode === 'PERFORMING' && wifeNpcState.currentAct.prop === 'watering_can') {
       wifeNpcState.waterAccum += dt;
       if (wifeNpcState.waterAccum >= 0.035) {
@@ -8732,7 +9974,7 @@ function updateMaherNpcAndParticles(dt) {
     p.mesh.quaternion.copy(activeCamera.quaternion);
   }
 
-  // 5. Advance active water droplets (arc downward under gravity)
+  // 5. Advance active water droplets (arc downward under gravity, including watering can drops & pool dive splash droplets!)
   for (let i = 0; i < waterParticles.length; i++) {
     const p = waterParticles[i];
     if (!p.active) continue;
