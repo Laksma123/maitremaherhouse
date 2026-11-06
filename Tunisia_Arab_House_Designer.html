@@ -258,6 +258,14 @@
 <div id="selection-hud">
   <span class="hud-title" id="sel-name">📌 Click once on any 3D object to select • Drag = Move • ↑/↓ = Resize</span>
   <button class="hud-btn btn-open-toggle" id="btn-hud-open" onclick="toggleSelectedOpening()">🚪 Open / Close</button>
+  <span id="fence-hud-controls" style="display:none; gap:4px; align-items:center;">
+    <button class="hud-btn" id="btn-fence-left-dec" onclick="adjustWoodenFencePanels('left', -1)" title="Reduce Left Fence Panels">◀➖ Left Fence</button>
+    <button class="hud-btn" id="btn-fence-left-inc" onclick="adjustWoodenFencePanels('left', 1)" title="Extend Left Fence Panels">◀➕ Left Fence</button>
+    <button class="hud-btn" id="btn-fence-gate-left" onclick="slideWoodenFenceGate(-0.65)" title="Slide Gate Left Along Fence Line">◀ Gate</button>
+    <button class="hud-btn" id="btn-fence-gate-right" onclick="slideWoodenFenceGate(0.65)" title="Slide Gate Right Along Fence Line">Gate ▶</button>
+    <button class="hud-btn" id="btn-fence-right-dec" onclick="adjustWoodenFencePanels('right', -1)" title="Reduce Right Fence Panels">Right Fence ➖▶</button>
+    <button class="hud-btn" id="btn-fence-right-inc" onclick="adjustWoodenFencePanels('right', 1)" title="Extend Right Fence Panels">Right Fence ➕▶</button>
+  </span>
   <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
   <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
   <button class="hud-btn" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
@@ -1997,78 +2005,70 @@ function buildStaticArchitecture() {
 
   // ==========================================================================
   // RAISED 3-STEP SWIMMING POOL BORDER (top at bz = +0.04m = 3 steps x 0.18m above -0.50m ground!)
-  // WITH 3-STEP STAIRS ON BOTH WIDTH SIDES OF THE POOL (South & North ends) + EAST WALKWAY STAIRS
-  // ("kolam aku ingin bordernya setinggi 3 step NPC naik tangga, dengan tangga di kedua sisi lebar kolam")
+  // - Water Basin shortened so its South edge aligns with Step 1 of the Roof Staircase (by = -4.95m .. +0.90m, length = 5.85m, center by = -2.025m)
+  // - Outer Pool Border & Outline kept identical (bx = -10.88 .. -7.52m, by = -7.78 .. +1.58m), turning the South section (by = -7.78 .. -4.95m)
+  //   into a Wide Flat Lounging Border Deck ("sisi depan kolam yg sejajar terrace saat ini menjadi border flat luas untuk bersantai")
+  // - Width-end stairs removed, keeping ONLY the small East 3-Step Stairs toward the Left Terrace ("tangga menuju kolam hapus, dan sisakan hanya yg kecil arah terrace kiri")
   // ==========================================================================
   const poolFloorBz = -1.50;
   const poolBorderTopBz = 0.04; // Exactly 3 steps (3 x 0.18m = 0.54m) above the -0.50m exterior soil ground!
   const poolWaterBz = -0.06;    // Deep reflective water surface 10cm below the raised lounging border deck
 
-  // Recessed Pool Floor (bz = -1.50m) & 4 Inner Zellige Pool Walls + Outer Plastered Masonry Raised Pool Walls (bz = -1.50m .. +0.02m)
-  addBoxMesh(2.16, 0.16, 8.16, -9.20, -3.10, poolFloorBz - 0.08, matPoolZellige, familyPoolGroup, true);
-  // East & West inner Zellige pool walls
-  addBoxMesh(0.18, 1.52, 8.16, -8.19, -3.10, -0.74, matPoolZellige, familyPoolGroup, true);
-  addBoxMesh(0.18, 1.52, 8.16, -10.21, -3.10, -0.74, matPoolZellige, familyPoolGroup, true);
-  // South & North inner Zellige pool walls
-  addBoxMesh(2.16, 1.52, 0.18, -9.20, -7.11, -0.74, matPoolZellige, familyPoolGroup, true);
+  // Recessed Pool Floor (bz = -1.50m) & 4 Inner Zellige Pool Walls for the Shortened Water Basin (by = -4.95m .. +0.90m, center by = -2.025m, length = 5.85m)
+  addBoxMesh(2.16, 0.16, 6.01, -9.20, -2.025, poolFloorBz - 0.08, matPoolZellige, familyPoolGroup, true);
+  // East & West inner Zellige pool walls (spanning the shortened water basin by = -4.95 .. +0.90m)
+  addBoxMesh(0.18, 1.52, 6.01, -8.19, -2.025, -0.74, matPoolZellige, familyPoolGroup, true);
+  addBoxMesh(0.18, 1.52, 6.01, -10.21, -2.025, -0.74, matPoolZellige, familyPoolGroup, true);
+  // South (at by = -4.96m, aligned with Step 1 of the Roof Staircase at by = -4.95m!) & North (at by = +0.91m) inner Zellige pool walls
+  addBoxMesh(2.16, 1.52, 0.18, -9.20, -4.96, -0.74, matPoolZellige, familyPoolGroup, true);
   addBoxMesh(2.16, 1.52, 0.18, -9.20, 0.91, -0.74, matPoolZellige, familyPoolGroup, true);
 
-  // Outer Raised Pool Border Masonry Structure (rising 0.50m from exterior ground bz = -0.50m up to bz = 0.00m under the marble coping deck)
-  addBoxMesh(0.58, 0.50, 9.28, -7.89, -3.10, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
-  addBoxMesh(0.58, 0.50, 9.28, -10.51, -3.10, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
-  addBoxMesh(3.20, 0.50, 0.58, -9.20, -7.45, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  // Outer Raised Pool Border Masonry Structure (preserving the exact 3.36m x 9.36m outer pool outline from by = -7.78m to +1.58m!)
+  addBoxMesh(0.58, 0.50, 6.53, -7.89, -1.685, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  addBoxMesh(0.58, 0.50, 6.53, -10.51, -1.685, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
+  addBoxMesh(3.20, 0.50, 2.75, -9.20, -6.365, -0.25, wallMaterials.courtyard, familyPoolGroup, true); // Solid masonry supporting the Wide Flat South Lounging Deck (by = -7.74 .. -4.99)
   addBoxMesh(3.20, 0.50, 0.58, -9.20, 1.25, -0.25, wallMaterials.courtyard, familyPoolGroup, true);
 
-  // Wide Travertine & Carthage Marble Pool Lounging Border Deck framing all 4 sides (0.68m wide for comfortable NPC reclining, top at bz = +0.04m!)
-  addBoxMesh(0.68, 0.08, 9.36, -7.86, -3.10, 0.00, matMainFloor, familyPoolGroup, true);   // East (Right) Border Deck (bx = -7.86)
-  addBoxMesh(0.68, 0.08, 9.36, -10.54, -3.10, 0.00, matMainFloor, familyPoolGroup, true);  // West (Left) Border Deck (bx = -10.54)
-  addBoxMesh(3.36, 0.08, 0.68, -9.20, -7.44, 0.00, matMainFloor, familyPoolGroup, true);   // South Width Border Deck (by = -7.44)
+  // Travertine & Carthage Marble Pool Lounging Border Deck:
+  // - East & West side borders alongside the water basin (by = -4.95m .. +1.58m, length = 6.53m, center by = -1.685m)
+  // - Wide Flat South Lounging Border Deck ("sisi depan kolam yg sejajar terrace saat ini menjadi border flat luas untuk bersantai", by = -7.78m .. -4.95m, 3.36m x 2.83m, center by = -6.365m)
+  // - North Width Border Deck (by = +1.24m)
+  addBoxMesh(0.68, 0.08, 6.53, -7.86, -1.685, 0.00, matMainFloor, familyPoolGroup, true);   // East (Right) Border Deck (bx = -7.86, by = -4.95 .. +1.58)
+  addBoxMesh(0.68, 0.08, 6.53, -10.54, -1.685, 0.00, matMainFloor, familyPoolGroup, true);  // West (Left) Border Deck (bx = -10.54, by = -4.95 .. +1.58)
+  addBoxMesh(3.36, 0.08, 2.83, -9.20, -6.365, 0.00, matMainFloor, familyPoolGroup, true);   // Wide Flat South Lounging Border Deck (bx = -10.88 .. -7.52, by = -7.78 .. -4.95)
   addBoxMesh(3.36, 0.08, 0.68, -9.20, 1.24, 0.00, matMainFloor, familyPoolGroup, true);    // North Width Border Deck (by = +1.24)
-  // Golden Stone Bullnose Trim around the Raised Pool Border
+  // Golden Stone Bullnose Trim around the Raised Pool Border (exact same outer outline: bx = -10.91 .. -7.49, by = -7.81 .. +1.61)
   addBoxMesh(0.74, 0.045, 9.44, -7.86, -3.10, -0.03, matArchTrim, familyPoolGroup, true);
   addBoxMesh(0.74, 0.045, 9.44, -10.54, -3.10, -0.03, matArchTrim, familyPoolGroup, true);
   addBoxMesh(3.44, 0.045, 0.74, -9.20, -7.44, -0.03, matArchTrim, familyPoolGroup, true);
   addBoxMesh(3.44, 0.045, 0.74, -9.20, 1.24, -0.03, matArchTrim, familyPoolGroup, true);
 
-  // 1) EXTERIOR 3-STEP STAIRS ON BOTH WIDTH SIDES OF THE POOL ("dengan tangga di kedua sisi lebar kolam": South Width End & North Width End!)
-  //    Each stair has 3 crisp steps rising from ground (-0.50m) -> Step 1 (-0.32m) -> Step 2 (-0.14m) -> Step 3 / Pool Border (+0.04m)
+  // 1) ONLY KEEP THE SMALL EAST WALKWAY 3-STEP STAIRS TOWARD THE LEFT TERRACE ("tangga menuju kolam hapus, dan sisakan hanya yg kecil arah terrace kiri")
+  //    Rising from ground (-0.50m) -> Step 1 (-0.32m) -> Step 2 (-0.14m) -> Step 3 / Pool Border (+0.04m) at by = -6.05m
   [0, 1, 2].forEach((si) => {
     const stepTop = -0.32 + si * 0.18;
     const stepH = stepTop - (-0.50);
     const stepRun = 0.28;
-    // South Width Side Exterior Stairs (at by = -8.46, -8.18, -7.90 leading up onto the South border at by = -7.44, spanning 2.16m width)
-    const sBy = -8.46 + si * stepRun;
-    addBoxMesh(2.16, stepH, stepRun + 0.02, -9.20, sBy, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
-    addBoxMesh(2.22, 0.036, stepRun + 0.04, -9.20, sBy, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
-    addBoxMesh(2.04, 0.014, 0.02, -9.20, sBy - stepRun * 0.48, stepTop - 0.036, matLedBorderOpening, familyPoolGroup, false);
-
-    // North Width Side Exterior Stairs (at by = +2.26, +1.98, +1.70 leading up onto the North border at by = +1.24, spanning 2.16m width)
-    const nBy = 2.26 - si * stepRun;
-    addBoxMesh(2.16, stepH, stepRun + 0.02, -9.20, nBy, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
-    addBoxMesh(2.22, 0.036, stepRun + 0.04, -9.20, nBy, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
-    addBoxMesh(2.04, 0.014, 0.02, -9.20, nBy + stepRun * 0.48, stepTop - 0.036, matLedBorderOpening, familyPoolGroup, false);
-
-    // East Walkway 3-Step Stairs (at by = -6.05, bx = -6.82, -7.10, -7.38 connecting the Left Terrace walkway directly up onto the East border!)
     const eBx = -6.82 - si * stepRun;
     addBoxMesh(stepRun + 0.02, stepH, 1.18, eBx, -6.05, -0.50 + stepH * 0.5, wallMaterials.courtyard, familyPoolGroup, true);
     addBoxMesh(stepRun + 0.04, 0.036, 1.24, eBx, -6.05, stepTop - 0.018, matMainFloor, familyPoolGroup, true);
   });
 
-  // 2) UNDERWATER 3-STEP POOL STAIRS AT BOTH WIDTH ENDS OF THE POOL (South Inner End & North Inner End)
+  // 2) UNDERWATER 3-STEP POOL STAIRS AT BOTH ENDS OF THE SHORTENED WATER BASIN (South Water End at by = -4.87 & North Water End at by = +0.82)
   [0, 1, 2].forEach((si) => {
     const uTop = -0.26 - si * 0.30;
     const uH = uTop - poolFloorBz;
     const uDepth = 0.24 * (si + 1);
-    // South Underwater Steps (by = -7.02 .. -6.30)
-    addBoxMesh(1.92, uH, uDepth, -9.20, -7.02 + uDepth * 0.5, poolFloorBz + uH * 0.5, matPoolZellige, familyPoolGroup, true);
-    addBoxMesh(1.94, 0.03, uDepth + 0.02, -9.20, -7.02 + uDepth * 0.5, uTop - 0.015, matMainFloor, familyPoolGroup, true);
+    // South Underwater Steps (by = -4.87 .. -4.15, right inside the shortened South water wall at by = -4.95m)
+    addBoxMesh(1.92, uH, uDepth, -9.20, -4.87 + uDepth * 0.5, poolFloorBz + uH * 0.5, matPoolZellige, familyPoolGroup, true);
+    addBoxMesh(1.94, 0.03, uDepth + 0.02, -9.20, -4.87 + uDepth * 0.5, uTop - 0.015, matMainFloor, familyPoolGroup, true);
     // North Underwater Steps (by = +0.82 .. +0.10)
     addBoxMesh(1.92, uH, uDepth, -9.20, 0.82 - uDepth * 0.5, poolFloorBz + uH * 0.5, matPoolZellige, familyPoolGroup, true);
     addBoxMesh(1.94, 0.03, uDepth + 0.02, -9.20, 0.82 - uDepth * 0.5, uTop - 0.015, matMainFloor, familyPoolGroup, true);
   });
 
-  // Underwater Warm LED Pool Lights along East & West inner walls (sleek deep horizontal recessed fixtures at bz = -0.82m)
-  [-5.60, -3.10, -0.60].forEach((ly) => {
+  // Underwater Warm LED Pool Lights along East & West inner walls of the shortened water basin (bz = -0.82m)
+  [-3.85, -2.025, -0.20].forEach((ly) => {
     addBoxMesh(0.02, 0.26, 0.05, -8.29, ly, -0.82, matLedBorderOpening, familyPoolGroup, false);
     addBoxMesh(0.02, 0.26, 0.05, -10.11, ly, -0.82, matLedBorderOpening, familyPoolGroup, false);
   });
@@ -2094,10 +2094,10 @@ function buildStaticArchitecture() {
   pwCtx.putImageData(pwImg, 0, 0);
   const poolWaveNorTex = new THREE.CanvasTexture(poolWaveCanvas);
   poolWaveNorTex.wrapS = poolWaveNorTex.wrapT = THREE.RepeatWrapping;
-  poolWaveNorTex.repeat.set(3, 8);
+  poolWaveNorTex.repeat.set(3, 6);
   window.poolWaveNorTex = poolWaveNorTex;
 
-  // Layer 1: Deep Optical Absorption Water Volume (bz = -0.62m) giving true deep-water optical richness ("airnya dalam")
+  // Layer 1: Deep Optical Absorption Water Volume (bz = -0.62m) spanning the shortened 1.96m x 5.81m water basin (by = -4.95 .. +0.90, center by = -2.025)
   const matPoolDeepAbsorption = new THREE.MeshStandardMaterial({
     color: 0x073b54,
     roughness: 0.14,
@@ -2107,14 +2107,14 @@ function buildStaticArchitecture() {
     opacity: 0.56,
     depthWrite: false
   });
-  const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(1.96, 7.96), matPoolDeepAbsorption);
+  const poolDeepLayer = new THREE.Mesh(new THREE.PlaneGeometry(1.96, 5.81), matPoolDeepAbsorption);
   poolDeepLayer.rotation.x = -Math.PI / 2;
-  poolDeepLayer.position.copy(bPos(-9.20, -3.10, -0.62));
+  poolDeepLayer.position.copy(bPos(-9.20, -2.025, -0.62));
   poolDeepLayer.renderOrder = 5;
   poolDeepLayer.raycast = () => {};
   familyPoolGroup.add(poolDeepLayer);
 
-  // Layer 2: Specular Reflective Top Water Surface (bz = -0.06m) using the same HDRI mirror reflection technique as puddleWaterMat!
+  // Layer 2: Specular Reflective Top Water Surface (bz = -0.06m) spanning 1.96m x 5.81m (centered at bx = -9.20, by = -2.025)
   const matPoolSurfaceReflect = new THREE.MeshStandardMaterial({
     color: 0x126482,
     normalMap: poolWaveNorTex,
@@ -2127,17 +2127,17 @@ function buildStaticArchitecture() {
     depthWrite: false
   });
   window.matPoolWater = matPoolSurfaceReflect;
-  const poolSurfGeo = new THREE.PlaneGeometry(1.96, 7.96, 16, 48);
+  const poolSurfGeo = new THREE.PlaneGeometry(1.96, 5.81, 16, 36);
   const poolWaterMesh = new THREE.Mesh(poolSurfGeo, matPoolSurfaceReflect);
   poolWaterMesh.rotation.x = -Math.PI / 2;
-  poolWaterMesh.position.copy(bPos(-9.20, -3.10, poolWaterBz));
+  poolWaterMesh.position.copy(bPos(-9.20, -2.025, poolWaterBz));
   poolWaterMesh.renderOrder = 6;
   poolWaterMesh.receiveShadow = true;
   poolWaterMesh.userData.npcActivityId = 'SWIM_POOL';
   window.poolWaterMesh = poolWaterMesh;
   familyPoolGroup.add(poolWaterMesh);
 
-  // Random Animated Water Ripples ("riak-riak air random") + 3x Diminishing Big Dive Ripples ("riak besar 3x semakin kecil") on the pool surface (bz = -0.052m)
+  // Random Animated Water Ripples ("riak-riak air random") + 3x Diminishing Big Dive Ripples ("riak besar 3x semakin kecil") on the shortened pool surface (bz = -0.052m)
   const texRippleRing = (function() {
     const c = document.createElement('canvas');
     c.width = 128; c.height = 128;
@@ -2171,7 +2171,7 @@ function buildStaticArchitecture() {
     const rMesh = new THREE.Mesh(rippleGeo, rMat);
     rMesh.rotation.x = -Math.PI / 2;
     const initBx = -9.85 + Math.random() * 1.30;
-    const initBy = -6.60 + Math.random() * 7.00;
+    const initBy = -4.55 + Math.random() * 5.05;
     rMesh.position.copy(bPos(initBx, initBy, poolWaterBz + 0.008));
     rMesh.renderOrder = 7;
     rMesh.raycast = () => {};
@@ -2200,7 +2200,7 @@ function buildStaticArchitecture() {
     });
     const bMesh = new THREE.Mesh(rippleGeo, bMat);
     bMesh.rotation.x = -Math.PI / 2;
-    bMesh.position.copy(bPos(-9.20, -3.10, poolWaterBz + 0.011));
+    bMesh.position.copy(bPos(-9.20, -2.025, poolWaterBz + 0.011));
     bMesh.renderOrder = 8;
     bMesh.visible = false;
     bMesh.raycast = () => {};
@@ -6569,6 +6569,595 @@ async function buildStaticPolyHavenDecor() {
   );
   g.add(tunisianBonfireGroup);
 
+  // ==========================================================================
+  // 6. POOLSIDE LOW FLOOR TABLE WITH SEVERAL BOTTLES & GLASSES ("letakkan meja lantai dengan bbrapa botol dan gelas")
+  //    PLACED ON THE NEW WIDE FLAT FRONT POOL BORDER DECK (bx = -9.20, by = -6.38, bz = +0.04m)
+  //    - Woven poolside kilim runner + low carved walnut, Carthage marble & brass floor table (meja lantai)
+  //    - 4 detailed chilled glass beverage bottles (emerald, amber, cobalt, ruby) + 6 crystal/frosted glasses with drinks, ice & straws
+  //    - Selectable, movable, resizable (ArrowUp/ArrowDown), and rotatable via registerDraggable
+  // ==========================================================================
+  const poolDeckTableGroup = new THREE.Group();
+  poolDeckTableGroup.position.copy(bPos(-9.20, -6.38, 0.04));
+
+  const poolTableAo = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 1.18), matAODecal);
+  poolTableAo.rotation.x = -Math.PI / 2;
+  poolTableAo.position.y = 0.003;
+  poolTableAo.raycast = () => {};
+  poolTableAo.userData.isAODecal = true;
+  poolDeckTableGroup.add(poolTableAo);
+
+  // Woven Tunisian Poolside Kilim Mat under the Floor Table
+  const matPoolTableRug = new THREE.MeshStandardMaterial({
+    color: 0x8c2d19,
+    normalMap: plasterNorTex,
+    roughness: 0.86,
+    metalness: 0.02
+  });
+  const matPoolTableRugBorder = new THREE.MeshStandardMaterial({
+    color: 0xd4a853,
+    roughness: 0.65,
+    metalness: 0.18
+  });
+  const rugBase = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.014, 1.04), matPoolTableRugBorder);
+  rugBase.position.y = 0.007;
+  rugBase.castShadow = true;
+  rugBase.receiveShadow = true;
+  poolDeckTableGroup.add(rugBase);
+  const rugInner = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.016, 0.92), matPoolTableRug);
+  rugInner.position.y = 0.009;
+  rugInner.receiveShadow = true;
+  poolDeckTableGroup.add(rugInner);
+
+  // Low Carved Walnut & Carthage Marble Floor Table ("meja lantai", 0.96m x 0.64m x 0.28m high)
+  const tblW = 0.96, tblD = 0.64, tblH = 0.28;
+  const tblApron = new THREE.Mesh(new THREE.BoxGeometry(tblW, 0.055, tblD), matWalnut);
+  tblApron.position.y = tblH - 0.035;
+  tblApron.castShadow = true;
+  tblApron.receiveShadow = true;
+  poolDeckTableGroup.add(tblApron);
+
+  // Inlaid Carthage Marble Tabletop & Brass Bullnose Frame
+  const tblMarbleTop = new THREE.Mesh(new THREE.BoxGeometry(tblW - 0.05, 0.026, tblD - 0.05), matMainFloor);
+  tblMarbleTop.position.y = tblH + 0.002;
+  tblMarbleTop.castShadow = true;
+  tblMarbleTop.receiveShadow = true;
+  poolDeckTableGroup.add(tblMarbleTop);
+
+  const tblBrassTrim = new THREE.Mesh(new THREE.BoxGeometry(tblW + 0.016, 0.022, tblD + 0.016), matBrass);
+  tblBrassTrim.position.y = tblH - 0.008;
+  poolDeckTableGroup.add(tblBrassTrim);
+
+  // 4 Carved Walnut Turned Low Legs with Brass Feet
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+    const lx = sx * (tblW * 0.5 - 0.065);
+    const lz = sz * (tblD * 0.5 - 0.065);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.026, tblH - 0.04, 12), matWalnut);
+    leg.position.set(lx, (tblH - 0.04) * 0.5 + 0.01, lz);
+    leg.castShadow = true;
+    poolDeckTableGroup.add(leg);
+    const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.034, 0.028, 12), matBrass);
+    foot.position.set(lx, 0.022, lz);
+    poolDeckTableGroup.add(foot);
+  });
+
+  // 2 Tufted Poolside Floor Cushions / Poufs flanking the Low Floor Table for lounging
+  const matPoolCushionTeal = new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.72 });
+  const matPoolCushionAmber = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.72 });
+  [-0.52, 0.52].forEach((cz, idx) => {
+    const cush = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.23, 0.11, 20),
+      idx === 0 ? matPoolCushionTeal : matPoolCushionAmber
+    );
+    cush.position.set(idx === 0 ? -0.18 : 0.18, 0.065, cz);
+    cush.castShadow = true;
+    cush.receiveShadow = true;
+    poolDeckTableGroup.add(cush);
+    const piping = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.010, 8, 24), matBrass);
+    piping.rotation.x = Math.PI / 2;
+    piping.position.set(cush.position.x, 0.115, cz);
+    poolDeckTableGroup.add(piping);
+  });
+
+  // Hammered Brass Center Serving Tray on the Low Floor Table
+  const tableTopY = tblH + 0.015;
+  const centerTray = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.22, 0.016, 24), matBrass);
+  centerTray.position.set(-0.08, tableTopY + 0.008, 0.0);
+  centerTray.castShadow = true;
+  poolDeckTableGroup.add(centerTray);
+  const centerTrayRim = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.009, 8, 28), matBrass);
+  centerTrayRim.rotation.x = Math.PI / 2;
+  centerTrayRim.position.set(-0.08, tableTopY + 0.018, 0.0);
+  poolDeckTableGroup.add(centerTrayRim);
+
+  // 4 Detailed 3D Glass Beverage Bottles ("beberapa botol") on the Low Floor Table
+  const bottleConfigs = [
+    { x: -0.18, z: -0.07, col: 0x15803d, em: 0x052e16, r: 0.040, h: 0.19, labelCol: 0xfef08a, capCol: 0xd97706 }, // Tall Emerald Sparkling Bottle
+    { x: -0.05, z: -0.11, col: 0xb45309, em: 0x451a03, r: 0.044, h: 0.16, labelCol: 0xfde68a, capCol: 0xfbbf24 }, // Amber Citrus Elixir Bottle
+    { x: -0.15, z:  0.08, col: 0x1d4ed8, em: 0x172554, r: 0.038, h: 0.21, labelCol: 0xe0f2fe, capCol: 0x94a3b8 }, // Cobalt Mineral Water Bottle
+    { x:  0.22, z: -0.12, col: 0xbe123c, em: 0x4c0519, r: 0.046, h: 0.17, labelCol: 0xffe4e6, capCol: 0xd97706 }  // Ruby Pomegranate Carafe Bottle
+  ];
+  bottleConfigs.forEach((bc) => {
+    const bGrp = new THREE.Group();
+    const baseH = (bc.x < 0.10) ? (tableTopY + 0.016) : tableTopY;
+    bGrp.position.set(bc.x, baseH, bc.z);
+    const bMat = new THREE.MeshStandardMaterial({
+      color: bc.col,
+      emissive: bc.em,
+      emissiveIntensity: 0.26,
+      roughness: 0.07,
+      metalness: 0.16,
+      transparent: true,
+      opacity: 0.90
+    });
+    const lMat = new THREE.MeshStandardMaterial({ color: bc.labelCol, roughness: 0.35 });
+    const cMat = new THREE.MeshStandardMaterial({ color: bc.capCol, roughness: 0.22, metalness: 0.75 });
+
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(bc.r * 0.96, bc.r, bc.h, 16), bMat);
+    body.position.y = bc.h * 0.5;
+    body.castShadow = true;
+    bGrp.add(body);
+
+    const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(bc.r * 0.38, bc.r * 0.96, 0.055, 16), bMat);
+    shoulder.position.y = bc.h + 0.027;
+    bGrp.add(shoulder);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(bc.r * 0.35, bc.r * 0.38, 0.068, 14), bMat);
+    neck.position.y = bc.h + 0.085;
+    bGrp.add(neck);
+
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(bc.r * 0.40, bc.r * 0.40, 0.024, 14), cMat);
+    cap.position.y = bc.h + 0.125;
+    bGrp.add(cap);
+
+    const label = new THREE.Mesh(new THREE.CylinderGeometry(bc.r * 0.99, bc.r * 1.01, bc.h * 0.42, 16), lMat);
+    label.position.y = bc.h * 0.52;
+    bGrp.add(label);
+
+    poolDeckTableGroup.add(bGrp);
+  });
+
+  // 6 Crystal & Frosted Beverage Glasses ("gelas") with Colorful Drinks, Ice Cubes & Straws arranged across the Floor Table
+  const glassConfigs = [
+    { x:  0.04, z:  0.06, drinkCol: 0xf97316, onTray: true,  hasStraw: true  },
+    { x: -0.02, z:  0.14, drinkCol: 0x10b981, onTray: true,  hasStraw: false },
+    { x:  0.24, z:  0.12, drinkCol: 0xf59e0b, onTray: false, hasStraw: true  },
+    { x:  0.34, z: -0.02, drinkCol: 0xec4899, onTray: false, hasStraw: true  },
+    { x: -0.34, z:  0.14, drinkCol: 0x38bdf8, onTray: false, hasStraw: false },
+    { x: -0.35, z: -0.10, drinkCol: 0xeab308, onTray: false, hasStraw: true  }
+  ];
+  const matClearCrystal = new THREE.MeshStandardMaterial({
+    color: 0xe0f2fe,
+    roughness: 0.06,
+    metalness: 0.12,
+    transparent: true,
+    opacity: 0.52
+  });
+  const matStrawWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+  glassConfigs.forEach((gc, gi) => {
+    const gGrp = new THREE.Group();
+    const gy = gc.onTray ? (tableTopY + 0.016) : tableTopY;
+    gGrp.position.set(gc.x, gy, gc.z);
+
+    // Outer crystal tumbler glass
+    const glassShell = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.028, 0.115, 14), matClearCrystal);
+    glassShell.position.y = 0.058;
+    glassShell.castShadow = true;
+    gGrp.add(glassShell);
+
+    // Inner colorful chilled beverage fill
+    const drinkMat = new THREE.MeshStandardMaterial({
+      color: gc.drinkCol,
+      emissive: gc.drinkCol,
+      emissiveIntensity: 0.18,
+      roughness: 0.12,
+      transparent: true,
+      opacity: 0.88
+    });
+    const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.025, 0.088, 14), drinkMat);
+    liquid.position.y = 0.048;
+    gGrp.add(liquid);
+
+    // Floating ice cube & citrus garnish
+    const ice = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.018, 0.022), matClearCrystal);
+    ice.position.set(0.005, 0.092, 0.004);
+    ice.rotation.set(0.3, gi * 0.8, 0.2);
+    gGrp.add(ice);
+
+    if (gc.hasStraw) {
+      const straw = new THREE.Mesh(new THREE.CylinderGeometry(0.0038, 0.0038, 0.155, 8), matStrawWhite);
+      straw.position.set(0.012, 0.095, 0.0);
+      straw.rotation.z = -0.24;
+      gGrp.add(straw);
+    }
+    poolDeckTableGroup.add(gGrp);
+  });
+
+  window.poolDeckTableObj = poolDeckTableGroup;
+  registerDraggable(
+    poolDeckTableGroup,
+    'Poolside Low Floor Table with Bottles & Glasses',
+    'طاولة أرضية بجانب المسبح مع قوارير وكؤوس'
+  );
+  g.add(poolDeckTableGroup);
+
+  // ==========================================================================
+  // 7. WOODEN DIAMOND-LATTICE FENCE & ARCHED GARDEN GATE OBJECT ("buat pagar kayu, d mulai dari UJUNG sisi kiri kolam (bukan badan kiri kolam) depan, hingga UJUNG sisi kanan rumput pot olives kecil")
+  //    - Default Span: from bx = -10.880m (outer West edge of the Pool's Left Border) to bx = +12.210m (outer East edge of the Front Olive Lawn Bed) at by = -17.25m, bz = -0.50m
+  //    - Fence Body ("badan pagar sperti screenshot contoh kiri"): Modular square posts with chamfered post caps, top & bottom horizontal rails, and 4x4 diagonal criss-cross diamond lattice slats
+  //    - Arched Garden Gate ("pintu pagar atau garden gatenya screenshot kanan"): 4 square posts with 2-tier molded capital collars, left & right side diamond-lattice panels, and a semicircular double-arch arbor top with 11 horizontal ladder cross-rungs
+  //    - Interactive Controls:
+  //      * Extend / Reduce Left & Right fence panel counts when selected (adjustWoodenFencePanels('left'|'right', ±1))
+  //      * Slide the Garden Gate strictly along the horizontal fence line without moving the fence itself (dragging the gate directly or clicking ◀ Gate / Gate ▶), automatically readjusting the left & right fence panels!
+  // ==========================================================================
+  const woodenFenceGroup = new THREE.Group();
+  // Centered at bx = +0.665m so local X = -11.545m -> world bx = -10.880m (outer left edge of pool border)
+  // and local X = +11.545m -> world bx = +12.210m (outer right edge of front olive lawn bed)!
+  woodenFenceGroup.position.copy(bPos(0.665, -17.25, -0.50));
+  woodenFenceGroup.userData.isWoodenFence = true;
+  woodenFenceGroup.userData.leftPanels = 6;
+  woodenFenceGroup.userData.rightPanels = 6;
+  woodenFenceGroup.userData.panelWidth = 1.80;
+  woodenFenceGroup.userData.gateWidth = 1.49;
+  woodenFenceGroup.userData.gateOffsetX = 0.0; // Local X offset of the Garden Gate along the horizontal fence line
+
+  // Dedicated warm natural cedar/teak wood grain texture matching the reference fence & gate screenshots (paired with Poly Haven 1K woodNorTex & woodArmTex!)
+  const texNaturalFenceWood = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#b9936c';
+    ctx.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 420; i++) {
+      const y = (i / 420) * 512;
+      const v = Math.sin(i * 0.37) * 10 + Math.cos(i * 0.13) * 7;
+      const r = Math.min(255, Math.max(0, Math.round(184 + v)));
+      const g = Math.min(255, Math.max(0, Math.round(145 + v * 0.85)));
+      const b = Math.min(255, Math.max(0, Math.round(104 + v * 0.70)));
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(0, y, 512, 2.2);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = THREE.RepeatWrapping;
+    t.wrapT = THREE.RepeatWrapping;
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  })();
+
+  const matFenceWood = new THREE.MeshStandardMaterial({
+    map: texNaturalFenceWood,
+    normalMap: woodNorTex,
+    roughnessMap: woodArmTex,
+    color: 0xffffff,
+    roughness: 0.70,
+    metalness: 0.02,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matFenceWoodCap = new THREE.MeshStandardMaterial({
+    map: texNaturalFenceWood,
+    normalMap: woodNorTex,
+    roughnessMap: woodArmTex,
+    color: 0xebd5be,
+    roughness: 0.66,
+    metalness: 0.03,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+
+  const fenceBodySubGroup = new THREE.Group();
+  fenceBodySubGroup.name = 'fenceBodySubGroup';
+  woodenFenceGroup.add(fenceBodySubGroup);
+
+  const fenceGateSubGroup = new THREE.Group();
+  fenceGateSubGroup.name = 'fenceGateSubGroup';
+  fenceGateSubGroup.userData.isFenceGate = true;
+  woodenFenceGroup.add(fenceGateSubGroup);
+
+  // Build the 4-Post Arched Wooden Garden Gate / Arbor ("screenshot kanan", media_1793924309598_40147a1d.jpg) inside fenceGateSubGroup
+  (function buildArchedGardenGateMesh() {
+    const gateHalfW = 0.68; // Center-to-center X of left & right posts (outer span = 1.49m)
+    const gateHalfD = 0.24; // Center-to-center Z of front & back posts (outer depth = 0.58m)
+    const postH = 1.62;
+    const postThick = 0.102;
+
+    // 1. 4 Tall Square Wooden Posts + 2-Tier Molded Capital Collars at y = 1.62m
+    [[-gateHalfW, -gateHalfD], [-gateHalfW, gateHalfD], [gateHalfW, -gateHalfD], [gateHalfW, gateHalfD]].forEach(([px, pz]) => {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(postThick, postH, postThick), matFenceWood);
+      post.position.set(px, postH * 0.5, pz);
+      post.castShadow = true;
+      post.receiveShadow = true;
+      fenceGateSubGroup.add(post);
+
+      // Base plinth collar
+      const footCollar = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.022, 0.045, postThick + 0.022), matFenceWoodCap);
+      footCollar.position.set(px, 0.0225, pz);
+      fenceGateSubGroup.add(footCollar);
+
+      // 2-tier flaring molded capital collar at top of post (matching screenshot kanan)
+      const capTier1 = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.042, 0.028, postThick + 0.042), matFenceWoodCap);
+      capTier1.position.set(px, postH - 0.015, pz);
+      capTier1.castShadow = true;
+      fenceGateSubGroup.add(capTier1);
+
+      const capTier2 = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.072, 0.032, postThick + 0.072), matFenceWoodCap);
+      capTier2.position.set(px, postH + 0.014, pz);
+      capTier2.castShadow = true;
+      fenceGateSubGroup.add(capTier2);
+    });
+
+    // 2. Left & Right Side Framed Diamond-Lattice Trellis Panels (between Front & Back posts on x = -gateHalfW and x = +gateHalfW)
+    const sideBotY = 0.15;
+    const sideTopY = 1.12; // Matches the top rail height of the main fence body!
+    const sideSpanZ = (gateHalfD * 2) - postThick; // Clear Z opening between front & back posts (~0.378m)
+    [-gateHalfW, gateHalfW].forEach((sx) => {
+      // Bottom & Top horizontal side rails + mid-upper tie rail at y = 1.54m
+      [sideBotY, sideTopY].forEach((ry) => {
+        const sRail = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.055, sideSpanZ + 0.02), matFenceWood);
+        sRail.position.set(sx, ry, 0);
+        sRail.castShadow = true;
+        fenceGateSubGroup.add(sRail);
+      });
+
+      // Fine Diagonal Criss-Cross Diamond Lattice inside each side panel (z in [-sideSpanZ/2, +sideSpanZ/2], y in [sideBotY+0.025, sideTopY-0.025])
+      const zMin = -sideSpanZ * 0.5;
+      const zMax =  sideSpanZ * 0.5;
+      const yMin = sideBotY + 0.025;
+      const yMax = sideTopY - 0.025;
+      const nZ = 2; // 2 horizontal diamond subdivisions across Z
+      const nY = 5; // 5 vertical diamond subdivisions across Y
+      const dz = (zMax - zMin) / nZ;
+      const dy = (yMax - yMin) / nY;
+
+      const addSideSlatSegment = (z0, y0, z1, y1, xNudge) => {
+        const len = Math.hypot(z1 - z0, y1 - y0);
+        if (len < 0.02) return;
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.022, len), matFenceWoodCap);
+        slat.position.set(sx + xNudge, (y0 + y1) * 0.5, (z0 + z1) * 0.5);
+        slat.rotation.x = -Math.atan2(y1 - y0, z1 - z0);
+        slat.castShadow = true;
+        fenceGateSubGroup.add(slat);
+      };
+
+      // Clipping diagonal lines y - yMin = ±(dy/dz)*(z - zMin) + k*dy to [zMin, zMax] x [yMin, yMax]
+      const slope = dy / dz;
+      for (let k = -nZ; k <= nY; k++) {
+        // Positive slope: y = yMin + slope * (z - zMin) + k * dy
+        let za = zMin, ya = yMin + k * dy;
+        let zb = zMax, yb = yMin + slope * (zMax - zMin) + k * dy;
+        if (ya < yMin) { za += (yMin - ya) / slope; ya = yMin; }
+        if (yb > yMax) { zb -= (yb - yMax) / slope; yb = yMax; }
+        if (zb > za + 0.01 && yb > ya + 0.01) {
+          addSideSlatSegment(za, ya, zb, yb, -0.005);
+        }
+        // Negative slope: y = yMax - slope * (z - zMin) - k * dy
+        let zc = zMin, yc = yMax - k * dy;
+        let zd = zMax, yd = yMax - slope * (zMax - zMin) - k * dy;
+        if (yc > yMax) { zc += (yc - yMax) / slope; yc = yMax; }
+        if (yd < yMin) { zd -= (yMin - yd) / slope; yd = yMin; }
+        if (zd > zc + 0.01 && yc > yd + 0.01) {
+          addSideSlatSegment(zc, yc, zd, yd, 0.005);
+        }
+      }
+    });
+
+    // 3. Semicircular Double-Arch Arbor Top (y = 1.63m .. 2.34m) with 11 Horizontal Cross-Rungs ("screenshot kanan")
+    const archBaseY = postH + 0.025;
+    const archRadius = gateHalfW; // 0.68m semicircular radius matching the post centers
+    const archSegments = 18;
+    [-gateHalfD, gateHalfD].forEach((az) => {
+      for (let s = 0; s < archSegments; s++) {
+        const a0 = (s / archSegments) * Math.PI;
+        const a1 = ((s + 1) / archSegments) * Math.PI;
+        const am = (a0 + a1) * 0.5;
+        const x0 = Math.cos(a0) * archRadius, y0 = archBaseY + Math.sin(a0) * archRadius;
+        const x1 = Math.cos(a1) * archRadius, y1 = archBaseY + Math.sin(a1) * archRadius;
+        const segLen = Math.hypot(x1 - x0, y1 - y0) + 0.014;
+        const archSeg = new THREE.Mesh(new THREE.BoxGeometry(segLen, 0.092, 0.076), matFenceWood);
+        archSeg.position.set(Math.cos(am) * archRadius, archBaseY + Math.sin(am) * archRadius, az);
+        archSeg.rotation.z = am - Math.PI * 0.5;
+        archSeg.castShadow = true;
+        archSeg.receiveShadow = true;
+        fenceGateSubGroup.add(archSeg);
+      }
+    });
+
+    // 11 Horizontal Ladder Cross-Rungs connecting the Front & Back Arches along the semicircle
+    const rungCount = 11;
+    const rungSpanZ = gateHalfD * 2 + 0.04;
+    for (let r = 0; r < rungCount; r++) {
+      const theta = ((r + 0.65) / (rungCount + 0.30)) * Math.PI;
+      const rx = Math.cos(theta) * archRadius;
+      const ry = archBaseY + Math.sin(theta) * archRadius;
+      const rung = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.028, rungSpanZ), matFenceWoodCap);
+      rung.position.set(rx, ry, 0);
+      rung.rotation.z = theta - Math.PI * 0.5;
+      rung.castShadow = true;
+      fenceGateSubGroup.add(rung);
+    }
+  })();
+
+  // Helper to build a single modular Diamond-Lattice Fence Panel bay ("badan pagar sperti screenshot contoh kiri", media_1793923988848_07faa4b8.jpg)
+  function addDiamondLatticeFenceSegment(parentGrp, xStart, xEnd, numBays) {
+    const totalLen = xEnd - xStart;
+    if (totalLen < 0.25 || numBays < 1) return;
+    const bayW = totalLen / numBays;
+    const postW = 0.102;
+    const postH = 1.12;
+    const botRailY = 0.15;
+    const topRailY = 0.93;
+    const railH = 0.072;
+    const railD = 0.056;
+
+    // Square Vertical Posts with Chamfered Neck Groove & Post Cap at each bay boundary
+    for (let i = 0; i <= numBays; i++) {
+      const px = xStart + i * bayW;
+      const postBody = new THREE.Mesh(new THREE.BoxGeometry(postW, postH - 0.08, postW), matFenceWood);
+      postBody.position.set(px, (postH - 0.08) * 0.5, 0);
+      postBody.castShadow = true;
+      postBody.receiveShadow = true;
+      parentGrp.add(postBody);
+
+      // Subtle darker neck reveal groove at y = 1.035m
+      const postNeck = new THREE.Mesh(new THREE.BoxGeometry(postW * 0.86, 0.022, postW * 0.86), matFenceWoodCap);
+      postNeck.position.set(px, postH - 0.072, 0);
+      parentGrp.add(postNeck);
+
+      // Top square post cap (y = 1.045 .. 1.12m, matching screenshot contoh kiri)
+      const postCap = new THREE.Mesh(new THREE.BoxGeometry(postW + 0.008, 0.068, postW + 0.008), matFenceWoodCap);
+      postCap.position.set(px, postH - 0.032, 0);
+      postCap.castShadow = true;
+      parentGrp.add(postCap);
+    }
+
+    // Modular Panels between consecutive posts (Top Rail, Bottom Rail, and 4x4 Criss-Cross Diamond Lattice Slats)
+    for (let i = 0; i < numBays; i++) {
+      const x0 = xStart + i * bayW + postW * 0.45;
+      const x1 = xStart + (i + 1) * bayW - postW * 0.45;
+      const cx = (x0 + x1) * 0.5;
+      const innerW = x1 - x0;
+      if (innerW < 0.15) continue;
+
+      // Top & Bottom Horizontal Rails
+      [botRailY, topRailY].forEach((ry) => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW + 0.02, railH, railD), matFenceWood);
+        rail.position.set(cx, ry, 0);
+        rail.castShadow = true;
+        rail.receiveShadow = true;
+        parentGrp.add(rail);
+      });
+
+      // Exact 4 '/' + 4 '\' Diagonal Criss-Cross Diamond Lattice Slats inside the panel frame (matching screenshot contoh kiri!)
+      const yB = botRailY + railH * 0.44;
+      const yT = topRailY - railH * 0.44;
+      const yM = (yB + yT) * 0.5;
+      const w6 = innerW / 6.0;
+      const xL = cx - innerW * 0.5;
+      const xM1 = cx - w6;
+      const xM2 = cx + w6;
+      const xR = cx + innerW * 0.5;
+
+      const addPanelDiagonalSlat = (xa, ya, xb, yb, zOff) => {
+        const len = Math.hypot(xb - xa, yb - ya);
+        const slat = new THREE.Mesh(new THREE.BoxGeometry(len, 0.038, 0.022), matFenceWoodCap);
+        slat.position.set((xa + xb) * 0.5, (ya + yb) * 0.5, zOff);
+        slat.rotation.z = Math.atan2(yb - ya, xb - xa);
+        slat.castShadow = true;
+        slat.receiveShadow = true;
+        parentGrp.add(slat);
+      };
+
+      // 4 '/' ascending diagonal slats
+      addPanelDiagonalSlat(xL,  yM, xM1, yT,  0.008);
+      addPanelDiagonalSlat(xL,  yB, xM2, yT,  0.008);
+      addPanelDiagonalSlat(xM1, yB, xR,  yT,  0.008);
+      addPanelDiagonalSlat(xM2, yB, xR,  yM,  0.008);
+
+      // 4 '\' descending diagonal slats
+      addPanelDiagonalSlat(xL,  yM, xM1, yB, -0.008);
+      addPanelDiagonalSlat(xL,  yT, xM2, yB, -0.008);
+      addPanelDiagonalSlat(xM1, yT, xR,  yB, -0.008);
+      addPanelDiagonalSlat(xM2, yT, xR,  yM, -0.008);
+    }
+  }
+
+  function rebuildWoodenFencePanels() {
+    while (fenceBodySubGroup.children.length > 0) {
+      fenceBodySubGroup.remove(fenceBodySubGroup.children[0]);
+    }
+    const ud = woodenFenceGroup.userData;
+    const panelW = ud.panelWidth || 1.80;
+    const gateW = ud.gateWidth || 1.49;
+    const leftPanels = Math.max(1, Math.min(24, Math.round(ud.leftPanels || 6)));
+    const rightPanels = Math.max(1, Math.min(24, Math.round(ud.rightPanels || 6)));
+    ud.leftPanels = leftPanels;
+    ud.rightPanels = rightPanels;
+
+    // Outer left & right endpoints determined by leftPanels and rightPanels:
+    // At default (leftPanels = 6, rightPanels = 6):
+    //   leftEdgeX = -0.745 - 6 * 1.80 = -11.545m (world bx = -10.880m, outer left edge of pool border!)
+    //   rightEdgeX = +0.745 + 6 * 1.80 = +11.545m (world bx = +12.210m, outer right edge of front olive lawn bed!)
+    const leftEdgeX = -gateW * 0.5 - leftPanels * panelW;
+    const rightEdgeX = gateW * 0.5 + rightPanels * panelW;
+    ud.leftEdgeX = leftEdgeX;
+    ud.rightEdgeX = rightEdgeX;
+
+    // Clamp gateOffsetX strictly along the horizontal line of the fence so there is always at least 1 panel on each side of the gate!
+    const minGateX = leftEdgeX + gateW * 0.5 + 0.65;
+    const maxGateX = rightEdgeX - gateW * 0.5 - 0.65;
+    ud.gateOffsetX = Math.max(minGateX, Math.min(maxGateX, ud.gateOffsetX || 0.0));
+
+    // Position the Arched Garden Gate along the horizontal fence line (local X only!)
+    fenceGateSubGroup.position.set(ud.gateOffsetX, 0, 0);
+
+    // Automatically readjust the Left and Right fence segments around the gate's horizontal position!
+    const gateLeftX = ud.gateOffsetX - gateW * 0.5;
+    const gateRightX = ud.gateOffsetX + gateW * 0.5;
+    const leftSpan = gateLeftX - leftEdgeX;
+    const rightSpan = rightEdgeX - gateRightX;
+
+    // When gate is at 0, numLeftBays === leftPanels and numRightBays === rightPanels;
+    // when the user slides the gate left or right, the bay counts & widths on both sides automatically readjust so the fence stays continuous!
+    const numLeftBays = Math.max(1, Math.round(leftSpan / panelW));
+    const numRightBays = Math.max(1, Math.round(rightSpan / panelW));
+
+    addDiamondLatticeFenceSegment(fenceBodySubGroup, leftEdgeX, gateLeftX, numLeftBays);
+    addDiamondLatticeFenceSegment(fenceBodySubGroup, gateRightX, rightEdgeX, numRightBays);
+
+    // Ground contact AO strip under the full fence span
+    const spanTotal = rightEdgeX - leftEdgeX;
+    const fenceAo = new THREE.Mesh(new THREE.PlaneGeometry(spanTotal + 0.40, 0.42), matAODecal);
+    fenceAo.rotation.x = -Math.PI / 2;
+    fenceAo.position.set((leftEdgeX + rightEdgeX) * 0.5, 0.004, 0);
+    fenceAo.raycast = () => {};
+    fenceAo.userData.isAODecal = true;
+    fenceBodySubGroup.add(fenceAo);
+
+    // Keep golden selection highlight in sync if the fence is currently selected
+    if (typeof selectedObject !== 'undefined' && selectedObject === woodenFenceGroup) {
+      setSelectionHighlight(fenceBodySubGroup, true);
+    }
+    woodenFenceGroup.updateMatrixWorld(true);
+    requestShadowUpdate();
+  }
+
+  window.rebuildWoodenFencePanels = rebuildWoodenFencePanels;
+
+  window.adjustWoodenFencePanels = function(side, delta) {
+    if (!window.woodenFenceObj) return;
+    const ud = window.woodenFenceObj.userData;
+    if (side === 'left') {
+      ud.leftPanels = Math.max(1, Math.min(24, (ud.leftPanels || 6) + delta));
+    } else if (side === 'right') {
+      ud.rightPanels = Math.max(1, Math.min(24, (ud.rightPanels || 6) + delta));
+    }
+    rebuildWoodenFencePanels();
+    if (typeof updateSelectedHudText === 'function') updateSelectedHudText();
+  };
+
+  window.setWoodenFenceGateOffset = function(newLocalX) {
+    if (!window.woodenFenceObj) return;
+    window.woodenFenceObj.userData.gateOffsetX = newLocalX;
+    rebuildWoodenFencePanels();
+    if (typeof updateSelectedHudText === 'function') updateSelectedHudText();
+  };
+
+  window.slideWoodenFenceGate = function(deltaLocalX) {
+    if (!window.woodenFenceObj) return;
+    const cur = window.woodenFenceObj.userData.gateOffsetX || 0.0;
+    window.setWoodenFenceGateOffset(cur + deltaLocalX);
+  };
+
+  rebuildWoodenFencePanels();
+
+  window.woodenFenceObj = woodenFenceGroup;
+  registerDraggable(
+    woodenFenceGroup,
+    'Wooden Diamond-Lattice Fence & Arched Garden Gate',
+    'سياج خشبي مشبك مع بوابة حديقة مقوسة'
+  );
+  g.add(woodenFenceGroup);
+
   // Rooftop Stone BBQ Fire Pit & Barstools (Rooftop sofas & coffee table replaced by Rooftop Tunisian Sofa Lesehan & Meja Lesehan in buildStaticArchitecture!)
   const bbq = await loadPHModel('stone_fire_pit');
   if (bbq) {
@@ -7167,11 +7756,22 @@ const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const planeIntersect = new THREE.Vector3();
 let selectedObject = null;
 let isDraggingObject = false;
+let isDraggingFenceGate = false;
+let gateDragLocalOffset = 0;
 let downClientX = 0;
 let downClientY = 0;
 let downHitRoot = null;
 let downOpeningRoot = null;
 const dragOffset = new THREE.Vector3();
+
+function isHitInsideFenceGate(obj) {
+  let curr = obj;
+  while (curr) {
+    if (curr.userData && curr.userData.isFenceGate) return true;
+    curr = curr.parent;
+  }
+  return false;
+}
 
 function isObjectVisibleInHierarchy(obj) {
   let curr = obj;
@@ -7258,19 +7858,28 @@ function updateSelectedHudText() {
   const deselBtn = document.getElementById('btn-hud-deselect');
   const smallBtn = document.getElementById('btn-hud-smaller');
   const bigBtn = document.getElementById('btn-hud-bigger');
+  const fenceCtrl = document.getElementById('fence-hud-controls');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
   if (bigBtn) bigBtn.textContent = t('btnBigger');
   if (!selectedObject) {
     el.textContent = t('hudDefault');
     if (openBtn) openBtn.style.display = 'none';
     if (deselBtn) deselBtn.style.display = 'none';
+    if (fenceCtrl) fenceCtrl.style.display = 'none';
   } else {
     const lbl = state.lang === 'ar'
       ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
       : selectedObject.userData.labelEn;
     const sf = selectedObject.userData.scaleFactor || 1.0;
     const scaleTag = Math.abs(sf - 1.0) > 0.005 ? ` (${Math.round(sf * 100)}%)` : '';
-    el.textContent = t('hudSelected') + lbl + scaleTag;
+    const isFence = !!(selectedObject.userData && selectedObject.userData.isWoodenFence);
+    const fenceTag = isFence
+      ? ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}]`
+      : '';
+    el.textContent = t('hudSelected') + lbl + fenceTag + scaleTag;
+    if (fenceCtrl) {
+      fenceCtrl.style.display = isFence ? 'inline-flex' : 'none';
+    }
     if (deselBtn) {
       deselBtn.style.display = 'inline-block';
       deselBtn.textContent = t('btnDeselect');
@@ -7313,12 +7922,34 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const hits = raycaster.intersectObjects(visibleDraggables, true);
   const openHits = raycaster.intersectObjects(openingsGroup.children, true);
 
+  let hitFenceGate = false;
   if (openHits.length > 0 && (hits.length === 0 || openHits[0].distance <= hits[0].distance)) {
     downOpeningRoot = getOpeningRoot(openHits[0].object);
     downHitRoot = null;
   } else {
     downOpeningRoot = null;
     downHitRoot = hits.length > 0 ? getDraggableRoot(hits[0].object) : null;
+    if (hits.length > 0 && downHitRoot && downHitRoot.userData && downHitRoot.userData.isWoodenFence) {
+      hitFenceGate = isHitInsideFenceGate(hits[0].object);
+    }
+  }
+
+  // SPECIAL RULE FOR THE ARCHED GARDEN GATE:
+  // Pressing & dragging on the Garden Gate slides ONLY the Gate strictly along the horizontal fence line (local X)
+  // without moving the fence itself, automatically readjusting the left & right fence panels!
+  if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isWoodenFence && hitFenceGate) {
+    if (selectedObject !== downHitRoot) selectObject(downHitRoot);
+    dragPlane.constant = -downHitRoot.position.y;
+    if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
+      const localPt = downHitRoot.worldToLocal(planeIntersect.clone());
+      gateDragLocalOffset = (downHitRoot.userData.gateOffsetX || 0) - localPt.x;
+    } else {
+      gateDragLocalOffset = 0;
+    }
+    isDraggingFenceGate = true;
+    isDraggingObject = false;
+    controls.enabled = false;
+    return;
   }
 
   // SELECT-FIRST RULE: Only drag if the user pressed down on the ALREADY-SELECTED object!
@@ -7328,9 +7959,11 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
       dragOffset.copy(selectedObject.position).sub(planeIntersect);
     }
     isDraggingObject = true;
+    isDraggingFenceGate = false;
     controls.enabled = false;
   } else {
     isDraggingObject = false;
+    isDraggingFenceGate = false;
   }
 });
 
@@ -7351,6 +7984,18 @@ window.addEventListener('pointermove', (e) => {
     return;
   }
 
+  if (isDraggingFenceGate && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence) {
+    updatePointer(e);
+    raycaster.setFromCamera(pointer, activeCamera);
+    if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
+      const localPt = selectedObject.worldToLocal(planeIntersect.clone());
+      if (typeof window.setWoodenFenceGateOffset === 'function') {
+        window.setWoodenFenceGateOffset(localPt.x + gateDragLocalOffset);
+      }
+    }
+    return;
+  }
+
   if (!isDraggingObject || !selectedObject) return;
   updatePointer(e);
   raycaster.setFromCamera(pointer, activeCamera);
@@ -7362,7 +8007,7 @@ window.addEventListener('pointermove', (e) => {
 });
 
 window.addEventListener('pointerup', (e) => {
-  if (!isDraggingObject && !walkState.looking && e.target !== renderer.domElement) return;
+  if (!isDraggingObject && !isDraggingFenceGate && !walkState.looking && e.target !== renderer.domElement) return;
   const cx = e.changedTouches && e.changedTouches.length ? e.changedTouches[0].clientX : e.clientX;
   const cy = e.changedTouches && e.changedTouches.length ? e.changedTouches[0].clientY : e.clientY;
   const dist = Math.hypot((cx || downClientX) - downClientX, (cy || downClientY) - downClientY);
@@ -7374,6 +8019,15 @@ window.addEventListener('pointerup', (e) => {
       downOpeningRoot.userData.openSign = 1;
       requestShadowUpdate();
     }
+    downOpeningRoot = null;
+    downHitRoot = null;
+    return;
+  }
+
+  if (isDraggingFenceGate) {
+    isDraggingFenceGate = false;
+    controls.enabled = true;
+    requestShadowUpdate();
     downOpeningRoot = null;
     downHitRoot = null;
     return;
@@ -7430,6 +8084,14 @@ window.addEventListener('keydown', (e) => {
   if (selectedObject && viewMode !== 'walk' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
     e.preventDefault();
     scaleSelected(e.key === 'ArrowUp' ? 1.12 : (1 / 1.12));
+    return;
+  }
+  // When the Wooden Fence is selected (in non-walk mode), ArrowLeft / ArrowRight slides the Garden Gate horizontally along the fence line!
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence && viewMode !== 'walk' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault();
+    if (typeof window.slideWoodenFenceGate === 'function') {
+      window.slideWoodenFenceGate(e.key === 'ArrowRight' ? 0.45 : -0.45);
+    }
     return;
   }
   if (k === 'w' || e.key === 'ArrowUp') walkState.keys.forward = true;
@@ -7584,9 +8246,12 @@ function updateWalkAndOpenings(dt) {
     } else if (walkState.pos.y > 4.20 && wz >= -5.05 && wz <= 5.05 && wx >= -6.10 && wx <= 6.00) {
       // Walking on the 2nd Floor Rooftop after turning right from the top of the Left Staircase!
       groundY = 3.78;
-    } else if (wx >= -10.15 && wx <= -8.25 && wz >= -0.85 && wz <= 7.05) {
-      // Inside the Half-Width Family Swimming Pool (bx = -10.20..-8.20m, submerged to upper stomach!)
+    } else if (wx >= -10.15 && wx <= -8.25 && wz >= -0.85 && wz <= 4.95) {
+      // Inside the Shortened Family Swimming Pool Water Basin (bx = -10.20..-8.20m, by = -4.95..+0.90m, submerged to upper stomach!)
       groundY = -1.50;
+    } else if (wx >= -10.88 && wx <= -7.52 && wz >= -1.58 && wz <= 7.78) {
+      // Standing on the Raised Pool Border Deck & Wide Flat Front Pool Lounge Deck (bz = +0.04m)
+      groundY = 0.04;
     } else if (wz >= -5.00 && wz <= 5.05 && wx >= -6.00 && wx <= 6.00) {
       groundY = 0.00;
     } else if (wx >= 1.50 && wx <= 3.70 && wz > 5.05 && wz <= 5.75) {
@@ -7935,7 +8600,10 @@ function saveDesign() {
     y: o.position.y,
     z: o.position.z,
     ry: o.rotation.y,
-    s: o.userData.scaleFactor || 1.0
+    s: o.userData.scaleFactor || 1.0,
+    leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
+    rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
+    gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined
   }));
   localStorage.setItem('tunisia_modern_arabic_villa_v8', JSON.stringify({
     lang: state.lang,
@@ -8304,8 +8972,8 @@ const MAHER_WAYPOINTS = {
   LEFT_ENTRY:        [1.40,  -6.05, -0.25],
   LEFT_TERRACE_WEST: [-5.85, -6.05, -0.25], // West edge of Left Terrace where stepping-stone walkway to Pool & Left Staircase starts
   POOL_WALKWAY:      [-6.55, -6.05, -0.45], // Base of 3-step East Pool Stairs on the stepping-stone walkway
-  POOL_BORDER_EAST:  [-7.86, -6.05,  0.04], // Top of 3-step Raised Pool Border Coping Deck (bz = +0.04m)
-  POOL_STEPS_IN:     [-8.55, -6.05, -1.14], // Underwater SE pool entry/exit steps aligned with walkway
+  POOL_BORDER_EAST:  [-7.86, -5.20,  0.04], // Top of Raised Pool Border Deck at the South water edge (bz = +0.04m)
+  POOL_STEPS_IN:     [-8.55, -4.35, -1.14], // Underwater South pool entry/exit steps inside the shortened water basin (by = -4.95 .. +0.90)
   LEFT_STAIR_BASE:   [-6.75, -5.00, -0.25], // Base of Left Exterior Diagonal Staircase
   LEFT_STAIR_MID:    [-6.75, -2.70,  1.78], // Mid-slope of Left Exterior Diagonal Staircase
   LEFT_STAIR_TOP:    [-6.75, -0.35,  3.78], // Top landing of Left Exterior Diagonal Staircase
@@ -8339,7 +9007,7 @@ const MAHER_ACTIVITIES = {
   SWIM_POOL: {
     id: 'SWIM_POOL',
     zone: 'pool',
-    bx: -9.20, by: -3.40, bz: -1.14, // Submerged to upper stomach (-0.06m water surface - (-1.14m feet) = 1.08m submerged!)
+    bx: -9.20, by: -2.50, bz: -1.14, // Submerged to upper stomach inside the shortened water basin (by = -4.95 .. +0.90)
     ry: 0,
     clip: 'Stand_Idle',
     prop: null,
@@ -8452,11 +9120,11 @@ const maherNpcState = {
 window.maherNpcState = maherNpcState;
 
 function pickRandomPoolSwimTarget(isWife = false) {
-  const swimY = isWife ? -1.08 : -1.14;
+  const swimY = isWife ? -1.08 : -0.96;
   const otherState = isWife ? maherNpcState : wifeNpcState;
   for (let attempt = 0; attempt < 10; attempt++) {
     const bx = -9.75 + Math.random() * 1.10; // [-9.75 .. -8.65] inside the 2.0m-wide pool (bx = -10.20 .. -8.20)
-    const by = -6.25 + Math.random() * 6.35; // [-6.25 .. +0.10]
+    const by = -4.35 + Math.random() * 4.50; // [-4.35 .. +0.15] strictly inside the shortened water basin (by = -4.95 .. +0.90)
     const wx = bx;
     const wz = -by;
     if (otherState && otherState.root && otherState.currentZone === 'pool') {
@@ -8465,35 +9133,35 @@ function pickRandomPoolSwimTarget(isWife = false) {
     }
     return new THREE.Vector3(wx, swimY, wz);
   }
-  return new THREE.Vector3(isWife ? -9.55 : -8.85, swimY, isWife ? 1.85 : 4.25);
+  return new THREE.Vector3(isWife ? -9.55 : -8.85, swimY, isWife ? 1.65 : 3.45);
 }
 
-// Pick a random pool border spot (West/Left, East/Right, North, or South border at bz = +0.04m) for mid-swim reclining with drinks & food!
+// Pick a random pool border spot (West/Left, East/Right, North, or South wide deck at bz = +0.04m) for mid-swim reclining with drinks & food!
 function pickRandomPoolBorderLoungeSpot(isWife = false, preferredSide = null) {
-  const swimY = isWife ? -1.08 : -1.14;
+  const swimY = isWife ? -1.08 : -0.96;
   const otherState = isWife ? maherNpcState : wifeNpcState;
   const sides = preferredSide ? [preferredSide] : ['west', 'east', 'south', 'north'];
   for (let attempt = 0; attempt < 12; attempt++) {
     const side = sides[Math.floor(Math.random() * sides.length)];
     let bx, by, ry, diveBx, diveBy, diveRy;
     if (side === 'west') {
-      // Left (West) Pool Border (bx = -10.50, by = -5.20 .. -1.00)
+      // Left (West) Pool Border alongside shortened water basin (bx = -10.50, by = -4.30 .. -0.80)
       bx = -10.50;
-      by = -4.90 + Math.random() * 3.80;
+      by = -4.30 + Math.random() * 3.50;
       ry = Math.PI; // Local -X faces East toward pool water
       diveBx = -9.32;
       diveBy = by;
       diveRy = Math.PI / 2; // Jumps East (+X) into the water
     } else if (side === 'east') {
-      // Right (East) Pool Border (bx = -7.92, by = -4.40 .. -0.80, north of the East walkway stairs, clear of bx = -7.52 wall)
+      // Right (East) Pool Border alongside shortened water basin (bx = -7.92, by = -4.20 .. -0.80)
       bx = -7.92;
-      by = -4.35 + Math.random() * 3.45;
+      by = -4.20 + Math.random() * 3.40;
       ry = 0; // Local -X faces West toward pool water
       diveBx = -9.08;
       diveBy = by;
       diveRy = -Math.PI / 2; // Jumps West (-X) into the water
     } else if (side === 'north') {
-      // Back (North) Width Border (by = +1.24, bx = -9.20, where North 3-step stairs meet the border)
+      // Back (North) Width Border (by = +1.24, bx = -9.20)
       bx = -9.20 + (isWife ? -0.25 : 0.25);
       by = 1.24;
       ry = Math.PI / 2; // Local -X faces South toward pool water
@@ -8501,12 +9169,12 @@ function pickRandomPoolBorderLoungeSpot(isWife = false, preferredSide = null) {
       diveBy = -0.15;
       diveRy = 0; // Jumps South (+Z) into the water
     } else {
-      // Front (South) Width Border (by = -7.44, bx = -9.20, where South 3-step stairs meet the border)
-      bx = -9.20 + (isWife ? 0.25 : -0.25);
-      by = -7.44;
+      // Front (South) Wide Lounging Border Deck right in front of the shortened water edge (by = -5.32, bx = -9.20)
+      bx = -9.20 + (isWife ? 0.32 : -0.32);
+      by = -5.32;
       ry = -Math.PI / 2; // Local -X faces North toward pool water
       diveBx = bx;
-      diveBy = -5.85;
+      diveBy = -4.15;
       diveRy = Math.PI; // Jumps North (-Z) into the water
     }
     const pos = bPos(bx, by, 0.04);
@@ -8523,7 +9191,7 @@ function pickRandomPoolBorderLoungeSpot(isWife = false, preferredSide = null) {
       diveRy
     };
   }
-  const fallbackBy = isWife ? -1.80 : -4.40;
+  const fallbackBy = isWife ? -1.60 : -3.40;
   return {
     side: isWife ? 'west' : 'east',
     pos: bPos(isWife ? -10.54 : -7.86, fallbackBy, 0.04),
@@ -8671,7 +9339,7 @@ function applyNpcPoolBorderLoungePose(npcState, tSec, isWife = false) {
 }
 
 function initNpcSwimCycle(npcState, isWife = false, startFromWalkedBorder = false) {
-  const swimY = isWife ? -1.08 : -1.14;
+  const swimY = isWife ? -1.08 : -0.96;
   const snackGrp = isWife ? wifePoolSnackGroup : maherPoolSnackGroup;
   if (snackGrp) snackGrp.visible = false;
   resetNpcSwimBones(npcState);
@@ -8687,9 +9355,9 @@ function initNpcSwimCycle(npcState, isWife = false, startFromWalkedBorder = fals
 
   if (startFromWalkedBorder && npcState.root) {
     npcState.diveStartPos.set(npcState.root.position.x, 0.04, npcState.root.position.z);
-    npcState.diveEndPos.set(-9.15, swimY, Math.max(-0.40, Math.min(6.20, npcState.root.position.z - 0.65)));
+    npcState.diveEndPos.set(-9.15, swimY, Math.max(-0.40, Math.min(4.35, npcState.root.position.z - 0.65)));
   } else {
-    const startBy = isWife ? -2.20 : -5.65;
+    const startBy = isWife ? -1.80 : -3.85;
     const startBx = isWife ? -10.54 : -7.86;
     npcState.diveStartPos.copy(bPos(startBx, startBy, 0.04));
     npcState.diveEndPos.copy(bPos(isWife ? -9.45 : -8.95, startBy + 0.35, swimY));
@@ -9105,6 +9773,7 @@ function startMaherActivity(actKey, immediateSpawn = false) {
   maherNpcState.timer = act.duration[0] + Math.random() * (act.duration[1] - act.duration[0]);
   maherPoolSnackGroup.visible = false;
   resetNpcSwimBones(maherNpcState);
+  setMaherSwimCostume(act.id === 'SWIM_POOL');
   updateMaherFloatingBadge();
 
   if (!maherNpcState.root) return;
@@ -9657,8 +10326,11 @@ function fixNpcClothingAndBackGlitches(armRoot, isWife) {
       return w;
     };
 
-    const srcIndices = idxAttr.array;
+    const srcIndices = Array.from(idxAttr.array);
     const keepIndices = [];
+    if (matName.includes('Mat_Skin_Maher')) {
+      ch.userData.unCulledSkinIndices = srcIndices;
+    }
 
     const shouldCullTri = (cx, cy, cz, triIdx, avgArmW) => {
       // A. Cull hidden lower neck back & hidden upper-arm skin stub inside Maître Maher's shirt sleeves (keeps 100% of head, neck, forearms, hands & calves intact!)
@@ -9720,6 +10392,9 @@ function fixNpcClothingAndBackGlitches(armRoot, isWife) {
 
     if (keepIndices.length !== srcIndices.length) {
       geo.setIndex(keepIndices);
+    }
+    if (matName.includes('Mat_Skin_Maher')) {
+      ch.userData.clothedSkinIndices = keepIndices;
     }
 
     // Smoothly blend the back-shoulder / underarm sleeve seam of Mat_Top_Maher with the Chest bone so raising the arms during swimming/walking
@@ -9931,6 +10606,363 @@ function loadMaherWifeNPC() {
   loadWifeFromUrl();
 }
 
+// ============================================================================
+// MAÎTRE MAHER SWIM COSTUME: BARE SKIN ("tanpa kaos tanpa celana tanpa sepatu")
+// + 3D INFLATABLE YELLOW DUCK SWIM RING ("ban bebek d sekeliling pinggang menutupi area sensitif")
+// ============================================================================
+const texMaherBareSkin = (() => {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+  // Match exact Mediterranean warm skin tone of Mat_Skin_Maher (#c9a59b / #c39d90)
+  const g = ctx.createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0.0, '#ccaea4');
+  g.addColorStop(0.45, '#c6a196');
+  g.addColorStop(1.0, '#bf988d');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Subtle organic skin pores & micro-variation
+  for (let i = 0; i < 2400; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    ctx.fillStyle = (i % 2 === 0) ? 'rgba(255,235,225,0.035)' : 'rgba(135,88,75,0.035)';
+    ctx.fillRect(x, y, 2, 2);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+})();
+
+const matMaherBareSkin = new THREE.MeshStandardMaterial({
+  name: 'Mat_BareSkin_Maher',
+  color: 0xffffff,
+  map: texMaherBareSkin,
+  roughness: 0.52,
+  metalness: 0.0,
+  envMapIntensity: 0.52
+});
+matMaherBareSkin.userData = { customEnvIntensity: 0.52 };
+
+function buildMaherDuckSwimRingGroup() {
+  const duckGrp = new THREE.Group();
+  duckGrp.name = 'Maher_Duck_Swim_Ring';
+  // Positioned in Hips local space (Hips rest Y = 0.967m; waist & sensitive pelvic region is y = -0.18m .. +0.08m in Hips local space)
+  duckGrp.position.set(0, -0.055, 0.012);
+
+  const matDuckYellow = new THREE.MeshStandardMaterial({
+    color: 0xffd000,
+    emissive: 0x3b2800,
+    emissiveIntensity: 0.14,
+    roughness: 0.18,
+    metalness: 0.04,
+    envMapIntensity: 0.85
+  });
+  matDuckYellow.userData = { customEnvIntensity: 0.85 };
+
+  const matDuckYellowAccent = new THREE.MeshStandardMaterial({
+    color: 0xf59e0b,
+    roughness: 0.24,
+    metalness: 0.04,
+    envMapIntensity: 0.75
+  });
+  matDuckYellowAccent.userData = { customEnvIntensity: 0.75 };
+
+  const matDuckBeak = new THREE.MeshStandardMaterial({
+    color: 0xff5a00,
+    emissive: 0x431407,
+    emissiveIntensity: 0.18,
+    roughness: 0.20,
+    metalness: 0.05,
+    envMapIntensity: 0.80
+  });
+  matDuckBeak.userData = { customEnvIntensity: 0.80 };
+
+  const matDuckEyeBlack = new THREE.MeshStandardMaterial({
+    color: 0x0f172a,
+    roughness: 0.06,
+    metalness: 0.12
+  });
+  const matDuckEyeSparkle = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    emissive: 0xffffff,
+    emissiveIntensity: 0.45,
+    roughness: 0.10
+  });
+
+  // 1. Plump Glossy Inflatable Yellow Torus Ring wrapping around the waist & covering the entire pelvic/groin region ("ban bebek d sekeliling pinggang menutupi area sensitif")
+  const torusGeo = new THREE.TorusGeometry(0.228, 0.118, 24, 42);
+  const ringMesh = new THREE.Mesh(torusGeo, matDuckYellow);
+  ringMesh.rotation.x = Math.PI / 2;
+  ringMesh.scale.set(1.04, 1.12, 1.18);
+  ringMesh.castShadow = true;
+  ringMesh.receiveShadow = false;
+  duckGrp.add(ringMesh);
+
+  // Welded Equatorial Vinyl Seam Ridge around the outer perimeter of the inflatable ring
+  const seamMesh = new THREE.Mesh(new THREE.TorusGeometry(0.348, 0.006, 8, 42), matDuckYellowAccent);
+  seamMesh.rotation.x = Math.PI / 2;
+  seamMesh.scale.set(1.04, 1.12, 1.0);
+  duckGrp.add(seamMesh);
+
+  // Inner Inflatable Waist Diaphragm / Privacy Seal inside the ring so the sensitive pelvic area is 100% covered from every top/bottom/side camera angle!
+  const innerSeal = new THREE.Mesh(new THREE.CylinderGeometry(0.182, 0.168, 0.23, 24), matDuckYellow);
+  innerSeal.position.set(0, -0.01, -0.005);
+  innerSeal.castShadow = true;
+  duckGrp.add(innerSeal);
+
+  // 2. Sculpted 3D Duck Head & Neck at the Front (+Z) of the Swim Ring
+  const headSubGrp = new THREE.Group();
+  headSubGrp.position.set(0, 0.065, 0.255);
+
+  // Curved Plump Duck Neck
+  const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.088, 0.135, 18), matDuckYellow);
+  neckMesh.position.set(0, 0.045, 0.015);
+  neckMesh.rotation.x = 0.18;
+  neckMesh.castShadow = true;
+  headSubGrp.add(neckMesh);
+
+  // Round Glossy Yellow Duck Head
+  const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.098, 22, 18), matDuckYellow);
+  headMesh.scale.set(0.96, 1.02, 1.08);
+  headMesh.position.set(0, 0.138, 0.032);
+  headMesh.castShadow = true;
+  headSubGrp.add(headMesh);
+
+  // Cute Top Head Feather Tuft (Jambul Bebek)
+  for (let ti = -1; ti <= 1; ti++) {
+    const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.052, 10), matDuckYellow);
+    tuft.position.set(ti * 0.016, 0.238, 0.028 - Math.abs(ti) * 0.008);
+    tuft.rotation.z = -ti * 0.28;
+    tuft.rotation.x = -0.22;
+    headSubGrp.add(tuft);
+  }
+
+  // Plump Duck Cheeks
+  for (const sx of [-1, 1]) {
+    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.042, 14, 12), matDuckYellow);
+    cheek.scale.set(1.0, 0.82, 0.95);
+    cheek.position.set(sx * 0.062, 0.115, 0.082);
+    headSubGrp.add(cheek);
+  }
+
+  // Bright Orange Sculpted Duck Bill / Beak (Upper & Lower Mandibles)
+  const upperBill = new THREE.Mesh(new THREE.SphereGeometry(0.062, 18, 14), matDuckBeak);
+  upperBill.scale.set(1.16, 0.42, 1.38);
+  upperBill.position.set(0, 0.126, 0.125);
+  upperBill.rotation.x = 0.06;
+  upperBill.castShadow = true;
+  headSubGrp.add(upperBill);
+
+  const lowerBill = new THREE.Mesh(new THREE.SphereGeometry(0.052, 16, 12), matDuckBeak);
+  lowerBill.scale.set(1.02, 0.32, 1.18);
+  lowerBill.position.set(0, 0.106, 0.114);
+  lowerBill.rotation.x = 0.14;
+  headSubGrp.add(lowerBill);
+
+  // Cute Upturned Orange Bill Smile Rim & Nostrils
+  for (const sx of [-1, 1]) {
+    const nostril = new THREE.Mesh(new THREE.SphereGeometry(0.006, 8, 8), matDuckEyeBlack);
+    nostril.scale.set(0.8, 0.5, 1.3);
+    nostril.position.set(sx * 0.020, 0.145, 0.148);
+    headSubGrp.add(nostril);
+  }
+
+  // Glossy Black Duck Eyes + White Catchlight Sparkles
+  for (const sx of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.016, 12, 12), matDuckEyeBlack);
+    eye.position.set(sx * 0.056, 0.162, 0.105);
+    headSubGrp.add(eye);
+
+    const sparkle = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 8, 8), matDuckEyeSparkle);
+    sparkle.position.set(sx * 0.059, 0.168, 0.118);
+    headSubGrp.add(sparkle);
+  }
+
+  duckGrp.add(headSubGrp);
+
+  // 3. Sculpted Side Duck Wings (Left & Right Flanks of the Ring)
+  for (const sx of [-1, 1]) {
+    const wingGrp = new THREE.Group();
+    wingGrp.position.set(sx * 0.295, 0.018, -0.015);
+    wingGrp.rotation.y = sx * 0.12;
+
+    const wingMain = new THREE.Mesh(new THREE.SphereGeometry(0.086, 16, 14), matDuckYellow);
+    wingMain.scale.set(0.36, 0.72, 1.62);
+    wingMain.castShadow = true;
+    wingGrp.add(wingMain);
+
+    for (let fi = 0; fi < 3; fi++) {
+      const feather = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 10), matDuckYellowAccent);
+      feather.scale.set(0.38, 0.45, 1.45);
+      feather.position.set(sx * 0.012, 0.028 - fi * 0.028, -0.095 - fi * 0.018);
+      feather.rotation.x = 0.22 + fi * 0.08;
+      wingGrp.add(feather);
+    }
+    duckGrp.add(wingGrp);
+  }
+
+  // 4. Cute Upturned Duck Tail at the Back (-Z) of the Swim Ring
+  const tailGrp = new THREE.Group();
+  tailGrp.position.set(0, 0.048, -0.275);
+  const tailMain = new THREE.Mesh(new THREE.ConeGeometry(0.082, 0.155, 16), matDuckYellow);
+  tailMain.scale.set(1.08, 1.0, 0.78);
+  tailMain.rotation.x = -0.88;
+  tailMain.castShadow = true;
+  tailGrp.add(tailMain);
+  const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 10), matDuckYellowAccent);
+  tailTip.position.set(0, 0.052, -0.062);
+  tailGrp.add(tailTip);
+  duckGrp.add(tailGrp);
+
+  duckGrp.visible = false;
+  return duckGrp;
+}
+
+function buildMaherSwimCostumeAndDuckRing(armRoot) {
+  if (!armRoot) return;
+  armRoot.traverse((ch) => {
+    if (!ch.isMesh || !ch.geometry || !ch.material) return;
+    const matName = Array.isArray(ch.material) ? (ch.material[0] && ch.material[0].name) : ch.material.name;
+    if (!matName) return;
+
+    if (matName.includes('Mat_Skin_Maher')) {
+      maherNpcState.meshSkin = ch;
+    } else if (matName.includes('Mat_Top_Maher')) {
+      maherNpcState.meshTop = ch;
+      ch.userData.origClothMat = ch.material;
+      ch.userData.origClothGeo = ch.geometry;
+
+      // Build Watertight Bare Torso & Upper-Arm Geometry ("tanpa kaos"):
+      // Keep 100% of triangles so there are zero gaps at the bicep/shoulder, and smoothly taper the loose shirt sleeves
+      // & collar inward onto the anatomical bicep/torso contour!
+      const bareTorsoGeo = ch.geometry.clone();
+      const pos = bareTorsoGeo.attributes.position;
+      const norm = bareTorsoGeo.attributes.normal;
+      if (pos) {
+        for (let i = 0; i < pos.count; i++) {
+          let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+          const ax = Math.abs(x);
+          const signX = x >= 0 ? 1 : -1;
+          if (ax > 0.145 && y < 1.385) {
+            // Taper loose short-sleeve cuff smoothly inward toward the upper-arm axis (cx = ±0.192, cz = 0.020) so it hugs the bare bicep/forearm junction!
+            const armCx = signX * 0.192;
+            const armCz = 0.020;
+            const blend = Math.min(1.0, (ax - 0.145) / 0.045);
+            const shrink = 1.0 - 0.34 * blend;
+            x = armCx + (x - armCx) * shrink;
+            z = armCz + (z - armCz) * shrink;
+          } else {
+            const nx = norm ? norm.getX(i) : 0;
+            const ny = norm ? norm.getY(i) : 0;
+            const nz = norm ? norm.getZ(i) : 0;
+            const inset = (y > 1.42) ? 0.008 : 0.005;
+            x -= nx * inset;
+            y -= ny * inset * 0.3;
+            z -= nz * inset;
+          }
+          pos.setXYZ(i, x, y, z);
+        }
+        pos.needsUpdate = true;
+        bareTorsoGeo.computeVertexNormals();
+      }
+      ch.userData.bareSkinGeo = bareTorsoGeo;
+    } else if (matName.includes('Mat_Shorts_Maher')) {
+      maherNpcState.meshShorts = ch;
+      ch.userData.origClothMat = ch.material;
+      ch.userData.origClothGeo = ch.geometry;
+
+      // Build Watertight Bare Thighs Geometry ("tanpa celana"):
+      // Keep 100% of triangles down to y = 0.503m (so there is zero jagged edge at the knee!) and smoothly taper the loose shorts
+      // leg opening inward toward each knee/thigh axis (x = ±0.122, z = 0.028) to meet the bare lower legs seamlessly!
+      const bareThighsGeo = ch.geometry.clone();
+      const pos = bareThighsGeo.attributes.position;
+      if (pos) {
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+          const signX = x >= 0 ? 1 : -1;
+          const legCx = signX * 0.122;
+          const legCz = 0.028;
+          const dx = x - legCx;
+          const dz = z - legCz;
+          const tKnee = Math.max(0.0, Math.min(1.0, (0.75 - y) / 0.25));
+          const shrink = 0.85 - 0.14 * tKnee; // 0.71 at knee cuff (matching 0.055m knee radius) -> 0.85 at upper thigh
+          pos.setXYZ(i, legCx + dx * shrink, y, legCz + dz * shrink);
+        }
+        pos.needsUpdate = true;
+        bareThighsGeo.computeVertexNormals();
+      }
+      ch.userData.bareSkinGeo = bareThighsGeo;
+    } else if (matName.includes('Mat_Shoe_Maher')) {
+      maherNpcState.meshShoes = ch;
+      ch.userData.origClothMat = ch.material;
+      ch.userData.origClothGeo = ch.geometry;
+
+      // Build Bare Feet Geometry ("tanpa sepatu"):
+      // Slim the shoe collar & sole inward to match the bare ankle radius (0.039m at x = ±0.116, z = 0.018) and sculpt a subtle 5-toe front contour!
+      const bareFeetGeo = ch.geometry.clone();
+      const pos = bareFeetGeo.attributes.position;
+      if (pos) {
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+          const signX = x >= 0 ? 1 : -1;
+          const ankleCx = signX * 0.116;
+          const ankleCz = 0.018;
+          const dx = x - ankleCx;
+          const dz = z - ankleCz;
+          // Slim ankle collar (y > 0.045) by 36% so it meets the bare ankle cleanly; slim foot body by 18%
+          const xyScale = (y > 0.045) ? 0.64 : 0.82;
+          let nx = ankleCx + dx * xyScale;
+          let ny = (y < 0.005) ? (y + 0.006) : (y * 0.86);
+          let nz = (z > ankleCz) ? (ankleCz + dz * 0.90) : (ankleCz + dz * 0.76);
+          // Subtle 5-toe ridges at the front of the bare foot (z > 0.115)
+          if (z > 0.115) {
+            const localFootX = (nx - ankleCx) * signX; // [-0.04 .. +0.04]
+            const toeWave = Math.cos(localFootX * 135.0) * 0.0035;
+            nz += toeWave;
+            ny = Math.min(ny, 0.032 + toeWave * 0.5);
+          }
+          pos.setXYZ(i, nx, ny, nz);
+        }
+        pos.needsUpdate = true;
+        bareFeetGeo.computeVertexNormals();
+      }
+      ch.userData.bareSkinGeo = bareFeetGeo;
+    }
+  });
+
+  if (maherNpcState.swimBones && maherNpcState.swimBones.hips) {
+    const duckRing = buildMaherDuckSwimRingGroup();
+    maherNpcState.swimBones.hips.add(duckRing);
+    maherNpcState.duckRingGroup = duckRing;
+    window.maherDuckRingGroup = duckRing;
+  }
+}
+
+function setMaherSwimCostume(isSwimming) {
+  const swimMode = Boolean(isSwimming);
+  maherNpcState.isSwimCostume = swimMode;
+
+  // 1. Toggle 3D Inflatable Yellow Duck Swim Ring around his waist ("ban bebek d sekeliling pinggang menutupi area sensitif")
+  if (maherNpcState.duckRingGroup) {
+    maherNpcState.duckRingGroup.visible = swimMode;
+  }
+
+  // 2. Switch Shirt ("tanpa kaos"), Shorts ("tanpa celana"), and Shoes ("tanpa sepatu") between Bare Skin and Normal Clothes
+  for (const m of [maherNpcState.meshTop, maherNpcState.meshShorts, maherNpcState.meshShoes]) {
+    if (!m || !m.userData) continue;
+    if (swimMode) {
+      if (m.userData.bareSkinGeo) m.geometry = m.userData.bareSkinGeo;
+      m.material = matMaherBareSkin;
+    } else {
+      if (m.userData.origClothGeo) m.geometry = m.userData.origClothGeo;
+      if (m.userData.origClothMat) m.material = m.userData.origClothMat;
+    }
+  }
+}
+window.setMaherSwimCostume = setMaherSwimCostume;
+
 function loadMaitreMaherNPC() {
   loadingActive++; loadingTotal++;
   updateLoadingUI();
@@ -9994,6 +11026,7 @@ function loadMaitreMaherNPC() {
     if (maherNpcState.handBoneR) {
       buildMaherHandheldProps(maherNpcState.handBoneR);
     }
+    buildMaherSwimCostumeAndDuckRing(armRoot);
 
     armRoot.add(maherBadgeSprite);
     maherNpcGroup.add(armRoot);
@@ -10062,7 +11095,7 @@ function loadMaitreMaherNPC() {
 // Phase 1 (DIVE_JUMP_1) -> Phase 2 (SWIM_1) -> Phase 3 (BORDER_LOUNGE on random border with Drink Bottle & Food Plate) -> Phase 4 (DIVE_JUMP_2) -> Phase 5 (SWIM_2)
 function updateNpcPoolSwimCycle(npcState, dt, nowSec, isWife) {
   const pos = npcState.root.position;
-  const swimY = isWife ? -1.08 : -1.14;
+  const swimY = isWife ? -1.08 : -0.96;
   const snackGrp = isWife ? wifePoolSnackGroup : maherPoolSnackGroup;
 
   if (npcState.swimPhase === 'DIVE_JUMP_1' || npcState.swimPhase === 'DIVE_JUMP_2') {
@@ -10227,7 +11260,7 @@ function updateMaherNpcAndParticles(dt) {
           r.maxOpacity = 0.62;
         } else {
           const rbx = -9.85 + Math.random() * 1.30;
-          const rby = -6.55 + Math.random() * 6.90;
+          const rby = -4.55 + Math.random() * 5.05;
           r.mesh.position.x = rbx;
           r.mesh.position.z = -rby;
           r.baseScale = 0.45 + Math.random() * 0.55;
@@ -10679,7 +11712,7 @@ function updateMaherNpcAndParticles(dt) {
 // BOOTSTRAP SCENE
 // ============================================================================
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v8');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v8') || localStorage.getItem('tunisia_modern_arabic_villa_v7');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -10720,15 +11753,26 @@ async function initApp() {
   setTimeOfDay(state.timeOfDay || 'sunset');
 
   if (savedPositions && Array.isArray(savedPositions)) {
+    const usedObjs = new Set();
     savedPositions.forEach((sp, idx) => {
-      const obj = draggableObjects[idx];
-      if (obj && obj.userData.labelEn === sp.labelEn) {
+      let obj = draggableObjects[idx];
+      if (!obj || obj.userData.labelEn !== sp.labelEn || usedObjs.has(obj)) {
+        obj = draggableObjects.find(cand => !usedObjs.has(cand) && cand.userData.labelEn === sp.labelEn);
+      }
+      if (obj) {
+        usedObjs.add(obj);
         obj.position.set(sp.x, sp.y, sp.z);
         obj.rotation.y = sp.ry;
         if (typeof sp.s === 'number' && sp.s > 0.1) {
           obj.userData.scaleFactor = sp.s;
           const bs = obj.userData.baseScale || new THREE.Vector3(1, 1, 1);
           obj.scale.set(bs.x * sp.s, bs.y * sp.s, bs.z * sp.s);
+        }
+        if (obj.userData.isWoodenFence) {
+          if (typeof sp.leftPanels === 'number') obj.userData.leftPanels = sp.leftPanels;
+          if (typeof sp.rightPanels === 'number') obj.userData.rightPanels = sp.rightPanels;
+          if (typeof sp.gateOffsetX === 'number') obj.userData.gateOffsetX = sp.gateOffsetX;
+          if (typeof window.rebuildWoodenFencePanels === 'function') window.rebuildWoodenFencePanels();
         }
         obj.updateMatrixWorld(true);
       }
