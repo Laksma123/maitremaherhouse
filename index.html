@@ -212,6 +212,7 @@
       <button class="btn-pill" id="btn-time-day" onclick="setTimeOfDay('day')">☀️ Day</button>
       <button class="btn-pill" id="btn-time-night" onclick="setTimeOfDay('night')">🌙 Night (Full LED)</button>
       <button class="btn-pill" id="btn-save" onclick="saveDesign()">💾 Save</button>
+      <button class="btn-pill" id="btn-export-layout" onclick="exportLayoutToClipboard()">📋 Copy Layout</button>
       <button class="btn-pill" id="btn-reset" onclick="resetDesign()">🔄 Reset</button>
     </div>
   </div>
@@ -8593,24 +8594,51 @@ function downloadPhotoshootImage() {
   a.click();
 }
 
-function saveDesign() {
-  const customPositions = draggableObjects.map(o => ({
+function buildCurrentLayoutPayload() {
+  return draggableObjects.map(o => ({
     labelEn: o.userData.labelEn,
-    x: o.position.x,
-    y: o.position.y,
-    z: o.position.z,
-    ry: o.rotation.y,
-    s: o.userData.scaleFactor || 1.0,
+    x: +o.position.x.toFixed(3),
+    y: +o.position.y.toFixed(3),
+    z: +o.position.z.toFixed(3),
+    ry: +o.rotation.y.toFixed(4),
+    s: +(o.userData.scaleFactor || 1.0).toFixed(3),
     leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
     rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
     gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined
   }));
+}
+
+function saveDesign() {
+  const customPositions = buildCurrentLayoutPayload();
+  const payloadStr = JSON.stringify({
+    lang: state.lang,
+    timeOfDay: state.timeOfDay,
+    customPositions
+  });
+  localStorage.setItem('tunisia_modern_arabic_villa_v8', payloadStr);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(JSON.stringify(customPositions)).catch(() => {});
+  }
+  alert(t('savedMsg'));
+}
+
+function exportLayoutToClipboard() {
+  const customPositions = buildCurrentLayoutPayload();
+  const jsonStr = JSON.stringify(customPositions);
   localStorage.setItem('tunisia_modern_arabic_villa_v8', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     customPositions
   }));
-  alert(t('savedMsg'));
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(jsonStr).then(() => {
+      alert('Layout JSON copied to clipboard! Paste (Cmd+V) it in the chat.');
+    }).catch(() => {
+      window.prompt('Copy this Layout JSON (Cmd+C) and paste it in the chat:', jsonStr);
+    });
+  } else {
+    window.prompt('Copy this Layout JSON (Cmd+C) and paste it in the chat:', jsonStr);
+  }
 }
 
 function resetDesign() {
