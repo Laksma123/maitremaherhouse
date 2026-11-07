@@ -216,6 +216,36 @@
   .btn-spawn-cow:hover {
     background: linear-gradient(135deg, #60a5fa, #2563eb); border-color: #fff;
   }
+  .btn-spawn-rabbit {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    border: 1px solid #fbcfe8; color: #fff; font-weight: 700;
+  }
+  .btn-spawn-rabbit:hover {
+    background: linear-gradient(135deg, #f472b6, #db2777); border-color: #fff;
+  }
+  .btn-spawn-goat {
+    background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+    border: 1px solid #ddd6fe; color: #fff; font-weight: 700;
+  }
+  .btn-spawn-goat:hover {
+    background: linear-gradient(135deg, #a78bfa, #6d28d9); border-color: #fff;
+  }
+  dialog#road-spawn-modal {
+    margin: auto; width: min(92vw, 420px); background: rgba(12, 17, 26, 0.96);
+    color: var(--text-main); border: 1.5px solid var(--gold); border-radius: 16px;
+    padding: 18px; box-shadow: 0 24px 64px rgba(0,0,0,0.88);
+  }
+  dialog#road-spawn-modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
+  }
+  .road-modal-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0;
+    font-size: 12.5px; color: #e2e8f0;
+  }
+  .road-modal-input {
+    width: 110px; background: rgba(255,255,255,0.09); border: 1px solid rgba(232,185,89,0.45);
+    color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 700; text-align: center;
+  }
   .animal-count-badge {
     background: rgba(255,255,255,0.10); border: 1px solid rgba(110, 231, 183, 0.38);
     border-radius: 8px; padding: 4px 9px; font-size: 11px; font-weight: 700; color: var(--gold-bright);
@@ -358,6 +388,9 @@
 <script src="./maher_wife_npc_data.js"></script>
 <script src="./animal_cow_data.js"></script>
 <script src="./animal_chicken_data.js"></script>
+<script src="./animal_rabbit_data.js"></script>
+<script src="./animal_goat_data.js"></script>
+<script src="./road_and_grape_data.js"></script>
 </head>
 <body>
 
@@ -384,7 +417,9 @@
     <span class="animal-panel-title" id="ui-animal-panel-title">🐾 Deploy Animals (Unlimited):</span>
     <button class="btn-pill btn-spawn-chicken" id="btn-spawn-chicken" onclick="deployAnimal('chicken')">🐔 + Chicken</button>
     <button class="btn-pill btn-spawn-cow" id="btn-spawn-cow" onclick="deployAnimal('cow')">🐄 + Cow</button>
-    <span class="animal-count-badge" id="animal-count-badge">🐔 0 | 🐄 0</span>
+    <button class="btn-pill btn-spawn-rabbit" id="btn-spawn-rabbit" onclick="deployAnimal('rabbit')">🐇 + Rabbit</button>
+    <button class="btn-pill btn-spawn-goat" id="btn-spawn-goat" onclick="deployAnimal('goat')">🐐 + Goat</button>
+    <span class="animal-count-badge" id="animal-count-badge">🐔 0 | 🐄 0 | 🐇 0 | 🐐 0</span>
     <button class="btn-pill" id="btn-close-animal-panel" onclick="toggleAnimalDeployPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
 
@@ -446,6 +481,16 @@
     <button class="hud-btn" id="btn-hud-olive-pot" onclick="toggleSelectedSmallOlivePot()" title="Toggle Pot On/Off for Selected Small Olive(s)">🏺 Pot: ON</button>
     <button class="hud-btn" id="btn-hud-olive-grass" onclick="buildGrassBedForSelectedOlives()" title="Shift+Click multiple small olives, then click to build a line grass bed and merge them into 1 group" style="background:rgba(46,125,50,0.38);border-color:#81c784;color:#e8f5e9;font-weight:600;">🌿 Build Grass Bed (Group)</button>
   </span>
+  <span id="road-hud-controls" style="display:none; gap:5px; align-items:center; flex-wrap:wrap;">
+    <button class="hud-btn" id="btn-road-w-dec" onclick="adjustSelectedRoadWidth(-0.40)" title="Narrower Road Width">↔️ Width -</button>
+    <button class="hud-btn" id="btn-road-w-inc" onclick="adjustSelectedRoadWidth(0.40)" title="Wider Road Width">↔️ Width +</button>
+    <button class="hud-btn" id="btn-road-l-dec" onclick="adjustSelectedRoadSegmentLength(-1.50)" title="Shorten Current Road End">📏 Length -</button>
+    <button class="hud-btn" id="btn-road-l-inc" onclick="adjustSelectedRoadSegmentLength(1.50)" title="Extend Current Road End">📏 Length +</button>
+    <button class="hud-btn" id="btn-road-turn-l" onclick="addSelectedRoadTurn('left')" title="Add Turn Left at Active End & Continue Extending" style="background:rgba(217,119,6,0.32);border-color:#fbbf24;color:#fef3c7;">↰ + Turn Left</button>
+    <button class="hud-btn" id="btn-road-turn-r" onclick="addSelectedRoadTurn('right')" title="Add Turn Right at Active End & Continue Extending" style="background:rgba(217,119,6,0.32);border-color:#fbbf24;color:#fef3c7;">↱ + Turn Right</button>
+    <button class="hud-btn" id="btn-road-undo-turn" onclick="removeSelectedRoadLastTurn()" title="Remove Last Added Turn Segment">↩️ Undo Turn</button>
+    <button class="hud-btn" id="btn-road-end-toggle" onclick="toggleSelectedRoadActiveEnd()" title="Switch Active End (Front End vs Start/Back End)">🔄 End: Front</button>
+  </span>
   <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
   <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
   <button class="hud-btn" id="btn-hud-rot-l" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
@@ -456,6 +501,28 @@
   <button class="hud-btn btn-delete-obj" id="btn-hud-delete" style="display:none" onclick="deleteSelectedObject()" title="Delete Selected Object (Del / Backspace)">🗑️ Delete</button>
   <button class="hud-btn" id="btn-hud-deselect" style="display:none" onclick="deselectObject()">✖</button>
 </div>
+
+<dialog id="road-spawn-modal" closedby="any" aria-labelledby="road-modal-title">
+  <div class="ps-header">
+    <h2 id="road-modal-title">🛣️ Spawn Country Gravel Road</h2>
+    <button class="btn-pill" type="button" onclick="document.getElementById('road-spawn-modal').close()">✖</button>
+  </div>
+  <p id="road-modal-desc" style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">
+    Set initial road width and length. You can place it anywhere on the terrain (automatically clipped at terrain boundaries) and add unlimited Left/Right turns from the bottom bar!
+  </p>
+  <div class="road-modal-row">
+    <label for="road-spawn-width-input" id="road-modal-width-lbl">↔️ Road Width (m):</label>
+    <input type="number" id="road-spawn-width-input" class="road-modal-input" min="1.2" max="14.0" step="0.2" value="3.4" />
+  </div>
+  <div class="road-modal-row">
+    <label for="road-spawn-length-input" id="road-modal-length-lbl">📏 Initial Length (m):</label>
+    <input type="number" id="road-spawn-length-input" class="road-modal-input" min="2.0" max="60.0" step="1.0" value="14.0" />
+  </div>
+  <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+    <button class="btn-pill" type="button" onclick="document.getElementById('road-spawn-modal').close()">Cancel</button>
+    <button class="btn-pill btn-catalog" type="button" id="btn-confirm-road-spawn" onclick="confirmSpawnGravelRoadModal()">➕ Spawn Road</button>
+  </div>
+</dialog>
 
 <dialog id="object-catalog-modal" closedby="any" aria-labelledby="catalog-modal-title">
   <div class="cat-header">
@@ -545,6 +612,8 @@ const I18N = {
     animalPanelTitle: '🐾 Deploy Animals (Unlimited):',
     btnSpawnChicken: '🐔 + Chicken',
     btnSpawnCow: '🐄 + Cow',
+    btnSpawnRabbit: '🐇 + Rabbit',
+    btnSpawnGoat: '🐐 + Goat',
     btnDeleteAnimal: '🗑️ Delete',
     btnAreaMinus: '⭕ Area -',
     btnAreaPlus: '⭕ Area +',
@@ -560,6 +629,15 @@ const I18N = {
     btnOlivePotOn: '🏺 Pot: ON (Click for No Pot)',
     btnOlivePotOff: '🌱 Pot: OFF (Click for Pot)',
     btnOliveBuildGrass: '🌿 Build Grass Bed & Group',
+    btnRoadWidthDec: '↔️ Width -',
+    btnRoadWidthInc: '↔️ Width +',
+    btnRoadLenDec: '📏 Length -',
+    btnRoadLenInc: '📏 Length +',
+    btnRoadTurnLeft: '↰ + Turn Left',
+    btnRoadTurnRight: '↱ + Turn Right',
+    btnRoadUndoTurn: '↩️ Undo Turn',
+    btnRoadEndFront: '🔄 End: Front',
+    btnRoadEndBack: '🔄 End: Back',
     catAll: '✨ All',
     catSalon: '🛋️ Salon & Lounge',
     catBedroom: '🛏️ Bedroom & Bath',
@@ -612,6 +690,8 @@ const I18N = {
     animalPanelTitle: '🐾 إضافة حيوانات (بلا حدود):',
     btnSpawnChicken: '🐔 + دجاجة',
     btnSpawnCow: '🐄 + بقرة',
+    btnSpawnRabbit: '🐇 + أرنب',
+    btnSpawnGoat: '🐐 + ماعز',
     btnDeleteAnimal: '🗑️ حذف',
     btnAreaMinus: '⭕ نطاق -',
     btnAreaPlus: '⭕ نطاق +',
@@ -627,6 +707,15 @@ const I18N = {
     btnOlivePotOn: '🏺 بأصيص (انقر لإزالة الأصيص)',
     btnOlivePotOff: '🌱 بدون أصيص (انقر لإضافة أصيص)',
     btnOliveBuildGrass: '🌿 إنشاء حوض عشب ودمج كمجموعة',
+    btnRoadWidthDec: '↔️ عرض -',
+    btnRoadWidthInc: '↔️ عرض +',
+    btnRoadLenDec: '📏 طول -',
+    btnRoadLenInc: '📏 طول +',
+    btnRoadTurnLeft: '↰ + انعطاف يسار',
+    btnRoadTurnRight: '↱ + انعطاف يمين',
+    btnRoadUndoTurn: '↩️ تراجع انعطاف',
+    btnRoadEndFront: '🔄 الطرف: الأمامي',
+    btnRoadEndBack: '🔄 الطرف: الخلفي',
     catAll: '✨ الكل',
     catSalon: '🛋️ الصالة والجلسات',
     catBedroom: '🛏️ بيت النوم والحمام',
@@ -719,6 +808,7 @@ renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.04;
 renderer.physicallyCorrectLights = false;
+renderer.localClippingEnabled = true;
 container.appendChild(renderer.domElement);
 
 const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -3278,6 +3368,284 @@ function buildStaticArchitecture() {
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
   registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa', 'جلسة أرضية تونسية في شرفة المقصورة');
 
+  // ==========================================================================
+  // CABIN FRONT TERRACE WALNUT PERGOLA CANOPY + CLIMBING GRAPE VINES & GRAPE BUNCHES
+  // ("buat kanopi di atas terrace (d atas sofa lantai ini) seukuran terrace, kanopi yg persis seperti d roof rumah utama.
+  //  tapi, dengan grid dan tebal kayu yg d seimbangkan dengan dimensi terrace yg kecil.
+  //  kmudian d atas kanopi roof ini menjalar rapi dan penuh tanaman anggur /Users/dianjulie/Downloads/grape-vines.zip,
+  //  yg bersumber dari ujung kanan depan kabin depan (sisi kanan sofa, tepat d tanah, d ujung kanan belakang terrace)
+  //  menjalar ke atas dan ke roof dengan sdikit anggur yg terlihat menggantung d beberapa titiknya.")
+  // ==========================================================================
+  const cabinTerracePergolaGroup = new THREE.Group();
+  // Terrace spans bx = 12.00 .. 18.00 (6.00m wide), by = -13.40 .. -16.50 (3.10m deep), floor at bz = -0.25m, soil at bz = -0.50m
+  // 4 Corner & 2 Mid-Span Walnut Posts (thickness = 0.115m, height = 2.68m from terrace floor bz = -0.25m up to canopy beam level bz = 2.43m)
+  const pergPostH = 2.68;
+  const pergPostCenterBz = -0.25 + pergPostH * 0.5;
+  [
+    [12.08, -13.48], [15.00, -13.48], [17.92, -13.48],
+    [12.08, -16.42], [15.00, -16.42], [17.92, -16.42]
+  ].forEach(([px, py]) => {
+    addBoxMesh(0.115, pergPostH, 0.115, px, py, pergPostCenterBz, matWalnut, cabinTerracePergolaGroup);
+    // Decorative carved base & capital collars like the main roof pergola style
+    addBoxMesh(0.155, 0.08, 0.155, px, py, -0.21, matWalnut, cabinTerracePergolaGroup);
+    addBoxMesh(0.145, 0.06, 0.145, px, py, 2.38, matWalnut, cabinTerracePergolaGroup);
+  });
+
+  // 5 East-West Main Support Beams across the 3.10m terrace depth (by = -13.48 .. -16.42, width = 6.08m, balanced cross-section 0.105m x 0.085m)
+  [-13.48, -14.215, -14.95, -15.685, -16.42].forEach((byBeam) => {
+    addBoxMesh(6.08, 0.105, 0.085, 15.00, byBeam, 2.45, matWalnut, cabinTerracePergolaGroup);
+  });
+
+  // 13 North-South Cross Rafters across the 6.00m terrace width (bx = 12.12 .. 17.88, spacing = 0.48m, balanced cross-section 0.058m x 0.046m, length = 3.22m)
+  for (let i = 0; i < 13; i++) {
+    const rx = 12.12 + i * 0.48;
+    addBoxMesh(0.058, 0.046, 3.22, rx, -14.95, 2.525, matWalnut, cabinTerracePergolaGroup);
+  }
+
+  // Climbing Grapevine Woody Root & Main Stem originating on the Soil Ground (bz = -0.50m) at the Front-Right Corner of the Front Cabin / Back-Right Corner of the Terrace
+  // ("bersumber dari ujung kanan depan kabin depan (sisi kanan sofa, tepat d tanah, d ujung kanan belakang terrace) menjalar ke atas dan ke roof")
+  const matVineBark = new THREE.MeshStandardMaterial({
+    color: 0x5c3d24,
+    normalMap: woodNorTex,
+    roughness: 0.86,
+    metalness: 0.02,
+    envMapIntensity: 0.25,
+    userData: { customEnvIntensity: 0.25 }
+  });
+  const matVineTendril = new THREE.MeshStandardMaterial({
+    color: 0x3f5422,
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.20,
+    userData: { customEnvIntensity: 0.20 }
+  });
+  // Root soil mound right on the ground (bz = -0.50m) beside the back-right terrace edge (bx = 18.12, by = -13.52)
+  const vineRootMound = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.28, 0.10, 14), matVineBark);
+  vineRootMound.position.copy(bPos(18.12, -13.52, -0.46));
+  vineRootMound.castShadow = true;
+  vineRootMound.receiveShadow = true;
+  cabinTerracePergolaGroup.add(vineRootMound);
+
+  // Continuous gnarled climbing main vine trunks spiraling from soil (18.12, -13.52, -0.50) up the back-right pergola post (17.92, -13.48) to the canopy roof (bz = 2.55m)
+  const primaryVinePts = [];
+  const secondaryVinePts = [];
+  const vineClimbSteps = 22;
+  for (let s = 0; s <= vineClimbSteps; s++) {
+    const t0 = s / vineClimbSteps;
+    const bz0 = -0.48 + t0 * 3.04;
+    const ang0 = t0 * Math.PI * 3.8;
+    const rad0 = (1.0 - t0 * 0.50) * 0.075 + 0.055;
+    const vx = (t0 < 0.15 ? (18.12 - t0 * 1.33) : 17.92) + Math.cos(ang0) * rad0;
+    const vy = (t0 < 0.15 ? (-13.52 + t0 * 0.26) : -13.48) + Math.sin(ang0) * rad0;
+    primaryVinePts.push(bPos(vx, vy, bz0));
+
+    const vx2 = 17.92 + Math.cos(ang0 + 2.5) * (rad0 * 0.88);
+    const vy2 = -13.48 + Math.sin(ang0 + 2.5) * (rad0 * 0.88);
+    secondaryVinePts.push(bPos(vx2, vy2, bz0));
+  }
+  const primaryClimbTube = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(primaryVinePts), 48, 0.036, 9, false),
+    matVineBark
+  );
+  primaryClimbTube.castShadow = true;
+  primaryClimbTube.receiveShadow = true;
+  cabinTerracePergolaGroup.add(primaryClimbTube);
+
+  const secondaryClimbTube = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(secondaryVinePts), 44, 0.022, 8, false),
+    matVineBark
+  );
+  secondaryClimbTube.castShadow = true;
+  cabinTerracePergolaGroup.add(secondaryClimbTube);
+
+  // Branching woody vine runners spreading from the top of the back-right post (17.92, -13.48, 2.55) across the entire 6.00m x 3.10m canopy roof grid
+  [-13.65, -14.30, -14.95, -15.60, -16.25].forEach((byRun, rIdx) => {
+    const runLen = 5.75;
+    const runRadius = 0.022 - rIdx * 0.002;
+    const runner = new THREE.Mesh(new THREE.CylinderGeometry(0.010, runRadius, runLen, 8), matVineBark);
+    runner.rotation.z = Math.PI / 2;
+    runner.position.copy(bPos(15.00, byRun, 2.555));
+    runner.castShadow = true;
+    cabinTerracePergolaGroup.add(runner);
+  });
+  // Diagonal feeder branches from the back-right post (17.92, -13.48) to each runner
+  [-14.30, -14.95, -15.60, -16.25].forEach((byTarget) => {
+    const dx = -1.35, dy = byTarget - (-13.48);
+    const len = Math.hypot(dx, dy);
+    const feeder = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.024, len, 8), matVineBark);
+    feeder.position.copy(bPos(17.92 + dx * 0.5, -13.48 + dy * 0.5, 2.56));
+    feeder.rotation.x = Math.PI / 2;
+    feeder.rotation.z = Math.atan2(dx, -dy);
+    cabinTerracePergolaGroup.add(feeder);
+  });
+
+  // Load the real grape-vines.zip cutout texture (window.GRAPE_VINES_RGBA_B64) covering the canopy roof neatly and fully ("menjalar rapi dan penuh")
+  const matGrapeVineTex = new THREE.MeshStandardMaterial({
+    color: 0xd0e2be,
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.22,
+    userData: { customEnvIntensity: 0.22 },
+    side: THREE.DoubleSide,
+    alphaTest: 0.34,
+    transparent: true
+  });
+  const matGrapeVineShadeTex = new THREE.MeshStandardMaterial({
+    color: 0xa8c492,
+    roughness: 0.82,
+    metalness: 0.02,
+    envMapIntensity: 0.18,
+    userData: { customEnvIntensity: 0.18 },
+    side: THREE.DoubleSide,
+    alphaTest: 0.34,
+    transparent: true
+  });
+  if (window.GRAPE_VINES_RGBA_B64) {
+    const gvImg = new Image();
+    gvImg.onload = () => {
+      const gvTex = new THREE.Texture(gvImg);
+      gvTex.encoding = THREE.sRGBEncoding;
+      gvTex.wrapS = THREE.RepeatWrapping;
+      gvTex.wrapT = THREE.RepeatWrapping;
+      gvTex.needsUpdate = true;
+      matGrapeVineTex.map = gvTex;
+      matGrapeVineTex.needsUpdate = true;
+      matGrapeVineShadeTex.map = gvTex;
+      matGrapeVineShadeTex.needsUpdate = true;
+      requestShadowUpdate();
+    };
+    gvImg.src = 'data:image/png;base64,' + window.GRAPE_VINES_RGBA_B64;
+  }
+
+  // 1) Climbing vine foliage cards along the vertical trunk at (17.92..18.08, -13.48..-13.52, bz = -0.35 .. 2.45m)
+  for (let c = 0; c < 14; c++) {
+    const fBz = -0.30 + c * 0.20;
+    const cardW = 0.56 + (c % 3) * 0.08;
+    const cardH = 0.46;
+    const vCard = new THREE.Mesh(new THREE.PlaneGeometry(cardW, cardH), c % 2 === 0 ? matGrapeVineTex : matGrapeVineShadeTex);
+    vCard.position.copy(bPos(17.95 + ((c % 2) * 0.05 - 0.025), -13.48 + ((c % 3) * 0.04 - 0.02), fBz));
+    vCard.rotation.y = (c * 1.15);
+    vCard.rotation.x = 0.16 * Math.sin(c);
+    vCard.castShadow = true;
+    vCard.receiveShadow = true;
+    cabinTerracePergolaGroup.add(vCard);
+  }
+
+  // 2) Full, neat overhead grapevine canopy ("menjalar rapi dan penuh") across the 6.00m x 3.10m pergola roof (bx = 12.12 .. 17.88, by = -13.52 .. -16.38, bz = 2.55 .. 2.66m)
+  // Using 100% real grape-vines.zip botanical cutout sheets (zero polygonal circles!) in 3 rich overlapping tiers
+  const colsX = 11, rowsY = 6;
+  for (let ix = 0; ix < colsX; ix++) {
+    for (let iy = 0; iy < rowsY; iy++) {
+      const gx = 12.26 + ix * (5.48 / (colsX - 1));
+      const gy = -13.64 - iy * (2.62 / (rowsY - 1));
+      const seed = (ix * 7 + iy * 13) % 17;
+
+      // Tier A: Lower under-rafter shaded grapevine mat (visible when looking up from beneath the canopy!)
+      const underSheet = new THREE.Mesh(new THREE.PlaneGeometry(0.88, 0.74), matGrapeVineShadeTex);
+      underSheet.rotation.x = Math.PI / 2 + ((seed % 3) - 1) * 0.05;
+      underSheet.rotation.z = seed * 0.85;
+      underSheet.position.copy(bPos(gx, gy, 2.485 + (seed % 2) * 0.008));
+      underSheet.castShadow = true;
+      underSheet.receiveShadow = true;
+      cabinTerracePergolaGroup.add(underSheet);
+
+      // Tier B: Primary arched overhead grape-vines.zip botanical sheet
+      const sheetGeo = new THREE.PlaneGeometry(0.96, 0.82, 3, 3);
+      const posAttr = sheetGeo.attributes.position;
+      for (let vi = 0; vi < posAttr.count; vi++) {
+        const vx = posAttr.getX(vi), vy = posAttr.getY(vi);
+        posAttr.setZ(vi, Math.cos(vx * 2.4) * Math.cos(vy * 2.4) * 0.048);
+      }
+      sheetGeo.computeVertexNormals();
+      const sheet = new THREE.Mesh(sheetGeo, matGrapeVineTex);
+      sheet.rotation.x = -Math.PI / 2 + ((seed % 5) - 2) * 0.045;
+      sheet.rotation.z = (seed * 0.62);
+      sheet.position.copy(bPos(gx + ((seed % 3) - 1) * 0.04, gy + ((seed % 4) - 1.5) * 0.03, 2.575 + (seed % 3) * 0.012));
+      sheet.castShadow = true;
+      sheet.receiveShadow = true;
+      cabinTerracePergolaGroup.add(sheet);
+
+      // Tier C: Cross-angled upper grape-vines.zip sprig for rich 3D volume from every camera angle
+      const crossSheet = new THREE.Mesh(new THREE.PlaneGeometry(0.76, 0.44), (ix + iy) % 2 === 0 ? matGrapeVineTex : matGrapeVineShadeTex);
+      crossSheet.position.copy(bPos(gx, gy, 2.61));
+      crossSheet.rotation.x = -Math.PI / 2 + (iy % 2 === 0 ? 0.32 : -0.32);
+      crossSheet.rotation.y = (ix % 2 === 0 ? 0.24 : -0.24);
+      crossSheet.rotation.z = seed * 0.95;
+      crossSheet.castShadow = true;
+      cabinTerracePergolaGroup.add(crossSheet);
+    }
+  }
+
+  // Neat perimeter trailing vine valance along the front, left & right edges of the canopy roof
+  for (let p = 0; p < 12; p++) {
+    const px = 12.25 + p * 0.50;
+    const drape = new THREE.Mesh(new THREE.PlaneGeometry(0.58, 0.30), matGrapeVineShadeTex);
+    drape.position.copy(bPos(px, -16.43, 2.43));
+    drape.rotation.x = 0.20;
+    drape.castShadow = true;
+    cabinTerracePergolaGroup.add(drape);
+  }
+
+  // 3) Hanging 3D Grape Bunches ("dengan sdikit anggur yg terlihat menggantung d beberapa titiknya")
+  // Rich Mediterranean dark-purple & ruby-black 3D grape clusters hanging clearly below the pergola beams (bz = 2.18 .. 2.38m)
+  const matPurpleGrape = new THREE.MeshStandardMaterial({
+    color: 0x24092e,
+    roughness: 0.36,
+    metalness: 0.04,
+    envMapIntensity: 0.28,
+    userData: { customEnvIntensity: 0.28 }
+  });
+  const matRubyGrape = new THREE.MeshStandardMaterial({
+    color: 0x3d0e3a,
+    roughness: 0.36,
+    metalness: 0.04,
+    envMapIntensity: 0.28,
+    userData: { customEnvIntensity: 0.28 }
+  });
+  const grapeBunchSpots = [
+    [17.65, -13.72, 1.15], [17.10, -14.35, 1.05], [17.45, -15.45, 1.12], [16.55, -16.18, 1.05],
+    [16.20, -13.85, 1.08], [15.80, -14.88, 1.18], [15.35, -15.95, 1.06], [14.85, -13.92, 1.08],
+    [14.40, -15.05, 1.14], [13.95, -16.12, 1.04], [13.55, -14.30, 1.10], [13.10, -15.45, 1.08],
+    [12.60, -13.95, 1.02], [12.48, -15.92, 1.06], [16.85, -15.05, 1.10], [14.15, -13.75, 1.04],
+    [16.15, -16.30, 1.08], [13.35, -16.28, 1.06]
+  ];
+  const berrySphereGeo = new THREE.SphereGeometry(0.024, 10, 8);
+  grapeBunchSpots.forEach(([bxG, byG, bScale], bIdx) => {
+    const bunchGrp = new THREE.Group();
+    // Woody-green pedicel stem hanging from rafter (bz = 2.48m down to 2.30m)
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.007, 0.16, 6), matVineTendril);
+    stem.position.set(0, 0.08, 0);
+    bunchGrp.add(stem);
+
+    // Tapered conical cluster of 21 3D grape berries (5 tiers hanging clearly below the walnut beams)
+    const gMat = (bIdx % 2 === 0) ? matPurpleGrape : matRubyGrape;
+    const tiers = [
+      { y:  0.015, r: 0.034, n: 6 },
+      { y: -0.020, r: 0.040, n: 6 },
+      { y: -0.056, r: 0.031, n: 5 },
+      { y: -0.090, r: 0.019, n: 3 },
+      { y: -0.120, r: 0.000, n: 1 }
+    ];
+    tiers.forEach((tr, tIdx) => {
+      for (let bi = 0; bi < tr.n; bi++) {
+        const a = (bi / tr.n) * Math.PI * 2 + tIdx * 0.7;
+        const berry = new THREE.Mesh(berrySphereGeo, gMat);
+        berry.scale.set(1.0, 1.14, 1.0);
+        berry.position.set(Math.cos(a) * tr.r, tr.y, Math.sin(a) * tr.r);
+        berry.castShadow = true;
+        bunchGrp.add(berry);
+      }
+    });
+
+    bunchGrp.scale.setScalar(bScale);
+    bunchGrp.position.copy(bPos(bxG, byG, 2.31));
+    cabinTerracePergolaGroup.add(bunchGrp);
+  });
+
+  archRoot.add(cabinTerracePergolaGroup);
+  window.cabinTerracePergolaObj = cabinTerracePergolaGroup;
+  registerDraggable(cabinTerracePergolaGroup, 'Cabin Terrace Walnut Canopy & Grape Vines', 'مظلة خشب الجوز وكروم العنب في شرفة المقصورة');
+
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
   archRoot.add(welcomeArch);
@@ -3532,8 +3900,7 @@ function rebuildFacadeDecor() {
   addBoxMesh(0.04, 0.48, 10.34, 6.16, 0.0, 4.35, matMashrabiya, facadeDecorGroup);
   for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matWalnut, facadeDecorGroup);
   for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matWalnut, facadeDecorGroup);
-  // Decorative Walnut Eave Corbels & Mashrabiya Crown along the Shifted East Guest Cabin Front Wall (by = -13.40, bx = 12.00..18.00)
-  for (let i=0; i<12; i++) addBoxMesh(0.10, 0.14, 0.55, 12.50 + i*0.45, -13.62, 3.55, matWalnut, facadeDecorGroup);
+  // Decorative Mashrabiya LED Crown along the Shifted East Guest Cabin Front Wall (by = -13.40, bx = 12.00..18.00)
   addBoxMesh(5.80, 0.035, 0.04, 15.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
   [-4.40, -0.80].forEach(ex => {
     const a = createModernArabicArchGroup(2.20, 3.05, 0.09, { infillMode: 'mashrabiya', hasLed: true, isOpening: true, pointed: 0.15 });
@@ -3819,13 +4186,31 @@ const OBJECT_CATALOG_REGISTRY = new Map([
     icon: '🐄',
     isAnimal: true,
     animalType: 'cow'
+  }],
+  ['Farm Rabbit', {
+    key: 'Farm Rabbit',
+    labelEn: 'Farm Rabbit (Roaming AI)',
+    labelAr: 'أرنب مزرعة (متحرك)',
+    category: 'livestock',
+    icon: '🐇',
+    isAnimal: true,
+    animalType: 'rabbit'
+  }],
+  ['Tunisian Farm Goat', {
+    key: 'Tunisian Farm Goat',
+    labelEn: 'Tunisian Farm Goat (Roaming AI)',
+    labelAr: 'ماعز مزرعة تونسي (متحرك)',
+    category: 'livestock',
+    icon: '🐐',
+    isAnimal: true,
+    animalType: 'goat'
   }]
 ]);
 window.OBJECT_CATALOG_REGISTRY = OBJECT_CATALOG_REGISTRY;
 
 function classifyCatalogItem(labelEn) {
   const s = (labelEn || '').toLowerCase();
-  if (s.includes('livestock') || s.includes('manger') || s.includes('hay') || s.includes('straw') || s.includes('trough') || s.includes('barn')) {
+  if (s.includes('livestock') || s.includes('manger') || s.includes('hay') || s.includes('straw') || s.includes('trough') || s.includes('barn') || s.includes('rabbit') || s.includes('goat')) {
     return { category: 'livestock', icon: s.includes('manger') || s.includes('trough') ? '🪣' : '🌾' };
   }
   if (s.includes('chandelier') || s.includes('pendant') || s.includes('lantern')) {
@@ -3862,11 +4247,15 @@ function classifyCatalogItem(labelEn) {
   if (
     s.includes('tree') || s.includes('plant') || s.includes('grill') || s.includes('bbq') ||
     s.includes('bonfire') || s.includes('pool') || s.includes('fence') || s.includes('walkway') ||
-    s.includes('rooftop') || s.includes('pergola') || s.includes('post-swim') ||
-    s.includes('cabin terrace') || s.includes('jalsa')
+    s.includes('rooftop') || s.includes('pergola') || s.includes('canopy') || s.includes('grape') ||
+    s.includes('post-swim') || s.includes('cabin terrace') || s.includes('jalsa') ||
+    s.includes('road') || s.includes('peugeot') || s.includes('car')
   ) {
     let icon = '🌿';
-    if (s.includes('orange tree')) icon = '🍊';
+    if (s.includes('peugeot') || s.includes('car')) icon = '🚗';
+    else if (s.includes('road')) icon = '🛣️';
+    else if (s.includes('grape') || s.includes('canopy')) icon = '🍇';
+    else if (s.includes('orange tree')) icon = '🍊';
     else if (s.includes('olive')) icon = '🫒';
     else if (s.includes('shade tree')) icon = '🌳';
     else if (s.includes('plant')) icon = '🪴';
@@ -3949,6 +4338,7 @@ function registerDraggable(obj, labelEn, labelAr) {
       isWoodenFence: !!obj.userData.isWoodenFence,
       isLivestockTurnFence: !!obj.userData.isLivestockTurnFence,
       isDynamicLWalkway: !!obj.userData.isDynamicLWalkway,
+      isGravelRoad: !!obj.userData.isGravelRoad,
       keepTrunkBasePivot: !!obj.userData.keepTrunkBasePivot,
       npcActivityId: obj.userData.npcActivityId || null
     });
@@ -8724,7 +9114,7 @@ const walkState = {
   pos: new THREE.Vector3(2.60, 1.68, 7.35),
   yaw: 0,
   pitch: -0.02,
-  keys: { forward: false, back: false, left: false, right: false },
+  keys: { forward: false, back: false, left: false, right: false, shift: false },
   looking: false,
   lastLookX: 0,
   lastLookY: 0
@@ -8989,8 +9379,14 @@ function cycleMaherActivityAndFocus() {
   const allKeys = Object.keys(MAHER_ACTIVITIES).filter(k => state.roofVisible || MAHER_ACTIVITIES[k].zone !== 'roof');
   const curIdx = allKeys.indexOf(window.maherNpcState.currentAct.id);
   const nextKey = allKeys[(curIdx + 1) % allKeys.length];
-  startMaherActivity(nextKey, true);
-  focusCameraOnMaher(document.getElementById('cam-maher'));
+  // User Request: "mngklik Next Action, tidak akan mngubah fokus kamera, tp tetap membuat NPC mlanjutkan aksi selanjutnya"
+  startMaherActivity(nextKey, false);
+  if (window.wifeNpcState && typeof WIFE_ACTIVITIES === 'object' && typeof startWifeActivity === 'function') {
+    const wKeys = Object.keys(WIFE_ACTIVITIES).filter(k => state.roofVisible || WIFE_ACTIVITIES[k].zone !== 'roof');
+    const wCurIdx = wKeys.indexOf(window.wifeNpcState.currentAct.id);
+    const wNextKey = wKeys[(wCurIdx + 1) % wKeys.length];
+    startWifeActivity(wNextKey, false);
+  }
 }
 
 // ============================================================================
@@ -9058,8 +9454,10 @@ function updatePointer(e) {
 function setSelectionHighlight(obj, active) {
   if (!obj) return;
   if (obj.userData && obj.userData.isAnimal) return;
+  const isCar = !!(obj.userData && obj.userData.labelEn === 'Peugeot 308 Orange Hatchback');
   obj.traverse(ch => {
     if (ch.isMesh && ch.material && ch.material.emissive && !ch.userData.isLed) {
+      if (isCar && ch.material.name && !ch.material.name.includes('Peugeot_Orange')) return;
       if (active) {
         if (!ch.userData._origMatCloned) {
           ch.material = ch.material.clone();
@@ -9067,8 +9465,8 @@ function setSelectionHighlight(obj, active) {
         }
         ch.userData._prevEmissiveHex = ch.material.emissive.getHex();
         ch.userData._prevEmissiveInt = ch.material.emissiveIntensity || 0;
-        ch.material.emissive.setHex(0xd4a853);
-        ch.material.emissiveIntensity = 0.22;
+        ch.material.emissive.setHex(isCar ? 0x3a1000 : 0xd4a853);
+        ch.material.emissiveIntensity = isCar ? 0.06 : 0.22;
       } else if (ch.userData._origMatCloned) {
         ch.material.emissive.setHex(ch.userData._prevEmissiveHex || 0x000000);
         ch.material.emissiveIntensity = ch.userData._prevEmissiveInt || 0;
@@ -9374,12 +9772,28 @@ function updateSelectedHudText() {
   const oliveCtrl = document.getElementById('olive-hud-controls');
   const olivePotBtn = document.getElementById('btn-hud-olive-pot');
   const oliveGrassBtn = document.getElementById('btn-hud-olive-grass');
+  const roadCtrl = document.getElementById('road-hud-controls');
+  const roadWDecBtn = document.getElementById('btn-road-w-dec');
+  const roadWIncBtn = document.getElementById('btn-road-w-inc');
+  const roadLDecBtn = document.getElementById('btn-road-l-dec');
+  const roadLIncBtn = document.getElementById('btn-road-l-inc');
+  const roadTurnLBtn = document.getElementById('btn-road-turn-l');
+  const roadTurnRBtn = document.getElementById('btn-road-turn-r');
+  const roadUndoBtn = document.getElementById('btn-road-undo-turn');
+  const roadEndBtn = document.getElementById('btn-road-end-toggle');
   const radDecBtn = document.getElementById('btn-animal-rad-dec');
   const radIncBtn = document.getElementById('btn-animal-rad-inc');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
   if (bigBtn) bigBtn.textContent = t('btnBigger');
   if (radDecBtn) radDecBtn.textContent = t('btnAreaMinus');
   if (radIncBtn) radIncBtn.textContent = t('btnAreaPlus');
+  if (roadWDecBtn) roadWDecBtn.textContent = t('btnRoadWidthDec');
+  if (roadWIncBtn) roadWIncBtn.textContent = t('btnRoadWidthInc');
+  if (roadLDecBtn) roadLDecBtn.textContent = t('btnRoadLenDec');
+  if (roadLIncBtn) roadLIncBtn.textContent = t('btnRoadLenInc');
+  if (roadTurnLBtn) roadTurnLBtn.textContent = t('btnRoadTurnLeft');
+  if (roadTurnRBtn) roadTurnRBtn.textContent = t('btnRoadTurnRight');
+  if (roadUndoBtn) roadUndoBtn.textContent = t('btnRoadUndoTurn');
   if (copyBtn) copyBtn.textContent = _copyFlashActive ? t('btnCopiedObj') : t('btnCopyObj');
   if (pasteBtn) pasteBtn.textContent = t('btnPasteObj');
   if (delBtn) delBtn.textContent = t('btnDeleteObj');
@@ -9391,6 +9805,7 @@ function updateSelectedHudText() {
     if (fenceCtrl) fenceCtrl.style.display = 'none';
     if (animalCtrl) animalCtrl.style.display = 'none';
     if (oliveCtrl) oliveCtrl.style.display = 'none';
+    if (roadCtrl) roadCtrl.style.display = 'none';
     if (copyBtn) copyBtn.style.display = 'none';
     if (delBtn) delBtn.style.display = 'none';
     if (pasteBtn) pasteBtn.style.display = copiedObjectBlueprint ? 'inline-block' : 'none';
@@ -9401,6 +9816,7 @@ function updateSelectedHudText() {
     if (rot90Btn) rot90Btn.style.display = 'inline-block';
   } else {
     const isSingleOlive = !!(selectedObject.userData && selectedObject.userData.isIndividualSmallOlive);
+    const isGravelRoad = !!(selectedObject.userData && selectedObject.userData.isGravelRoad);
     const oliveSelCount = isSingleOlive ? Math.max(1, multiSelectedOlives.length) : 0;
     const lbl = (oliveSelCount > 1)
       ? (state.lang === 'ar'
@@ -9411,7 +9827,7 @@ function updateSelectedHudText() {
           : selectedObject.userData.labelEn);
     const isWalkway = !!(selectedObject.userData && selectedObject.userData.isDynamicLWalkway);
     const sf = selectedObject.userData.scaleFactor || 1.0;
-    const scaleTag = (!isWalkway && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
+    const scaleTag = (!isWalkway && !isGravelRoad && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
     const isFence = !!(selectedObject.userData && selectedObject.userData.isWoodenFence);
     const isTurnFence = !!(selectedObject.userData && selectedObject.userData.isLivestockTurnFence);
     const fenceTag = isFence
@@ -9423,12 +9839,32 @@ function updateSelectedHudText() {
     const animalTag = (isAnimal && selectedObject.userData.animalState)
       ? ` [Roam R: ${selectedObject.userData.animalState.roamRadius.toFixed(1)}m]`
       : '';
-    el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + scaleTag;
+    let roadTag = '';
+    if (isGravelRoad) {
+      const rw = (selectedObject.userData.roadWidth || 3.4).toFixed(1);
+      const segs = selectedObject.userData.roadSegments || [];
+      const activeIdx = selectedObject.userData.activeEnd === 'back' ? 0 : Math.max(0, segs.length - 1);
+      const activeLen = segs[activeIdx] ? segs[activeIdx].length.toFixed(1) : '14.0';
+      roadTag = ` [W: ${rw}m | End Len: ${activeLen}m | Segs: ${segs.length}]`;
+    }
+    el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + roadTag + scaleTag;
     if (fenceCtrl) {
       fenceCtrl.style.display = isFence ? 'inline-flex' : 'none';
     }
     if (animalCtrl) {
       animalCtrl.style.display = isAnimal ? 'inline-flex' : 'none';
+    }
+    if (roadCtrl) {
+      roadCtrl.style.display = isGravelRoad ? 'inline-flex' : 'none';
+      if (isGravelRoad && roadEndBtn) {
+        roadEndBtn.textContent = (selectedObject.userData.activeEnd === 'back')
+          ? t('btnRoadEndBack')
+          : t('btnRoadEndFront');
+      }
+      if (isGravelRoad && roadUndoBtn) {
+        const segCount = (selectedObject.userData.roadSegments || []).length;
+        roadUndoBtn.style.display = segCount > 1 ? 'inline-block' : 'none';
+      }
     }
     if (oliveCtrl) {
       oliveCtrl.style.display = isSingleOlive ? 'inline-flex' : 'none';
@@ -9804,12 +10240,12 @@ function findSmartCatalogSpawnPosition(entry, preferNearPoint) {
     : -0.50;
   const hOff = (entry && typeof entry.heightAboveSurface === 'number') ? entry.heightAboveSurface : 0.0;
 
-  // Golden-angle spiral search so consecutive spawns never stack at the exact same point
+  // Golden-angle spiral search so consecutive spawns never stack at the exact same point (covers the full terrain box)
   for (let i = 0; i < 36; i++) {
     const r = (i === 0) ? 0.0 : (0.72 + i * 0.32);
     const ang = i * 2.3999632;
-    const cx = Math.max(-23.0, Math.min(23.0, baseX + Math.cos(ang) * r));
-    const cz = Math.max(-17.0, Math.min(25.0, baseZ + Math.sin(ang) * r));
+    const cx = Math.max(-31.2, Math.min(31.2, baseX + Math.cos(ang) * r));
+    const cz = Math.max(-26.8, Math.min(35.8, baseZ + Math.sin(ang) * r));
     if (cx >= -10.35 && cx <= -8.05 && cz >= -1.05 && cz <= 5.05) continue;
     const surfY = (typeof getAnimalSurfaceY === 'function')
       ? getAnimalSurfaceY(cx, cz, null, baseSurfY)
@@ -9836,6 +10272,9 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   if (!entry) return null;
   if (entry.isAnimal && entry.animalType) {
     return deployAnimal(entry.animalType, customOpts || null);
+  }
+  if ((entry.isGravelRoad || entry.key === 'Country Gravel Road') && typeof window.spawnGravelRoad === 'function') {
+    return window.spawnGravelRoad(customOpts || {});
   }
   if (!entry.template) return null;
 
@@ -9987,6 +10426,11 @@ function copySelectedObject() {
       leftPanels: ud.leftPanels,
       rightPanels: ud.rightPanels,
       gateOffsetX: ud.gateOffsetX,
+      hasPot: ud.hasPot,
+      isGravelRoad: !!ud.isGravelRoad,
+      roadWidth: ud.roadWidth,
+      roadSegments: ud.roadSegments ? JSON.parse(JSON.stringify(ud.roadSegments)) : undefined,
+      activeEnd: ud.activeEnd,
       srcX: selectedObject.position.x,
       srcY: selectedObject.position.y,
       srcZ: selectedObject.position.z,
@@ -10046,7 +10490,11 @@ function pasteCopiedObject() {
     s: copiedObjectBlueprint.s,
     leftPanels: copiedObjectBlueprint.leftPanels,
     rightPanels: copiedObjectBlueprint.rightPanels,
-    gateOffsetX: copiedObjectBlueprint.gateOffsetX
+    gateOffsetX: copiedObjectBlueprint.gateOffsetX,
+    hasPot: copiedObjectBlueprint.hasPot,
+    roadWidth: copiedObjectBlueprint.roadWidth,
+    roadSegments: copiedObjectBlueprint.roadSegments ? JSON.parse(JSON.stringify(copiedObjectBlueprint.roadSegments)) : undefined,
+    activeEnd: copiedObjectBlueprint.activeEnd
   });
 }
 
@@ -10224,6 +10672,11 @@ function renderObjectCatalogGrid() {
 function spawnCatalogObject(key) {
   const entry = OBJECT_CATALOG_REGISTRY.get(key);
   if (!entry) return null;
+  // When spawning Country Gravel Road from the catalog, open the Road Width & Length configuration dialog ("lebarnya bisa d atur saat spawn, dan panjangnya bisa d atur")
+  if ((entry.isGravelRoad || key === 'Country Gravel Road') && typeof window.openRoadSpawnModal === 'function') {
+    window.openRoadSpawnModal();
+    return null;
+  }
   const spawned = spawnCatalogInstanceFromEntry(entry, null);
   const keepOpenChk = document.getElementById('catalog-keep-open');
   if (catalogDialog && catalogDialog.open && (!keepOpenChk || !keepOpenChk.checked)) {
@@ -10293,10 +10746,11 @@ window.addEventListener('keydown', (e) => {
     }
     return;
   }
-  if (k === 'w' || e.key === 'ArrowUp') walkState.keys.forward = true;
-  if (k === 's' || e.key === 'ArrowDown') walkState.keys.back = true;
-  if (k === 'a' || e.key === 'ArrowLeft') walkState.keys.left = true;
-  if (k === 'd' || e.key === 'ArrowRight') walkState.keys.right = true;
+  if (e.key === 'Shift') walkState.keys.shift = true;
+  if (k === 'w' || e.key === 'ArrowUp') { walkState.keys.forward = true; walkState.keys.shift = !!e.shiftKey; }
+  if (k === 's' || e.key === 'ArrowDown') { walkState.keys.back = true; walkState.keys.shift = !!e.shiftKey; }
+  if (k === 'a' || e.key === 'ArrowLeft') { walkState.keys.left = true; walkState.keys.shift = !!e.shiftKey; }
+  if (k === 'd' || e.key === 'ArrowRight') { walkState.keys.right = true; walkState.keys.shift = !!e.shiftKey; }
   if (k === 'r' && viewMode !== 'walk') rotateSelected(Math.PI / 12);
   if (k === 'f') {
     if (nearbyWindowOpening) {
@@ -10310,6 +10764,7 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('keyup', (e) => {
   const k = e.key.toLowerCase();
+  if (e.key === 'Shift') walkState.keys.shift = false;
   if (k === 'w' || e.key === 'ArrowUp') walkState.keys.forward = false;
   if (k === 's' || e.key === 'ArrowDown') walkState.keys.back = false;
   if (k === 'a' || e.key === 'ArrowLeft') walkState.keys.left = false;
@@ -10475,9 +10930,10 @@ function updateWalkAndOpenings(dt) {
     moveRight /= inputMag;
   }
 
+  const shiftMult = walkState.keys.shift ? 2.0 : 1.0;
   if (viewMode === 'walk') {
     if (inputMag > 0.01) {
-      const speed = 3.45 * dt;
+      const speed = 3.45 * shiftMult * dt;
       const fwdX = -Math.sin(walkState.yaw);
       const fwdZ = -Math.cos(walkState.yaw);
       const rightX = Math.cos(walkState.yaw);
@@ -10542,8 +10998,8 @@ function updateWalkAndOpenings(dt) {
     walkState.pos.y += (targetEyeY - walkState.pos.y) * Math.min(1.0, 12.0 * dt);
     syncWalkCamera();
   } else if (inputMag > 0.01) {
-    // Proportional WASD / MOBA Analog Joystick camera translation in Orbit & Top View modes
-    const panSpeed = (viewMode === 'orbit' ? 5.2 : 6.5) * dt;
+    // Proportional WASD / MOBA Analog Joystick camera translation in Orbit & Top View modes (2x faster when holding Shift!)
+    const panSpeed = (viewMode === 'orbit' ? 5.2 : 6.5) * shiftMult * dt;
     let fwdX = controls.target.x - activeCamera.position.x;
     let fwdZ = controls.target.z - activeCamera.position.z;
     const fLen = Math.hypot(fwdX, fwdZ);
@@ -10748,6 +11204,8 @@ function updateStaticUIStrings() {
   setText('ui-animal-panel-title', t('animalPanelTitle'));
   setText('btn-spawn-chicken', t('btnSpawnChicken'));
   setText('btn-spawn-cow', t('btnSpawnCow'));
+  setText('btn-spawn-rabbit', t('btnSpawnRabbit'));
+  setText('btn-spawn-goat', t('btnSpawnGoat'));
   setText('btn-save', t('save'));
   setText('btn-reset', t('reset'));
 
@@ -10944,7 +11402,12 @@ function buildCurrentLayoutPayload() {
       rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
       gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined,
       endBx: o.userData.isDynamicLWalkway ? +o.userData.endBx.toFixed(3) : undefined,
-      walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined
+      walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined,
+      hasPot: o.userData.isIndividualSmallOlive ? !!o.userData.hasPot : undefined,
+      isGravelRoad: o.userData.isGravelRoad ? true : undefined,
+      roadWidth: o.userData.isGravelRoad ? +(o.userData.roadWidth || 3.4).toFixed(2) : undefined,
+      roadSegments: o.userData.isGravelRoad ? o.userData.roadSegments : undefined,
+      activeEnd: o.userData.isGravelRoad ? o.userData.activeEnd : undefined
     };
   });
 }
@@ -11360,8 +11823,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Cook_Action',
     prop: 'spatula',
     duration: [55, 80], // 5x duration
-    en: 'Grilling Mediterranean Fish & Beef Steak on Terrace',
-    ar: 'يشوي الحوت والستيك في السقيفة'
+    en: 'Grilling BBQ',
+    ar: 'يشوي على المشواة'
   },
   RELAX_FLOOR_SOFA: {
     id: 'RELAX_FLOOR_SOFA',
@@ -11371,8 +11834,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [50, 70], // 5x duration
-    en: 'Relaxing on Tunisian Floor Sofa under the Window',
-    ar: 'مرتاح على الجلسة التونسية الأرضية تحت الشباك'
+    en: 'Relaxing on Sofa',
+    ar: 'مرتاح في الجلسة'
   },
   SWIM_POOL: {
     id: 'SWIM_POOL',
@@ -11382,8 +11845,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Stand_Idle',
     prop: null,
     duration: [60, 82],
-    en: 'Swimming & Lounging on Pool Border with Drinks & Food',
-    ar: 'يعوم ويستجم على حافة المسبح مع المشروبات والمأكولات'
+    en: 'Swimming in Pool',
+    ar: 'يعوم في المسبح'
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
@@ -11393,8 +11856,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [50, 70], // 5x duration
-    en: 'Watering Potted Flowers on 2nd Floor Rooftop',
-    ar: 'يسقي المحابس والنوار في السطح (الطابق الثاني)'
+    en: 'Watering Roof Plants',
+    ar: 'يسقي نوار السطح'
   },
   COOK_KITCHEN: {
     id: 'COOK_KITCHEN',
@@ -11404,8 +11867,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Cook_Action',
     prop: 'spatula',
     duration: [55, 80], // 5x duration
-    en: 'Cooking in the Kitchen (Steaming Pot & Skillet)',
-    ar: 'يطيب في الكوجينة مع الدخان طالع من الطنجرة'
+    en: 'Cooking in Kitchen',
+    ar: 'يطيب في الكوجينة'
   },
   WATCH_TV_MAJLIS: {
     id: 'WATCH_TV_MAJLIS',
@@ -11415,8 +11878,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [60, 85], // 5x duration
-    en: 'Sitting on Salon Sofa & Watching Tunisian News TV',
-    ar: 'قاعد في الصالة يتفرج في الأخبار التونسية'
+    en: 'Watching TV',
+    ar: 'يتفرج في التلفزة'
   },
   WATER_OLIVE_GARDEN: {
     id: 'WATER_OLIVE_GARDEN',
@@ -11426,8 +11889,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [45, 65], // 5x duration
-    en: 'Watering the Ancient Olive Tree & Garden',
-    ar: 'يسقي شجرة الزيتون والجنينة'
+    en: 'Watering Olive Tree',
+    ar: 'يسقي شجرة الزيتون'
   },
   ROOF_BBQ: {
     id: 'ROOF_BBQ',
@@ -11437,8 +11900,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Cook_Action',
     prop: 'spatula',
     duration: [50, 70], // 5x duration
-    en: 'Grilling at Rooftop BBQ Bar (2nd Floor)',
-    ar: 'يشوي في بار ومشواة السطح (الطابق الثاني)'
+    en: 'Rooftop BBQ',
+    ar: 'يشوي في السطح'
   },
   ROOF_LOUNGE: {
     id: 'ROOF_LOUNGE',
@@ -11448,8 +11911,8 @@ const MAHER_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [50, 70], // 5x duration
-    en: 'Relaxing on Rooftop Pergola Lounge (2nd Floor)',
-    ar: 'مرتاح في جلسة السطح تحت البرغولا'
+    en: 'Relaxing on Roof',
+    ar: 'مرتاح في السطح'
   }
 };
 window.MAHER_ACTIVITIES = MAHER_ACTIVITIES;
@@ -11989,7 +12452,7 @@ function computeGroundFloorWaypoints(fromZone, toZone) {
 }
 
 const maherBadgeCanvas = document.createElement('canvas');
-maherBadgeCanvas.width = 512;
+maherBadgeCanvas.width = 360;
 maherBadgeCanvas.height = 96;
 const maherBadgeTex = new THREE.CanvasTexture(maherBadgeCanvas);
 maherBadgeTex.encoding = THREE.sRGBEncoding;
@@ -11997,46 +12460,66 @@ const maherBadgeMat = new THREE.SpriteMaterial({
   map: maherBadgeTex,
   transparent: true,
   depthTest: false,
-  depthWrite: false
+  depthWrite: false,
+  sizeAttenuation: false
 });
 const maherBadgeSprite = new THREE.Sprite(maherBadgeMat);
-maherBadgeSprite.scale.set(0.96, 0.18, 1.0);
+// Constant screen-space size regardless of camera distance/zoom ("agar tetap tidak peduli jarak NPC dari kamera, agar tetap readable dmn pun mereka berada")
+maherBadgeSprite.scale.set(0.165, 0.044, 1.0);
 maherBadgeSprite.position.set(0, 1.88, 0);
 maherBadgeSprite.renderOrder = 999;
 maherBadgeSprite.raycast = () => {};
 window.maherBadgeSprite = maherBadgeSprite;
 
+// Helper to keep NPC overhead popover badges a constant pixel size on screen in both Perspective (sizeAttenuation: false) and Orthographic Top Views
+function updateNpcBadgeScreenConstantScale(sprite, worldX, worldY, worldZ) {
+  if (!sprite) return;
+  sprite.position.set(worldX, worldY, worldZ);
+  const vh = Math.max(400, window.innerHeight || 800);
+  const targetPxH = 44; // Fixed 44px height on screen at all camera distances!
+  const aspect = 360 / 96; // 3.75 width-to-height ratio
+  if (activeCamera && activeCamera.isOrthographicCamera) {
+    sprite.material.sizeAttenuation = true;
+    const worldH = (targetPxH / vh) * ((activeCamera.top - activeCamera.bottom) / (activeCamera.zoom || 1));
+    sprite.scale.set(worldH * aspect, worldH, 1.0);
+  } else {
+    sprite.material.sizeAttenuation = false;
+    const ndcH = targetPxH / vh;
+    sprite.scale.set(ndcH * aspect, ndcH, 1.0);
+  }
+}
+
 function updateMaherFloatingBadge() {
   if (!maherNpcState || !maherNpcState.currentAct) return;
   const ctx = maherBadgeCanvas.getContext('2d');
-  ctx.clearRect(0, 0, 512, 96);
-  ctx.fillStyle = 'rgba(12, 16, 26, 0.82)';
-  ctx.strokeStyle = 'rgba(232, 185, 89, 0.85)';
+  ctx.clearRect(0, 0, 360, 96);
+  ctx.fillStyle = 'rgba(12, 16, 26, 0.88)';
+  ctx.strokeStyle = 'rgba(232, 185, 89, 0.92)';
   ctx.lineWidth = 3;
-  const r = 24;
+  const r = 22;
   ctx.beginPath();
-  ctx.moveTo(12 + r, 10);
-  ctx.lineTo(500 - r, 10);
-  ctx.quadraticCurveTo(500, 10, 500, 10 + r);
-  ctx.lineTo(500, 86 - r);
-  ctx.quadraticCurveTo(500, 86, 500 - r, 86);
-  ctx.lineTo(12 + r, 86);
-  ctx.quadraticCurveTo(12, 86, 12, 86 - r);
-  ctx.lineTo(12, 10 + r);
-  ctx.quadraticCurveTo(12, 10, 12 + r, 10);
+  ctx.moveTo(10 + r, 8);
+  ctx.lineTo(350 - r, 8);
+  ctx.quadraticCurveTo(350, 8, 350, 8 + r);
+  ctx.lineTo(350, 88 - r);
+  ctx.quadraticCurveTo(350, 88, 350 - r, 88);
+  ctx.lineTo(10 + r, 88);
+  ctx.quadraticCurveTo(10, 88, 10, 88 - r);
+  ctx.lineTo(10, 8 + r);
+  ctx.quadraticCurveTo(10, 8, 10 + r, 8);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fde68a';
-  ctx.font = 'bold 24px Outfit, sans-serif';
-  ctx.fillText(state.lang === 'ar' ? 'الأستاذ ماهر' : 'Maître Maher', 256, 42);
+  ctx.font = 'bold 23px Outfit, sans-serif';
+  ctx.fillText(state.lang === 'ar' ? 'الأستاذ ماهر' : 'Maître Maher', 180, 40);
 
-  ctx.fillStyle = '#e2e8f0';
-  ctx.font = '500 18px Outfit, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 19px Outfit, sans-serif';
   const actText = state.lang === 'ar' ? maherNpcState.currentAct.ar : maherNpcState.currentAct.en;
-  ctx.fillText(actText, 256, 70);
+  ctx.fillText(actText, 180, 70);
   maherBadgeTex.needsUpdate = true;
 }
 
@@ -12301,9 +12784,9 @@ const WIFE_ACTIVITIES = {
     clip: 'Water_Plants',
     prop: 'watering_can',
     duration: [14, 19], // 3x faster per tree than Maître Maher's [45, 65]s!
-    seqCount: 11,
-    en: 'Watering the 11 Small Olive Trees along Front Yard',
-    ar: 'تسقي شجيرات الزيتون الإحدى عشرة على طول الجنينة'
+    seqCount: 5,
+    en: 'Watering Olives',
+    ar: 'تسقي شجر الزيتون'
   },
   WATER_LEFT_POTS: {
     id: 'WATER_LEFT_POTS',
@@ -12314,8 +12797,8 @@ const WIFE_ACTIVITIES = {
     prop: 'watering_can',
     duration: [16, 23], // 3x faster per pot than Maître Maher's [50, 70]s!
     seqCount: 6,
-    en: 'Watering Flower Pots on 2nd Floor Rooftop',
-    ar: 'تسقي محابس النوار في السطح (الطابق الثاني) بالتساوي'
+    en: 'Watering Roof Pots',
+    ar: 'تسقي نوار السطح'
   },
   SWIM_POOL: {
     id: 'SWIM_POOL',
@@ -12325,8 +12808,8 @@ const WIFE_ACTIVITIES = {
     clip: 'Stand_Idle',
     prop: null,
     duration: [60, 82],
-    en: 'Swimming & Lounging on Pool Border with Drinks & Food',
-    ar: 'تعوم وتستجم على حافة المسبح مع المشروبات والمأكولات'
+    en: 'Swimming in Pool',
+    ar: 'تعوم في المسبح'
   },
   SWEEP_INSIDE: {
     id: 'SWEEP_INSIDE',
@@ -12342,8 +12825,8 @@ const WIFE_ACTIVITIES = {
       [0.25, -2.15, 0.00, 0],
       [-1.15, 0.85, 0.00, -Math.PI / 2]
     ],
-    en: 'Sweeping Inside the Villa (Salon & Hall)',
-    ar: 'تكنس وسط الدار والصالة'
+    en: 'Sweeping Salon',
+    ar: 'تكنس الصالة'
   },
   SWEEP_OUTSIDE: {
     id: 'SWEEP_OUTSIDE',
@@ -12359,8 +12842,8 @@ const WIFE_ACTIVITIES = {
       [ 2.38, -11.45, -0.48, Math.PI],
       [ 2.38, -10.25, -0.48, Math.PI]
     ],
-    en: 'Sweeping the Letter-L Garden Walkway',
-    ar: 'تكنس الممر الحجري والجنينة الأمامية'
+    en: 'Sweeping Walkway',
+    ar: 'تكنس الممر'
   },
   SWEEP_TERRACE: {
     id: 'SWEEP_TERRACE',
@@ -12375,8 +12858,8 @@ const WIFE_ACTIVITIES = {
       [3.55, -7.75, -0.25, Math.PI / 2],
       [2.35, -8.25, -0.25, Math.PI]
     ],
-    en: 'Sweeping the Front Courtyard Terrace',
-    ar: 'تكنس السقيفة قدام الباب الرئيسي'
+    en: 'Sweeping Terrace',
+    ar: 'تكنس السقيفة'
   },
   SWEEP_ROOF: {
     id: 'SWEEP_ROOF',
@@ -12391,8 +12874,8 @@ const WIFE_ACTIVITIES = {
       [1.25, -1.15, 3.78, Math.PI],
       [-1.75, 0.85, 3.78, -Math.PI / 2]
     ],
-    en: 'Sweeping the 2nd Floor Rooftop Terrace',
-    ar: 'تكنس السطح الفوقاني (الطابق الثاني)'
+    en: 'Sweeping Rooftop',
+    ar: 'تكنس السطح'
   },
   MAKE_BED: {
     id: 'MAKE_BED',
@@ -12402,8 +12885,8 @@ const WIFE_ACTIVITIES = {
     clip: 'Make_Bed',
     prop: null,
     duration: [45, 65],
-    en: 'Tidying & Making the Master Bed',
-    ar: 'ترتب الفرش في بيت النوم الرئيسية'
+    en: 'Making the Bed',
+    ar: 'ترتب الفرش'
   },
   WATCH_TV_MAJLIS: {
     id: 'WATCH_TV_MAJLIS',
@@ -12413,8 +12896,8 @@ const WIFE_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [55, 80],
-    en: 'Sitting on Salon Sofa & Watching TV',
-    ar: 'قاعدة في الصالة تتفرج في التلفزة'
+    en: 'Watching TV',
+    ar: 'تتفرج في التلفزة'
   },
   RELAX_FLOOR_SOFA: {
     id: 'RELAX_FLOOR_SOFA',
@@ -12424,8 +12907,8 @@ const WIFE_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [50, 70],
-    en: 'Relaxing on Tunisian Floor Sofa on Terrace',
-    ar: 'مرتاحة على الجلسة التونسية في السقيفة'
+    en: 'Relaxing on Sofa',
+    ar: 'مرتاحة في الجلسة'
   },
   ROOF_LOUNGE: {
     id: 'ROOF_LOUNGE',
@@ -12435,8 +12918,8 @@ const WIFE_ACTIVITIES = {
     clip: 'Seated_Idle',
     prop: null,
     duration: [50, 70],
-    en: 'Relaxing on Rooftop Lounge Sofa (2nd Floor)',
-    ar: 'مرتاحة في جلسة السطح (الطابق الثاني)'
+    en: 'Relaxing on Roof',
+    ar: 'مرتاحة في السطح'
   }
 };
 window.WIFE_ACTIVITIES = WIFE_ACTIVITIES;
@@ -12478,7 +12961,7 @@ const wifeNpcState = {
 window.wifeNpcState = wifeNpcState;
 
 const wifeBadgeCanvas = document.createElement('canvas');
-wifeBadgeCanvas.width = 512;
+wifeBadgeCanvas.width = 360;
 wifeBadgeCanvas.height = 96;
 const wifeBadgeTex = new THREE.CanvasTexture(wifeBadgeCanvas);
 wifeBadgeTex.encoding = THREE.sRGBEncoding;
@@ -12486,10 +12969,11 @@ const wifeBadgeMat = new THREE.SpriteMaterial({
   map: wifeBadgeTex,
   transparent: true,
   depthTest: false,
-  depthWrite: false
+  depthWrite: false,
+  sizeAttenuation: false
 });
 const wifeBadgeSprite = new THREE.Sprite(wifeBadgeMat);
-wifeBadgeSprite.scale.set(0.96, 0.18, 1.0);
+wifeBadgeSprite.scale.set(0.165, 0.044, 1.0);
 wifeBadgeSprite.position.set(0, 1.82, 0);
 wifeBadgeSprite.renderOrder = 999;
 wifeBadgeSprite.raycast = () => {};
@@ -12498,21 +12982,21 @@ window.wifeBadgeSprite = wifeBadgeSprite;
 function updateWifeFloatingBadge() {
   if (!wifeNpcState || !wifeNpcState.currentAct) return;
   const ctx = wifeBadgeCanvas.getContext('2d');
-  ctx.clearRect(0, 0, 512, 96);
-  ctx.fillStyle = 'rgba(18, 14, 28, 0.84)';
-  ctx.strokeStyle = 'rgba(236, 172, 198, 0.88)';
+  ctx.clearRect(0, 0, 360, 96);
+  ctx.fillStyle = 'rgba(18, 14, 28, 0.88)';
+  ctx.strokeStyle = 'rgba(236, 172, 198, 0.92)';
   ctx.lineWidth = 3;
-  const r = 24;
+  const r = 22;
   ctx.beginPath();
-  ctx.moveTo(12 + r, 10);
-  ctx.lineTo(500 - r, 10);
-  ctx.quadraticCurveTo(500, 10, 500, 10 + r);
-  ctx.lineTo(500, 86 - r);
-  ctx.quadraticCurveTo(500, 86, 500 - r, 86);
-  ctx.lineTo(12 + r, 86);
-  ctx.quadraticCurveTo(12, 86, 12, 86 - r);
-  ctx.lineTo(12, 10 + r);
-  ctx.quadraticCurveTo(12, 10, 12 + r, 10);
+  ctx.moveTo(10 + r, 8);
+  ctx.lineTo(350 - r, 8);
+  ctx.quadraticCurveTo(350, 8, 350, 8 + r);
+  ctx.lineTo(350, 88 - r);
+  ctx.quadraticCurveTo(350, 88, 350 - r, 88);
+  ctx.lineTo(10 + r, 88);
+  ctx.quadraticCurveTo(10, 88, 10, 88 - r);
+  ctx.lineTo(10, 8 + r);
+  ctx.quadraticCurveTo(10, 8, 10 + r, 8);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
@@ -12520,12 +13004,12 @@ function updateWifeFloatingBadge() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fbcfe8';
   ctx.font = 'bold 23px Outfit, sans-serif';
-  ctx.fillText(state.lang === 'ar' ? 'حرم الأستاذ ماهر' : 'Mme Maher (Wife)', 256, 42);
+  ctx.fillText(state.lang === 'ar' ? 'حرم الأستاذ ماهر' : 'Mme Maher', 180, 40);
 
-  ctx.fillStyle = '#e2e8f0';
-  ctx.font = '500 17px Outfit, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 19px Outfit, sans-serif';
   const actText = state.lang === 'ar' ? wifeNpcState.currentAct.ar : wifeNpcState.currentAct.en;
-  ctx.fillText(actText, 256, 70);
+  ctx.fillText(actText, 180, 70);
   wifeBadgeTex.needsUpdate = true;
 }
 
@@ -13005,7 +13489,7 @@ function loadMaherWifeNPC() {
       buildWifeHandheldProps(wifeNpcState.handBoneR);
     }
 
-    armRoot.add(wifeBadgeSprite);
+    wifeNpcGroup.add(wifeBadgeSprite);
     wifeNpcGroup.add(armRoot);
     wifeNpcState.root = armRoot;
     wifeNpcState.mixer = new THREE.AnimationMixer(armRoot);
@@ -13446,7 +13930,7 @@ function loadMaitreMaherNPC() {
     }
     buildMaherSwimCostumeAndDuckRing(armRoot);
 
-    armRoot.add(maherBadgeSprite);
+    maherNpcGroup.add(maherBadgeSprite);
     maherNpcGroup.add(armRoot);
     maherNpcState.root = armRoot;
     maherNpcState.mixer = new THREE.AnimationMixer(armRoot);
@@ -13726,6 +14210,12 @@ function updateMaherNpcAndParticles(dt) {
     } else {
       maherNpcGroup.visible = true;
     }
+    updateNpcBadgeScreenConstantScale(
+      maherBadgeSprite,
+      maherNpcState.root.position.x,
+      maherNpcState.root.position.y + 1.92,
+      maherNpcState.root.position.z
+    );
 
     const act = maherNpcState.currentAct;
     const dynTarget = getDynamicActivityTarget(act.id);
@@ -13965,6 +14455,12 @@ function updateMaherNpcAndParticles(dt) {
     } else {
       wifeNpcGroup.visible = true;
     }
+    updateNpcBadgeScreenConstantScale(
+      wifeBadgeSprite,
+      wifeNpcState.root.position.x,
+      wifeNpcState.root.position.y + 1.85,
+      wifeNpcState.root.position.z
+    );
 
     const wAct = wifeNpcState.currentAct;
     const wDynTarget = getDynamicActivityTarget(wAct.id, true);
@@ -14137,9 +14633,11 @@ window.deployedAnimals = deployedAnimals;
 
 const animalTemplates = {
   chicken: { loaded: false, scene: null, clips: {}, pending: [] },
-  cow: { loaded: false, scene: null, clips: {}, pending: [] }
+  cow: { loaded: false, scene: null, clips: {}, pending: [] },
+  rabbit: { loaded: false, scene: null, clips: {}, pending: [] },
+  goat: { loaded: false, scene: null, clips: {}, pending: [] }
 };
-let animalCounter = { chicken: 0, cow: 0 };
+let animalCounter = { chicken: 0, cow: 0, rabbit: 0, goat: 0 };
 
 // 3D Roam Area Boundary Ring shown on the ground whenever an animal is selected or dragged
 const animalRoamRingGroup = new THREE.Group();
@@ -14224,12 +14722,15 @@ function toggleAnimalDeployPanel(forceState) {
 function updateAnimalCountBadge() {
   const badge = document.getElementById('animal-count-badge');
   if (!badge) return;
-  let chickens = 0, cows = 0;
+  let chickens = 0, cows = 0, rabbits = 0, goats = 0;
   for (let i = 0; i < deployedAnimals.length; i++) {
-    if (deployedAnimals[i].type === 'chicken') chickens++;
-    else if (deployedAnimals[i].type === 'cow') cows++;
+    const tp = deployedAnimals[i].type;
+    if (tp === 'chicken') chickens++;
+    else if (tp === 'cow') cows++;
+    else if (tp === 'rabbit') rabbits++;
+    else if (tp === 'goat') goats++;
   }
-  badge.textContent = `🐔 ${chickens} | 🐄 ${cows}`;
+  badge.textContent = `🐔 ${chickens} | 🐄 ${cows} | 🐇 ${rabbits} | 🐐 ${goats}`;
 }
 
 function cloneSkinnedHierarchy(sourceRoot) {
@@ -14363,6 +14864,18 @@ function loadAnimalTemplates() {
     'ANIMAL_COW_GLB_B64',
     './animal_cow.glb',
     'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/animal_cow.glb'
+  );
+  loadSingleAnimalTemplate(
+    'rabbit',
+    'ANIMAL_RABBIT_GLB_B64',
+    './animal_rabbit.glb',
+    'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/animal_rabbit.glb'
+  );
+  loadSingleAnimalTemplate(
+    'goat',
+    'ANIMAL_GOAT_GLB_B64',
+    './animal_goat.glb',
+    'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/animal_goat.glb'
   );
 }
 
@@ -14543,7 +15056,7 @@ function findSmartAnimalSpawnPosition(type) {
   }
 
   const baseY = getAnimalSurfaceY(baseX, baseZ, null);
-  const minSep = (type === 'cow') ? 1.25 : 0.65;
+  const minSep = (type === 'cow') ? 1.25 : (type === 'goat' ? 0.85 : 0.60);
 
   // Golden-angle spiral search from (baseX, baseZ) so unlimited clicks never stack animals on top of each other
   for (let i = 0; i < 40; i++) {
@@ -14570,7 +15083,7 @@ function findSmartAnimalSpawnPosition(type) {
 }
 
 function deployAnimal(type, customOpts) {
-  if (type !== 'chicken' && type !== 'cow') type = 'chicken';
+  if (type !== 'chicken' && type !== 'cow' && type !== 'rabbit' && type !== 'goat') type = 'chicken';
   const tpl = animalTemplates[type];
   if (!tpl || !tpl.loaded || !tpl.scene) {
     if (tpl) tpl.pending.push(customOpts || null);
@@ -14580,6 +15093,8 @@ function deployAnimal(type, customOpts) {
   animalCounter[type] = (animalCounter[type] || 0) + 1;
   const idx = animalCounter[type];
   const isCow = (type === 'cow');
+  const isGoat = (type === 'goat');
+  const isRabbit = (type === 'rabbit');
 
   const animalRoot = new THREE.Group();
   animalRoot.userData.noAutoRecenter = true;
@@ -14593,13 +15108,15 @@ function deployAnimal(type, customOpts) {
   // Add soft contact-shadow AO decal under hooves/feet
   if (typeof addContactShadow === 'function') {
     if (isCow) addContactShadow(animalRoot, 0.92, 1.85, 0.006, 0.34);
+    else if (isGoat) addContactShadow(animalRoot, 0.56, 1.05, 0.005, 0.32);
+    else if (isRabbit) addContactShadow(animalRoot, 0.32, 0.42, 0.005, 0.28);
     else addContactShadow(animalRoot, 0.38, 0.42, 0.005, 0.30);
   }
 
   // Add lightweight invisible hit-box proxy so clicking/selecting/dragging the animal with the mouse is 100% instant
-  const hitW = isCow ? 0.85 : 0.42;
-  const hitH = isCow ? 1.42 : 0.48;
-  const hitD = isCow ? 2.25 : 0.48;
+  const hitW = isCow ? 0.85 : (isGoat ? 0.56 : 0.42);
+  const hitH = isCow ? 1.42 : (isGoat ? 0.98 : 0.48);
+  const hitD = isCow ? 2.25 : (isGoat ? 1.18 : 0.48);
   const hitGeo = new THREE.BoxGeometry(hitW, hitH, hitD);
   const hitMat = new THREE.MeshBasicMaterial({
     transparent: true,
@@ -14621,8 +15138,12 @@ function deployAnimal(type, customOpts) {
     ? customOpts.ry
     : (Math.random() * Math.PI * 2);
 
-  const labelEn = isCow ? `Holstein Dairy Cow #${idx}` : `White Farm Chicken #${idx}`;
-  const labelAr = isCow ? `بقرة هولشتاين #${idx}` : `دجاجة بيضاء #${idx}`;
+  const labelEn = isCow
+    ? `Holstein Dairy Cow #${idx}`
+    : (isGoat ? `Tunisian Farm Goat #${idx}` : (isRabbit ? `Farm Rabbit #${idx}` : `White Farm Chicken #${idx}`));
+  const labelAr = isCow
+    ? `بقرة هولشتاين #${idx}`
+    : (isGoat ? `ماعز مزرعة تونسي #${idx}` : (isRabbit ? `أرنب مزرعة #${idx}` : `دجاجة بيضاء #${idx}`));
   registerDraggable(animalRoot, labelEn, labelAr);
 
   if (customOpts && typeof customOpts.s === 'number' && customOpts.s > 0.1) {
@@ -14641,14 +15162,14 @@ function deployAnimal(type, customOpts) {
   }
   if (tpl.clips.walk) {
     actions.walk = mixer.clipAction(tpl.clips.walk);
-    actions.walk.timeScale = isCow ? 1.05 : 1.18;
+    actions.walk.timeScale = isCow ? 1.05 : (isRabbit ? 1.35 : 1.15);
   }
   if (tpl.clips.peck) {
     actions.peck = mixer.clipAction(tpl.clips.peck);
     actions.peck.timeScale = 0.85;
   }
 
-  const defaultRadius = isCow ? 2.80 : 2.00;
+  const defaultRadius = isCow ? 2.80 : (isGoat ? 2.40 : 2.00);
   const roamRadius = (customOpts && typeof customOpts.roamRadius === 'number')
     ? Math.max(0.60, Math.min(8.00, customOpts.roamRadius))
     : defaultRadius;
@@ -14668,7 +15189,7 @@ function deployAnimal(type, customOpts) {
     stateTimer: 0.6 + Math.random() * 1.4,
     targetX: spawn.x,
     targetZ: spawn.z,
-    walkSpeed: isCow ? 0.52 : 0.62,
+    walkSpeed: isCow ? 0.52 : (isGoat ? 0.68 : (isRabbit ? 0.82 : 0.62)),
     shadowTick: Math.floor(Math.random() * 5)
   };
   animalRoot.userData.animalState = animalState;
@@ -14820,6 +15341,411 @@ function updateDeployedAnimals(dt) {
 }
 
 // ============================================================================
+// COUNTRY GRAVEL ROAD SYSTEM (gravel-road.zip PBR + Terrain Box Clipping + Multi-Segment Left/Right Turns)
+// & REALISTIC ORANGE PEUGEOT 308 HATCHBACK (car_peugeot_308.glb)
+// ============================================================================
+// Exterior soil terrain box bounds: PlaneGeometry(64, 64) centered at bPos(0, -4.5, -0.50) -> wx in [-32.0, +32.0], wz in [-27.5, +36.5]
+const TERRAIN_CLIP_PLANES = [
+  new THREE.Plane(new THREE.Vector3( 1, 0,  0), 32.0), // wx >= -32.0
+  new THREE.Plane(new THREE.Vector3(-1, 0,  0), 32.0), // wx <= +32.0
+  new THREE.Plane(new THREE.Vector3( 0, 0,  1), 27.5), // wz >= -27.5
+  new THREE.Plane(new THREE.Vector3( 0, 0, -1), 36.5)  // wz <= +36.5
+];
+
+const matGravelRoadSurface = new THREE.MeshStandardMaterial({
+  color: 0x8e8070,
+  roughness: 0.92,
+  metalness: 0.02,
+  normalScale: new THREE.Vector2(1.45, 1.45),
+  envMapIntensity: 0.16,
+  userData: { customEnvIntensity: 0.16 },
+  clippingPlanes: TERRAIN_CLIP_PLANES,
+  clipShadows: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -2,
+  polygonOffsetUnits: -2
+});
+const matGravelRoadShoulder = new THREE.MeshStandardMaterial({
+  color: 0x625446,
+  roughness: 0.94,
+  metalness: 0.02,
+  envMapIntensity: 0.12,
+  userData: { customEnvIntensity: 0.12 },
+  clippingPlanes: TERRAIN_CLIP_PLANES,
+  clipShadows: true,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -1
+});
+
+(function initGravelRoadPBRTextures() {
+  if (window.GRAVEL_ROAD_DIFF_B64) {
+    const dImg = new Image();
+    dImg.onload = () => {
+      const tex = new THREE.Texture(dImg);
+      tex.encoding = THREE.sRGBEncoding;
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = 8;
+      tex.needsUpdate = true;
+      matGravelRoadSurface.map = tex;
+      matGravelRoadSurface.color.setHex(0x8e8070);
+      matGravelRoadSurface.needsUpdate = true;
+      requestShadowUpdate();
+    };
+    dImg.src = 'data:image/jpeg;base64,' + window.GRAVEL_ROAD_DIFF_B64;
+  }
+  if (window.GRAVEL_ROAD_NOR_B64) {
+    const nImg = new Image();
+    nImg.onload = () => {
+      const nTex = new THREE.Texture(nImg);
+      nTex.wrapS = THREE.RepeatWrapping;
+      nTex.wrapT = THREE.RepeatWrapping;
+      nTex.anisotropy = 8;
+      nTex.needsUpdate = true;
+      matGravelRoadSurface.normalMap = nTex;
+      matGravelRoadSurface.needsUpdate = true;
+      requestShadowUpdate();
+    };
+    nImg.src = 'data:image/jpeg;base64,' + window.GRAVEL_ROAD_NOR_B64;
+  }
+})();
+
+function createOrRebuildGravelRoad(roadGrp) {
+  if (!roadGrp) return null;
+  while (roadGrp.children.length > 0) {
+    const ch = roadGrp.children[0];
+    roadGrp.remove(ch);
+    if (ch.geometry) ch.geometry.dispose();
+  }
+
+  const w = Math.max(1.2, Math.min(14.0, roadGrp.userData.roadWidth || 3.4));
+  roadGrp.userData.roadWidth = w;
+  if (!Array.isArray(roadGrp.userData.roadSegments) || roadGrp.userData.roadSegments.length === 0) {
+    roadGrp.userData.roadSegments = [{ turn: 'straight', length: 14.0 }];
+  }
+  const segs = roadGrp.userData.roadSegments;
+  const roadH = 0.026;
+  const shoulderW = 0.22;
+
+  let curX = 0.0;
+  let curZ = 0.0;
+  let curDir = 0.0; // 0 = +X, +PI/2 = +Z (Turn Right), -PI/2 = -Z (Turn Left)
+
+  for (let i = 0; i < segs.length; i++) {
+    const seg = segs[i];
+    const segLen = Math.max(1.5, Math.min(60.0, Number(seg.length) || 10.0));
+    seg.length = segLen;
+
+    if (i > 0) {
+      if (seg.turn === 'left') curDir -= Math.PI / 2;
+      else if (seg.turn === 'right') curDir += Math.PI / 2;
+
+      // Add a smooth rounded gravel corner junction disc + shoulder rim at the turn pivot (curX, curZ) so 90° turns connect seamlessly!
+      const cornerShoulderGeo = new THREE.CylinderGeometry(w * 0.5 + shoulderW, w * 0.5 + shoulderW + 0.06, roadH * 0.72, 24);
+      const cornerShoulder = new THREE.Mesh(cornerShoulderGeo, matGravelRoadShoulder);
+      cornerShoulder.position.set(curX, roadH * 0.36, curZ);
+      cornerShoulder.receiveShadow = true;
+      roadGrp.add(cornerShoulder);
+
+      const cornerTopGeo = new THREE.CylinderGeometry(w * 0.5, w * 0.5 + 0.02, roadH, 24);
+      // Scale UVs on cylinder top cap to match road texture scale
+      const cUv = cornerTopGeo.attributes.uv;
+      const cPos = cornerTopGeo.attributes.position;
+      if (cUv && cPos) {
+        for (let vi = 0; vi < cPos.count; vi++) {
+          cUv.setXY(vi, (cPos.getX(vi) + w * 0.5) / w, (cPos.getZ(vi) + w * 0.5) / w);
+        }
+      }
+      const cornerTop = new THREE.Mesh(cornerTopGeo, matGravelRoadSurface);
+      cornerTop.position.set(curX, roadH * 0.5 + 0.002, curZ);
+      cornerTop.receiveShadow = true;
+      roadGrp.add(cornerTop);
+    }
+
+    const dirX = Math.cos(curDir);
+    const dirZ = Math.sin(curDir);
+    const midX = curX + dirX * (segLen * 0.5);
+    const midZ = curZ + dirZ * (segLen * 0.5);
+
+    // 1) Sloped gravel road shoulder base bed
+    const shGeo = new THREE.BoxGeometry(segLen + 0.06, roadH * 0.72, w + shoulderW * 2);
+    const shMesh = new THREE.Mesh(shGeo, matGravelRoadShoulder);
+    shMesh.position.set(midX, roadH * 0.36, midZ);
+    shMesh.rotation.y = -curDir;
+    shMesh.receiveShadow = true;
+    roadGrp.add(shMesh);
+
+    // 2) Main PBR gravel road surface with world-scale UV tiling (no texture stretching when changing width or length!)
+    const surfGeo = new THREE.BoxGeometry(segLen, roadH, w);
+    const uvAttr = surfGeo.attributes.uv;
+    const posAttr = surfGeo.attributes.position;
+    const normAttr = surfGeo.attributes.normal;
+    if (uvAttr && posAttr && normAttr) {
+      for (let vi = 0; vi < posAttr.count; vi++) {
+        if (Math.abs(normAttr.getY(vi)) > 0.5) {
+          const lx = posAttr.getX(vi) + segLen * 0.5;
+          const lz = posAttr.getZ(vi) + w * 0.5;
+          uvAttr.setXY(vi, lx / 3.2, lz / w);
+        }
+      }
+      uvAttr.needsUpdate = true;
+    }
+    const surfMesh = new THREE.Mesh(surfGeo, matGravelRoadSurface);
+    surfMesh.position.set(midX, roadH * 0.5 + 0.002, midZ);
+    surfMesh.rotation.y = -curDir;
+    surfMesh.receiveShadow = true;
+    roadGrp.add(surfMesh);
+
+    curX += dirX * segLen;
+    curZ += dirZ * segLen;
+  }
+
+  roadGrp.updateMatrixWorld(true);
+  requestShadowUpdate();
+  return roadGrp;
+}
+window.createOrRebuildGravelRoad = createOrRebuildGravelRoad;
+
+function spawnGravelRoad(customOpts = {}) {
+  const roadGrp = new THREE.Group();
+  roadGrp.userData.noAutoRecenter = true;
+  roadGrp.userData.isGravelRoad = true;
+  roadGrp.userData.roadWidth = (typeof customOpts.roadWidth === 'number') ? customOpts.roadWidth : 3.4;
+  roadGrp.userData.roadSegments = Array.isArray(customOpts.roadSegments) && customOpts.roadSegments.length > 0
+    ? JSON.parse(JSON.stringify(customOpts.roadSegments))
+    : [{ turn: 'straight', length: (typeof customOpts.initialLength === 'number') ? customOpts.initialLength : 14.0 }];
+  roadGrp.userData.activeEnd = customOpts.activeEnd || 'front';
+
+  createOrRebuildGravelRoad(roadGrp);
+
+  const sx = (typeof customOpts.x === 'number') ? customOpts.x : -6.0;
+  const sy = (typeof customOpts.y === 'number') ? customOpts.y : -0.495;
+  const sz = (typeof customOpts.z === 'number') ? customOpts.z : 23.2;
+  roadGrp.position.set(sx, sy, sz);
+  roadGrp.rotation.y = (typeof customOpts.ry === 'number') ? customOpts.ry : 0.0;
+  if (typeof customOpts.s === 'number' && customOpts.s > 0.1) {
+    roadGrp.userData.scaleFactor = customOpts.s;
+    roadGrp.scale.setScalar(customOpts.s);
+  }
+
+  furnGroups.staticDecor.add(roadGrp);
+  registerDraggable(roadGrp, 'Country Gravel Road', 'طريق ريفي حصوي (قابل للتوسيع والانعطاف)');
+
+  if (!customOpts.skipSelect) {
+    selectObject(roadGrp);
+  }
+  requestShadowUpdate();
+  return roadGrp;
+}
+window.spawnGravelRoad = spawnGravelRoad;
+
+function openRoadSpawnModal() {
+  const dlg = document.getElementById('road-spawn-modal');
+  if (!dlg) {
+    spawnGravelRoad({});
+    return;
+  }
+  dlg.showModal();
+}
+window.openRoadSpawnModal = openRoadSpawnModal;
+
+function confirmSpawnGravelRoadModal() {
+  const dlg = document.getElementById('road-spawn-modal');
+  const wInput = document.getElementById('road-spawn-width-input');
+  const lInput = document.getElementById('road-spawn-length-input');
+  const wVal = Math.max(1.2, Math.min(14.0, parseFloat(wInput ? wInput.value : '3.4') || 3.4));
+  const lVal = Math.max(2.0, Math.min(60.0, parseFloat(lInput ? lInput.value : '14.0') || 14.0));
+  if (dlg && dlg.open) dlg.close();
+
+  const keepOpenChk = document.getElementById('catalog-keep-open');
+  if (catalogDialog && catalogDialog.open && (!keepOpenChk || !keepOpenChk.checked)) {
+    closeObjectCatalog();
+  }
+
+  const entry = OBJECT_CATALOG_REGISTRY.get('Country Gravel Road');
+  const spawnPos = findSmartCatalogSpawnPosition(entry, { x: 0.0, y: -0.495, z: 22.5 });
+  return spawnGravelRoad({
+    x: spawnPos.x,
+    y: -0.495,
+    z: spawnPos.z,
+    roadWidth: wVal,
+    initialLength: lVal
+  });
+}
+window.confirmSpawnGravelRoadModal = confirmSpawnGravelRoadModal;
+
+function adjustSelectedRoadWidth(deltaW) {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isGravelRoad) return;
+  selectedObject.userData.roadWidth = Math.max(1.2, Math.min(14.0, (selectedObject.userData.roadWidth || 3.4) + deltaW));
+  createOrRebuildGravelRoad(selectedObject);
+  updateSelectedHudText();
+}
+window.adjustSelectedRoadWidth = adjustSelectedRoadWidth;
+
+function adjustSelectedRoadSegmentLength(deltaL) {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isGravelRoad) return;
+  const segs = selectedObject.userData.roadSegments || [];
+  if (segs.length === 0) return;
+  if (selectedObject.userData.activeEnd === 'back') {
+    const oldLen = segs[0].length || 10.0;
+    const newLen = Math.max(1.5, Math.min(60.0, oldLen + deltaL));
+    const actualDelta = newLen - oldLen;
+    segs[0].length = newLen;
+    // Shift road origin backward along its local -X axis so extending the back end grows from the back while keeping the rest of the road stationary!
+    const ry = selectedObject.rotation.y;
+    selectedObject.position.x -= Math.cos(ry) * actualDelta;
+    selectedObject.position.z += Math.sin(ry) * actualDelta;
+  } else {
+    const lastSeg = segs[segs.length - 1];
+    lastSeg.length = Math.max(1.5, Math.min(60.0, (lastSeg.length || 10.0) + deltaL));
+  }
+  createOrRebuildGravelRoad(selectedObject);
+  updateSelectedHudText();
+}
+window.adjustSelectedRoadSegmentLength = adjustSelectedRoadSegmentLength;
+
+function addSelectedRoadTurn(dir) {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isGravelRoad) return;
+  const turnDir = (dir === 'left') ? 'left' : 'right';
+  if (!Array.isArray(selectedObject.userData.roadSegments)) {
+    selectedObject.userData.roadSegments = [{ turn: 'straight', length: 14.0 }];
+  }
+  const segs = selectedObject.userData.roadSegments;
+  if (selectedObject.userData.activeEnd === 'back') {
+    // Prepend a new segment at the start/back end of the road
+    const newLen = 8.0;
+    const invTurn = (turnDir === 'left') ? 'right' : 'left';
+    segs[0].turn = invTurn;
+    segs.unshift({ turn: 'straight', length: newLen });
+    const dAngle = (turnDir === 'left') ? (Math.PI / 2) : (-Math.PI / 2);
+    selectedObject.rotation.y += dAngle;
+    const ry = selectedObject.rotation.y;
+    selectedObject.position.x -= Math.cos(ry) * newLen;
+    selectedObject.position.z += Math.sin(ry) * newLen;
+  } else {
+    segs.push({ turn: turnDir, length: 8.0 });
+  }
+  createOrRebuildGravelRoad(selectedObject);
+  updateSelectedHudText();
+}
+window.addSelectedRoadTurn = addSelectedRoadTurn;
+
+function removeSelectedRoadLastTurn() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isGravelRoad) return;
+  const segs = selectedObject.userData.roadSegments || [];
+  if (segs.length <= 1) return;
+  segs.pop();
+  createOrRebuildGravelRoad(selectedObject);
+  updateSelectedHudText();
+}
+window.removeSelectedRoadLastTurn = removeSelectedRoadLastTurn;
+
+function toggleSelectedRoadActiveEnd() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isGravelRoad) return;
+  selectedObject.userData.activeEnd = (selectedObject.userData.activeEnd === 'back') ? 'front' : 'back';
+  updateSelectedHudText();
+}
+window.toggleSelectedRoadActiveEnd = toggleSelectedRoadActiveEnd;
+
+function loadPeugeot308Car() {
+  const onCarLoaded = (gltf) => {
+    const carRoot = new THREE.Group();
+    const model = gltf.scene;
+    model.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        if (ch.material) {
+          const m = ch.material;
+          const mName = m.name || '';
+          if (mName.includes('Peugeot_Orange')) {
+            // Deep, vibrant Metallic Copper-Amber Sunset Orange matching Gemini_Generated_Image_7pt9x17pt9x17pt9.jpg (converted from sRGB to Linear!)
+            m.color.setHex(0xd94800).convertSRGBToLinear();
+            m.metalness = 0.36;
+            m.roughness = 0.18;
+            m.envMapIntensity = 0.65;
+            m.userData = { customEnvIntensity: 0.65 };
+          } else if (mName.includes('Windshield_Glass')) {
+            m.color.setHex(0x10161e);
+            m.transparent = true;
+            m.opacity = 0.68;
+            m.metalness = 0.35;
+            m.roughness = 0.04;
+            m.envMapIntensity = 0.85;
+            m.userData = { customEnvIntensity: 0.85 };
+          } else if (mName.includes('Headlight_Lens')) {
+            // Smoked crystal lens so the dark projector housings & LED rings inside are crisp and visible
+            m.color.setHex(0x181c22);
+            m.transparent = true;
+            m.opacity = 0.44;
+            m.metalness = 0.30;
+            m.roughness = 0.04;
+            m.envMapIntensity = 0.80;
+            m.userData = { customEnvIntensity: 0.80 };
+          } else if (mName.includes('Pano_Glass') || mName.includes('Black_Gloss')) {
+            m.color.setHex(0x0c0e12);
+            m.metalness = 0.35;
+            m.roughness = 0.08;
+            m.envMapIntensity = 0.60;
+            m.userData = { customEnvIntensity: 0.60 };
+          } else if (mName.includes('Black_Matte') || mName.includes('Tire_Rubber') || mName.includes('Seat_Dark')) {
+            m.color.setHex(0x121316);
+            m.metalness = 0.04;
+            m.roughness = 0.82;
+            m.envMapIntensity = 0.25;
+            m.userData = { customEnvIntensity: 0.25 };
+          } else if (mName.includes('Alloy_Silver') || mName.includes('Chrome')) {
+            m.color.setHex(0xd8dee6);
+            m.metalness = 0.82;
+            m.roughness = 0.16;
+            m.envMapIntensity = 0.85;
+            m.userData = { customEnvIntensity: 0.85 };
+          } else if (mName.includes('Taillight')) {
+            m.color.setHex(0xc80810);
+            m.emissive.setHex(0x4a0204);
+            m.emissiveIntensity = 0.45;
+            m.roughness = 0.08;
+            m.envMapIntensity = 0.65;
+            m.userData = { customEnvIntensity: 0.65 };
+          } else {
+            m.envMapIntensity = 0.55;
+            m.userData = { customEnvIntensity: 0.55 };
+          }
+          m.needsUpdate = true;
+        }
+      }
+    });
+    carRoot.add(model);
+    if (typeof addContactShadow === 'function') {
+      addContactShadow(carRoot, 1.96, 4.45, 0.008, 0.48);
+    }
+    carRoot.position.set(-7.50, -0.47, 23.20);
+    carRoot.rotation.y = Math.PI / 2; // Facing East along the Country Gravel Road in front of the villa!
+    furnGroups.staticDecor.add(carRoot);
+    window.peugeot308CarObj = carRoot;
+    registerDraggable(carRoot, 'Peugeot 308 Orange Hatchback', 'سيارة بيجو 308 برتقالية');
+    requestShadowUpdate();
+  };
+
+  if (window.PEUGEOT_308_GLB_B64 && typeof window.PEUGEOT_308_GLB_B64 === 'string') {
+    try {
+      const binStr = window.atob(window.PEUGEOT_308_GLB_B64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+      gltfLoader.parse(bytes.buffer, '', onCarLoaded, (err) => {
+        console.warn('Peugeot 308 Base64 parse fallback:', err);
+      });
+      return;
+    } catch (e) {
+      console.warn('Peugeot 308 decode error:', e);
+    }
+  }
+  gltfLoader.load('./car_peugeot_308.glb', onCarLoaded);
+}
+
+// ============================================================================
 // BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (70 OBJECTS)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
@@ -14912,6 +15838,32 @@ function applyLayoutPositions(layoutList) {
         roamRadius: sp.roamRadius,
         skipSelect: true
       });
+      return;
+    }
+    if (sp && sp.isGravelRoad && typeof window.spawnGravelRoad === 'function') {
+      const existingRoad = draggableObjects.find(o => !usedObjs.has(o) && o.userData && o.userData.isGravelRoad);
+      if (existingRoad) {
+        usedObjs.add(existingRoad);
+        existingRoad.position.set(sp.x, sp.y, sp.z);
+        existingRoad.rotation.y = sp.ry || 0;
+        if (typeof sp.roadWidth === 'number') existingRoad.userData.roadWidth = sp.roadWidth;
+        if (Array.isArray(sp.roadSegments)) existingRoad.userData.roadSegments = JSON.parse(JSON.stringify(sp.roadSegments));
+        if (sp.activeEnd) existingRoad.userData.activeEnd = sp.activeEnd;
+        createOrRebuildGravelRoad(existingRoad);
+      } else {
+        const rd = window.spawnGravelRoad({
+          x: sp.x,
+          y: sp.y,
+          z: sp.z,
+          ry: sp.ry,
+          s: sp.s,
+          roadWidth: sp.roadWidth,
+          roadSegments: sp.roadSegments,
+          activeEnd: sp.activeEnd,
+          skipSelect: true
+        });
+        if (rd) usedObjs.add(rd);
+      }
       return;
     }
     const normLabel = (sp.labelEn || '')
@@ -15010,10 +15962,22 @@ async function initApp() {
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
-  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken & Cow 3D Animal Templates
+  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken, Cow, Rabbit & Goat 3D Animal Templates
   loadMaitreMaherNPC();
   loadMaherWifeNPC();
   loadAnimalTemplates();
+
+  // Spawn default Country Gravel Road in front of the villa & load the Realistic Orange Peugeot 308 car
+  spawnGravelRoad({
+    x: -14.0,
+    y: -0.495,
+    z: 23.2,
+    ry: 0,
+    roadWidth: 3.6,
+    roadSegments: [{ turn: 'straight', length: 28.0 }],
+    skipSelect: true
+  });
+  loadPeugeot308Car();
 
   await Promise.all([
     rebuildCategory('bed'),
