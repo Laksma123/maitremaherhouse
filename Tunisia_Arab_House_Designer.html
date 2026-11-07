@@ -10495,12 +10495,10 @@ function fixNpcClothingAndBackGlitches(armRoot, isWife) {
 
     const srcIndices = Array.from(idxAttr.array);
     const keepIndices = [];
-    if (matName.includes('Mat_Skin_Maher')) {
-      ch.userData.unCulledSkinIndices = srcIndices;
-    }
+    const maherBridgeIndices = [];
 
     const shouldCullTri = (cx, cy, cz, triIdx, avgArmW) => {
-      // A. Cull hidden lower neck back & hidden upper-arm skin stub inside Maître Maher's shirt sleeves (keeps 100% of head, neck, forearms, hands & calves intact!)
+      // A. Cull hidden lower neck back & hidden upper-arm/knee skin stubs inside Maître Maher's shirt sleeves & shorts when clothed
       if (matName.includes('Mat_Skin_Maher')) {
         if (cy >= 1.42 && cy <= 1.495 && cz < 0.03) return true;
         if (cy >= 1.285 && cy <= 1.40) return true;
@@ -10554,6 +10552,8 @@ function fixNpcClothingAndBackGlitches(armRoot, isWife) {
       const avgArmW = (getVertArmWeight(i0) + getVertArmWeight(i1) + getVertArmWeight(i2)) / 3;
       if (!shouldCullTri(cx, cy, cz, t, avgArmW)) {
         keepIndices.push(i0, i1, i2);
+      } else if (matName.includes('Mat_Skin_Maher')) {
+        maherBridgeIndices.push(i0, i1, i2);
       }
     }
 
@@ -10562,6 +10562,7 @@ function fixNpcClothingAndBackGlitches(armRoot, isWife) {
     }
     if (matName.includes('Mat_Skin_Maher')) {
       ch.userData.clothedSkinIndices = keepIndices;
+      ch.userData.maherBridgeIndices = maherBridgeIndices;
     }
 
     // Smoothly blend the back-shoulder / underarm sleeve seam of Mat_Top_Maher with the Chest bone so raising the arms during swimming/walking
@@ -11015,15 +11016,33 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
 
     if (matName.includes('Mat_Skin_Maher')) {
       maherNpcState.meshSkin = ch;
+      // Create a companion SkinnedMesh for the native MakeHuman anatomical bicep (y = 1.285..1.40) and knee (y = 0.52..0.56) bridge triangles
+      // using matMaherBareSkin (so they render in 100% clean Mediterranean skin tone with full anatomical thickness and 100% native bone weights!)
+      if (ch.userData.maherBridgeIndices && ch.userData.maherBridgeIndices.length > 0 && ch.skeleton) {
+        const bridgeGeo = (ch.userData.preFixGeo || ch.geometry).clone();
+        if (bridgeGeo.attributes.color) bridgeGeo.deleteAttribute('color');
+        // Compute smooth vertex normals on the full un-culled mesh first so boundary vertices share smooth normals with forearm/calf,
+        // and then set the index buffer to maherBridgeIndices!
+        bridgeGeo.computeVertexNormals();
+        bridgeGeo.setIndex(ch.userData.maherBridgeIndices);
+        const bridgeMesh = new THREE.SkinnedMesh(bridgeGeo, matMaherBareSkin);
+        bridgeMesh.castShadow = true;
+        bridgeMesh.receiveShadow = false;
+        bridgeMesh.frustumCulled = false;
+        bridgeMesh.bind(ch.skeleton, ch.bindMatrix);
+        bridgeMesh.visible = false;
+        if (ch.parent) ch.parent.add(bridgeMesh);
+        maherNpcState.meshSkinBridge = bridgeMesh;
+      }
     } else if (matName.includes('Mat_Top_Maher')) {
       maherNpcState.meshTop = ch;
       ch.userData.origClothMat = ch.material;
       ch.userData.origClothGeo = ch.geometry;
 
-      // Build Watertight Bare Torso & Upper-Arm Geometry ("tanpa kaos"):
-      // Start from preFixGeo (preserving 100% native UpperArm & Clavicle bone weights) with the culled index buffer of ch.geometry
-      // (so the folded inner sleeve end-cap is absent), extend the lower sleeve rim down to y = 1.245m to overlap the bare forearm (y = 1.285m),
-      // and blend the lower cuff weights with ForeArm.L / ForeArm.R so the shoulder, bicep, and elbow stay 100% connected with zero black seam!
+      // Build Watertight, Full-Thickness Bare Torso & Muscular Upper-Arm Geometry ("tanpa kaos"):
+      // Start from preFixGeo (preserving 100% native UpperArm & Clavicle bone weights) with the culled index buffer of ch.geometry.
+      // Taper the loose short-sleeve cuff gently (shrink = 0.84, NOT 0.56!) around the sloped humerus axis (x = ±0.168 at shoulder -> ±0.204 at elbow)
+      // so the deltoid and bicep keep their full, natural athletic thickness matching the forearm!
       const bareTorsoGeo = (ch.userData.preFixGeo || ch.geometry).clone();
       if (ch.geometry.index) {
         bareTorsoGeo.setIndex(ch.geometry.index.clone());
@@ -11037,7 +11056,6 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
           let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
           const ax = Math.abs(x);
           const signX = x >= 0 ? 1 : -1;
-          // Check native UpperArm weight so we ONLY modify actual sleeve vertices (origArmW > 0.45, y >= 1.255) and NEVER touch the side of the torso/waist!
           let origArmW = 0;
           if (sIdx && sWgt) {
             const j0 = sIdx.getX(i), j1 = sIdx.getY(i), j2 = sIdx.getZ(i), j3 = sIdx.getW(i);
@@ -11046,32 +11064,25 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
             if (j2 === upperArmLIdx || j2 === upperArmRIdx) origArmW += sWgt.getZ(i);
             if (j3 === upperArmLIdx || j3 === upperArmRIdx) origArmW += sWgt.getW(i);
           }
-          if (origArmW > 0.45 && ax > 0.145 && y >= 1.255 && y < 1.405) {
-            const armCx = signX * 0.195;
-            const armCz = 0.012;
-            const blend = Math.min(1.0, (ax - 0.145) / 0.042);
-            const shrink = 1.0 - 0.44 * blend;
+          if (origArmW > 0.40 && ax > 0.145 && y >= 1.255 && y < 1.425) {
+            // Sloped anatomical humerus centerline from shoulder (y = 1.42, x = ±0.168) down to elbow/bicep (y = 1.26, x = ±0.204)
+            const tArmY = Math.max(0.0, Math.min(1.0, (1.42 - y) / 0.16));
+            const armCx = signX * (0.168 + 0.036 * tArmY);
+            const armCz = 0.008 + 0.006 * tArmY;
+            // Gentle 15% cuff taper (shrink = 0.85) so the upper arm & bicep stay muscular and proportional to the forearm!
+            const shrink = 1.0 - 0.15 * tArmY;
             x = armCx + (x - armCx) * shrink;
             z = armCz + (z - armCz) * shrink;
-            if (y < 1.335) {
-              const tDown = Math.min(1.0, (1.335 - y) / 0.065);
-              y -= 0.048 * tDown;
-              if (sIdx && sWgt && origArmW > 0.70) {
-                const uArmIdx = (x >= 0) ? upperArmLIdx : upperArmRIdx;
-                const fArmIdx = (x >= 0) ? foreArmLIdx : foreArmRIdx;
-                if (uArmIdx >= 0 && fArmIdx >= 0) {
-                  const wFore = 0.28 * tDown;
-                  const wUp = 1.0 - wFore;
-                  sIdx.setXYZW(i, uArmIdx, fArmIdx, 0, 0);
-                  sWgt.setXYZW(i, wUp, wFore, 0, 0);
-                }
-              }
+            if (y < 1.315) {
+              const tDown = Math.min(1.0, (1.315 - y) / 0.055);
+              y -= 0.022 * tDown;
+              x += signX * 0.005 * tDown;
             }
           } else {
             const nx = norm ? norm.getX(i) : 0;
             const ny = norm ? norm.getY(i) : 0;
             const nz = norm ? norm.getZ(i) : 0;
-            const inset = (y > 1.42) ? 0.008 : 0.005;
+            const inset = (y > 1.42) ? 0.007 : 0.004;
             x -= nx * inset;
             y -= ny * inset * 0.3;
             z -= nz * inset;
@@ -11079,8 +11090,6 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
           pos.setXYZ(i, x, y, z);
         }
         pos.needsUpdate = true;
-        if (sIdx) sIdx.needsUpdate = true;
-        if (sWgt) sWgt.needsUpdate = true;
         bareTorsoGeo.computeVertexNormals();
       }
       ch.userData.bareSkinGeo = bareTorsoGeo;
@@ -11090,9 +11099,8 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
       ch.userData.origClothGeo = ch.geometry;
 
       // Build Watertight Bare Thighs & Knee Bridge Geometry ("tanpa celana"):
-      // Taper the lower shorts cuff smoothly onto the calf top (x = ±0.116, z = 0.018), extend the lower cuff down to y = 0.465m
-      // (overlapping 5.5cm into the top of the bare calf at y = 0.52m!), and blend the lower knee cuff weights with LowLeg.L / LowLeg.R
-      // so when the knee bends while swimming or reclining, the knee joint bends as one continuous skin cylinder with zero gap!
+      // Keep natural athletic thigh & knee thickness (shrink = 0.88 at thigh -> 0.78 at knee) and blend the lower knee cuff weights
+      // with LowLeg.L / LowLeg.R so the knee joint bends smoothly!
       const bareThighsGeo = ch.geometry.clone();
       const pos = bareThighsGeo.attributes.position;
       const sIdx = bareThighsGeo.attributes.skinIndex;
@@ -11101,21 +11109,21 @@ function buildMaherSwimCostumeAndDuckRing(armRoot) {
         for (let i = 0; i < pos.count; i++) {
           const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
           const signX = x >= 0 ? 1 : -1;
-          const legCx = signX * 0.116;
-          const legCz = 0.018;
+          const legCx = signX * 0.118;
+          const legCz = 0.020;
           const dx = x - legCx;
           const dz = z - legCz;
           const tKnee = Math.max(0.0, Math.min(1.0, (0.75 - y) / 0.25));
-          const shrink = 0.85 - 0.22 * tKnee;
+          const shrink = 0.88 - 0.10 * tKnee;
           let ny = y;
-          if (y < 0.565) {
-            const tBridge = Math.min(1.0, (0.565 - y) / 0.058);
-            ny = y - 0.058 * tBridge;
+          if (y < 0.555) {
+            const tBridge = Math.min(1.0, (0.555 - y) / 0.052);
+            ny = y - 0.042 * tBridge;
             if (sIdx && sWgt) {
               const uLegIdx = (x >= 0) ? upLegLIdx : upLegRIdx;
               const lLegIdx = (x >= 0) ? lowLegLIdx : lowLegRIdx;
               if (uLegIdx >= 0 && lLegIdx >= 0) {
-                const wLow = 0.88 * tBridge;
+                const wLow = 0.75 * tBridge;
                 const wUp = 1.0 - wLow;
                 sIdx.setXYZW(i, uLegIdx, lLegIdx, 0, 0);
                 sWgt.setXYZW(i, wUp, wLow, 0, 0);
@@ -11183,6 +11191,9 @@ function setMaherSwimCostume(isSwimming) {
   // 1. Toggle 3D Inflatable Yellow Duck Swim Ring around his waist ("ban bebek d sekeliling pinggang menutupi area sensitif")
   if (maherNpcState.duckRingGroup) {
     maherNpcState.duckRingGroup.visible = swimMode;
+  }
+  if (maherNpcState.meshSkinBridge) {
+    maherNpcState.meshSkinBridge.visible = swimMode;
   }
 
   // 2. Switch Shirt ("tanpa kaos"), Shorts ("tanpa celana"), and Shoes ("tanpa sepatu") between Bare Skin and Normal Clothes
