@@ -78,6 +78,119 @@
     background: linear-gradient(135deg, #34d399, #059669);
     border-color: #fff; color: #fff;
   }
+  .btn-catalog {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+    border: 1px solid #fde68a; color: #fff; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(245, 158, 11, 0.42);
+  }
+  .btn-catalog:hover, .btn-catalog.active {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border-color: #fff; color: #111;
+  }
+  .hud-btn.btn-copy-obj {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-color: #93c5fd; color: #fff; font-weight: 700;
+  }
+  .hud-btn.btn-copy-obj:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #fff; color: #fff;
+  }
+  .hud-btn.btn-paste-obj {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: #6ee7b7; color: #fff; font-weight: 700;
+  }
+  .hud-btn.btn-paste-obj:hover {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #fff; color: #fff;
+  }
+  .hud-btn.btn-delete-obj {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border-color: #fca5a5; color: #fff; font-weight: 700;
+  }
+  .hud-btn.btn-delete-obj:hover {
+    background: linear-gradient(135deg, #f87171, #dc2626);
+    border-color: #fff; color: #fff;
+  }
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  dialog#object-catalog-modal {
+    margin: auto; width: min(94vw, 960px); max-height: 86vh;
+    background: rgba(12, 17, 26, 0.96); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    color: var(--text-main); border: 1.5px solid var(--gold); border-radius: 18px;
+    padding: 16px 18px; box-shadow: 0 24px 64px rgba(0,0,0,0.88);
+  }
+  dialog#object-catalog-modal[open] {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  dialog#object-catalog-modal::backdrop {
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+  }
+  .cat-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    border-bottom: 1px solid rgba(232,185,89,0.24); padding-bottom: 10px;
+  }
+  .cat-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .cat-title-wrap h2 { font-size: 15px; font-weight: 800; color: var(--gold-bright); }
+  .cat-badge {
+    background: rgba(232,185,89,0.16); border: 1px solid var(--border-gold);
+    color: var(--gold-bright); border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+  }
+  .cat-toolbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  }
+  .cat-search {
+    flex: 1 1 240px; background: rgba(255,255,255,0.07); border: 1px solid rgba(232,185,89,0.38);
+    color: #fff; border-radius: 10px; padding: 8px 12px; font-size: 12px; outline: none;
+  }
+  .cat-search:focus { border-color: var(--gold-bright); background: rgba(255,255,255,0.12); }
+  .cat-keep-label {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); cursor: pointer;
+  }
+  .cat-tabs {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .cat-tab-btn {
+    background: rgba(255,255,255,0.07); color: #dce3ef;
+    border: 1px solid rgba(232,185,89,0.28); border-radius: 99px;
+    padding: 5px 11px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.15s;
+  }
+  .cat-tab-btn:hover, .cat-tab-btn.active {
+    background: var(--gold); color: #111; border-color: #fff; font-weight: 700;
+  }
+  .cat-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 9px; overflow-y: auto; max-height: 55vh; padding-right: 4px;
+  }
+  .cat-card {
+    background: rgba(24, 33, 48, 0.88); border: 1px solid rgba(232,185,89,0.26);
+    border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column;
+    justify-content: space-between; gap: 8px; transition: 0.15s; cursor: pointer;
+  }
+  .cat-card:hover {
+    border-color: var(--gold-bright); background: rgba(34, 46, 66, 0.95);
+    transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  }
+  .cat-card-top { display: flex; align-items: flex-start; gap: 9px; }
+  .cat-card-icon {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: rgba(232,185,89,0.14); border: 1px solid rgba(232,185,89,0.32);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .cat-card-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .cat-card-title { font-size: 11.5px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .cat-card-sub { font-size: 10px; color: var(--text-muted); line-height: 1.25; }
+  .cat-card-btn {
+    width: 100%; background: linear-gradient(135deg, #e8b959, #c89128);
+    color: #111; border: 1px solid var(--gold-bright); border-radius: 8px;
+    padding: 5px 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.14s;
+  }
+  .cat-card-btn:hover { background: linear-gradient(135deg, #ffd67a, #e8b959); border-color: #fff; }
   #animal-deploy-panel {
     pointer-events: auto;
     display: none; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -254,6 +367,7 @@
   <div id="top-bar">
     <div class="top-actions">
       <button class="btn-pill btn-photoshoot" id="btn-photoshoot" onclick="startPhotoshootRender()">📸 Photoshoot (Blender Render)</button>
+      <button class="btn-pill btn-catalog" id="btn-object-catalog" onclick="toggleObjectCatalog()">📦 Object Catalog</button>
       <button class="btn-pill btn-animals" id="btn-deploy-animals" onclick="toggleAnimalDeployPanel()">🐾 Deploy Animals</button>
       <button class="btn-pill btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">🇹🇳 العربية التونسية</button>
       <button class="btn-pill" id="btn-roof-toggle" onclick="toggleRoof()">🏠 Open Roof (Cutaway)</button>
@@ -327,15 +441,36 @@
   <span id="animal-hud-controls" style="display:none; gap:6px; align-items:center;">
     <button class="hud-btn" id="btn-animal-rad-dec" onclick="adjustSelectedAnimalRadius(-0.35)" title="Smaller Roam Radius">⭕ Area -</button>
     <button class="hud-btn" id="btn-animal-rad-inc" onclick="adjustSelectedAnimalRadius(0.35)" title="Larger Roam Radius">⭕ Area +</button>
-    <button class="hud-btn btn-delete-animal" id="btn-hud-delete-animal" onclick="deleteSelectedAnimal()" title="Delete Selected Animal (Del / Backspace)">🗑️ Delete Animal</button>
   </span>
   <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
   <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
   <button class="hud-btn" id="btn-hud-rot-l" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
   <button class="hud-btn" id="btn-hud-rot-r" onclick="rotateSelected(Math.PI/12)">↻ +15°</button>
   <button class="hud-btn" id="btn-hud-rot-90" onclick="rotateSelected(Math.PI/2)">⟳ 90°</button>
+  <button class="hud-btn btn-copy-obj" id="btn-hud-copy" style="display:none" onclick="copySelectedObject()" title="Copy Selected Object (Ctrl+C / Cmd+C)">📋 Copy</button>
+  <button class="hud-btn btn-paste-obj" id="btn-hud-paste" style="display:none" onclick="pasteCopiedObject()" title="Paste Copied Object (Ctrl+V / Cmd+V)">📥 Paste</button>
+  <button class="hud-btn btn-delete-obj" id="btn-hud-delete" style="display:none" onclick="deleteSelectedObject()" title="Delete Selected Object (Del / Backspace)">🗑️ Delete</button>
   <button class="hud-btn" id="btn-hud-deselect" style="display:none" onclick="deselectObject()">✖</button>
 </div>
+
+<dialog id="object-catalog-modal" closedby="any" aria-labelledby="catalog-modal-title">
+  <div class="cat-header">
+    <div class="cat-title-wrap">
+      <h2 id="catalog-modal-title">📦 Complete 3D Object & Livestock Catalog (Spawn Anywhere)</h2>
+      <span class="cat-badge" id="catalog-count-badge">0 Objects</span>
+    </div>
+    <button class="btn-pill" id="btn-catalog-close" onclick="closeObjectCatalog()">✖ Close</button>
+  </div>
+  <div class="cat-toolbar">
+    <input type="search" class="cat-search" id="catalog-search-input" placeholder="🔍 Search furniture, trees, grills, lamps, livestock..." oninput="renderObjectCatalogGrid()" />
+    <label class="cat-keep-label">
+      <input type="checkbox" id="catalog-keep-open" checked />
+      <span id="ui-catalog-keep-open">Keep catalog open for multi-spawn</span>
+    </label>
+  </div>
+  <div class="cat-tabs" id="catalog-category-tabs"></div>
+  <div class="cat-grid" id="catalog-grid"></div>
+</dialog>
 
 <dialog id="photoshoot-dialog" closedby="any" aria-labelledby="ps-title">
   <div class="ps-header">
@@ -406,9 +541,25 @@ const I18N = {
     animalPanelTitle: '🐾 Deploy Animals (Unlimited):',
     btnSpawnChicken: '🐔 + Chicken',
     btnSpawnCow: '🐄 + Cow',
-    btnDeleteAnimal: '🗑️ Delete Animal',
+    btnDeleteAnimal: '🗑️ Delete',
     btnAreaMinus: '⭕ Area -',
-    btnAreaPlus: '⭕ Area +'
+    btnAreaPlus: '⭕ Area +',
+    btnObjectCatalog: '📦 Object Catalog',
+    catalogTitle: '📦 Complete 3D Object & Livestock Catalog (Spawn Anywhere)',
+    catalogSearchPlaceholder: '🔍 Search furniture, trees, grills, lamps, livestock...',
+    catalogKeepOpen: 'Keep catalog open for multi-spawn',
+    btnSpawnItem: '➕ Spawn Here',
+    btnCopyObj: '📋 Copy',
+    btnCopiedObj: '✅ Copied!',
+    btnPasteObj: '📥 Paste',
+    btnDeleteObj: '🗑️ Delete',
+    catAll: '✨ All',
+    catSalon: '🛋️ Salon & Lounge',
+    catBedroom: '🛏️ Bedroom & Bath',
+    catKitchen: '🍳 Kitchen & Dining',
+    catOutdoor: '🌳 Trees, Outdoor & Roof',
+    catLamps: '💡 Chandeliers & Lamps',
+    catLivestock: '🐄 Livestock & Barn'
   },
   ar: {
     appTitle: 'فيلا تونسية وعربية عصرية 3D',
@@ -454,9 +605,25 @@ const I18N = {
     animalPanelTitle: '🐾 إضافة حيوانات (بلا حدود):',
     btnSpawnChicken: '🐔 + دجاجة',
     btnSpawnCow: '🐄 + بقرة',
-    btnDeleteAnimal: '🗑️ حذف الحيوان',
+    btnDeleteAnimal: '🗑️ حذف',
     btnAreaMinus: '⭕ نطاق -',
-    btnAreaPlus: '⭕ نطاق +'
+    btnAreaPlus: '⭕ نطاق +',
+    btnObjectCatalog: '📦 كتالوج العناصر',
+    catalogTitle: '📦 كتالوج جميع المجسمات والمواشي 3D (أضف في أي مكان)',
+    catalogSearchPlaceholder: '🔍 ابحث عن الأثاث، الأشجار، المشاوي، الثريات، المواشي...',
+    catalogKeepOpen: 'إبقاء الكتالوج مفتوحاً للإضافة المتعددة',
+    btnSpawnItem: '➕ أضف هنا',
+    btnCopyObj: '📋 نسخ',
+    btnCopiedObj: '✅ تم النسخ!',
+    btnPasteObj: '📥 لصق',
+    btnDeleteObj: '🗑️ حذف',
+    catAll: '✨ الكل',
+    catSalon: '🛋️ الصالة والجلسات',
+    catBedroom: '🛏️ بيت النوم والحمام',
+    catKitchen: '🍳 الكوجينة والبار',
+    catOutdoor: '🌳 الأشجار والخارج والسطح',
+    catLamps: '💡 الثريات والفوانيس',
+    catLivestock: '🐄 المواشي والحظيرة'
   }
 };
 
@@ -1621,6 +1788,129 @@ function createArchedDoorAssembly(width, height, depth, hasMashrabiyaFanlight = 
   return group;
 }
 
+// Dedicated Wide Rustic Timber Livestock Barn Arched Door ("pintu untuk ternak, menghadap belakang rumah utama")
+function createLivestockBarnDoorAssembly(width = 1.96, height = 2.68, depth = 0.28, pointed = 0.14) {
+  const innerW = width - 0.24;
+  const innerH = height - 0.12;
+  const rx = innerW * 0.5;
+  const springY = Math.max(0.35, innerH - rx * (1.0 + pointed));
+
+  // Fixed outer stone frame + LED border + ventilated upper wooden slat arch transom above springY
+  const group = createModernArabicArchGroup(width, height, depth, {
+    infillMode: 'transom', infillStartY: springY, infillDepth: 0.04,
+    hasLed: true, isOpening: true, pointed: pointed
+  });
+
+  const jamb = createModernArabicArchGroup(innerW + 0.06, innerH + 0.03, 0.12, {
+    infillMode: 'none', hasLed: false, pointed: pointed, frameMat: matDoorWood
+  });
+  group.add(jamb);
+
+  const matBarnTimber = new THREE.MeshStandardMaterial({
+    color: 0x5c3a1e,
+    map: woodDiffTex || null,
+    normalMap: woodNorTex || null,
+    roughnessMap: woodArmTex || null,
+    roughness: 0.68,
+    metalness: 0.05
+  });
+  const matWroughtIron = new THREE.MeshStandardMaterial({
+    color: 0x1e2024,
+    roughness: 0.38,
+    metalness: 0.82
+  });
+
+  // Heavy timber transom lintel beam with brass livestock barn plaque
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(innerW + 0.04, 0.085, 0.15), matBarnTimber);
+  lintel.position.set(0, springY, 0);
+  lintel.castShadow = true;
+  group.add(lintel);
+
+  const plaque = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.11, 0.165), matBrass);
+  plaque.position.set(0, springY + 0.01, 0);
+  group.add(plaque);
+  // Subtle 3D bull-horn livestock emblem on the barn transom plaque
+  [-1, 1].forEach((s) => {
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.11, 8), matWroughtIron);
+    horn.position.set(s * 0.12, springY + 0.03, -0.088);
+    horn.rotation.z = -s * 0.85;
+    group.add(horn);
+    const hornBack = horn.clone();
+    hornBack.position.z = 0.088;
+    group.add(hornBack);
+  });
+
+  // Left & Right Extra-Wide Hinged Livestock Barn Double-Door Leaves below springY (with Z-brace crossbars & wrought-iron strap hinges)
+  const leafW = (innerW - 0.02) * 0.5;
+  const leafH = springY - 0.01;
+  const leftPivot = new THREE.Group();
+  leftPivot.position.set(-innerW * 0.5, 0, 0);
+  const rightPivot = new THREE.Group();
+  rightPivot.position.set(innerW * 0.5, 0, 0);
+
+  [[leftPivot, 1], [rightPivot, -1]].forEach(([piv, dir]) => {
+    const cx = dir * leafW * 0.5;
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(leafW, leafH, 0.072), matDoorWood);
+    leaf.position.set(cx, leafH * 0.5, 0);
+    leaf.castShadow = true;
+    leaf.receiveShadow = true;
+    piv.add(leaf);
+
+    // Vertical barn plank grooves
+    for (let pi = 1; pi <= 4; pi++) {
+      const px = dir * (leafW * (pi / 5));
+      const groove = new THREE.Mesh(new THREE.BoxGeometry(0.014, leafH - 0.04, 0.080), matBarnTimber);
+      groove.position.set(px, leafH * 0.5, 0);
+      piv.add(groove);
+    }
+
+    // Top, middle & bottom horizontal barn battens
+    [0.14, leafH * 0.50, leafH - 0.14].forEach((byPos) => {
+      const batten = new THREE.Mesh(new THREE.BoxGeometry(leafW * 0.92, 0.095, 0.098), matBarnTimber);
+      batten.position.set(cx, byPos, 0);
+      batten.castShadow = true;
+      piv.add(batten);
+    });
+
+    // Diagonal Z-Brace barn timbers (lower & upper half)
+    const diagH = (leafH * 0.5 - 0.16);
+    const diagW = leafW * 0.82;
+    const diagLen = Math.hypot(diagW, diagH);
+    const diagAng = Math.atan2(diagH, dir * diagW);
+    [leafH * 0.28, leafH * 0.72].forEach((cyDiag, dIdx) => {
+      const brace = new THREE.Mesh(new THREE.BoxGeometry(diagLen, 0.078, 0.094), matBarnTimber);
+      brace.position.set(cx, cyDiag, 0);
+      brace.rotation.z = (dIdx === 0) ? diagAng : -diagAng;
+      brace.castShadow = true;
+      piv.add(brace);
+    });
+
+    // Heavy wrought-iron barn strap hinges near outer hinge edge
+    [0.22, leafH - 0.22].forEach((hy) => {
+      const strap = new THREE.Mesh(new THREE.BoxGeometry(leafW * 0.46, 0.044, 0.112), matWroughtIron);
+      strap.position.set(dir * (leafW * 0.24), hy, 0);
+      piv.add(strap);
+    });
+
+    // Heavy brass & iron livestock gate ring handles on both faces
+    const hX = dir * (leafW - 0.09);
+    [-0.058, 0.058].forEach((hz) => {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 10, 20), matBrass);
+      ring.position.set(hX, Math.min(1.02, leafH * 0.50), hz);
+      piv.add(ring);
+    });
+  });
+
+  group.add(leftPivot, rightPivot);
+  group.userData = {
+    draggable: false, isOpening: true, isDoor: true, isLivestockDoor: true,
+    openingWidth: width, openingHeight: height, innerArchW: width - 0.22, innerArchH: height - 0.12,
+    sillHeight: 0.0, pointed: pointed,
+    leftPivot, rightPivot, openAngle: 0, targetOpenAngle: 0, maxOpenAngle: 1.48, isOpenPermanent: false
+  };
+  return group;
+}
+
 // ============================================================================
 // BUILD STATIC ARCHITECTURE, DYNAMIC ARCH-CUT WALLS & MAGNETIC WALL SNAP
 // ============================================================================
@@ -1664,17 +1954,21 @@ matRug.polygonOffsetFactor = -1;
 matRug.polygonOffsetUnits = -1;
 
 const WALL_DEFS = [
-  { id: 'south_ext', axis: 'x', fixed: -5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'south_ext', baseZ: 0.0, topZ: 3.50 },
-  { id: 'north', axis: 'x', fixed: 5.00, min: -5.88, max: 5.88, thick: 0.24, rotY: 0, matKey: 'north', baseZ: 0.0, topZ: 3.50 },
-  { id: 'west', axis: 'y', fixed: -6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: Math.PI / 2, matKey: 'west', baseZ: 0.0, topZ: 3.50 },
-  { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east', baseZ: 0.0, topZ: 3.50 },
+  { id: 'south_ext', axis: 'x', fixed: -5.00, min: -6.12, max: 6.12, thick: 0.24, rotY: 0, matKey: 'south_ext', baseZ: -0.04, topZ: 3.50 },
+  { id: 'north', axis: 'x', fixed: 5.00, min: -6.12, max: 6.12, thick: 0.24, rotY: 0, matKey: 'north', baseZ: -0.04, topZ: 3.50 },
+  { id: 'west', axis: 'y', fixed: -6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: Math.PI / 2, matKey: 'west', baseZ: -0.04, topZ: 3.50 },
+  { id: 'east', axis: 'y', fixed: 6.00, min: -4.88, max: 4.88, thick: 0.24, rotY: -Math.PI / 2, matKey: 'east', baseZ: -0.04, topZ: 3.50 },
   { id: 'bath_east', axis: 'y', fixed: -2.10, min: -4.88, max: -1.20, thick: 0.18, rotY: Math.PI / 2, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
   { id: 'bath_north', axis: 'x', fixed: -1.20, min: -5.88, max: -2.10, thick: 0.18, rotY: 0, matKey: 'bath_kitchen', baseZ: 0.0, topZ: 3.50 },
   // East Side Guest Cabin Walls (shifted right by its own 6.00m length to bx = 12.00 .. 18.00, by = -13.40 .. -9.20, continuing from the bx = 6.00 .. 12.00 divider wall!)
-  { id: 'cabin_west', axis: 'y', fixed: 12.00, min: -13.40, max: -9.20, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_south', axis: 'x', fixed: -13.40, min: 12.00, max: 18.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_east', axis: 'y', fixed: 18.00, min: -13.40, max: -9.20, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
-  { id: 'cabin_north', axis: 'x', fixed: -9.20, min: 12.00, max: 18.00, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
+  { id: 'cabin_west', axis: 'y', fixed: 12.00, min: -13.28, max: -9.32, thick: 0.24, rotY: Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_south', axis: 'x', fixed: -13.40, min: 11.88, max: 18.12, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_east', axis: 'y', fixed: 18.00, min: -13.28, max: -9.32, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'cabin_north', axis: 'x', fixed: -9.20, min: 11.88, max: 18.12, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  // Livestock Cabin ("cabin untuk ternak") behind the right cabin & divider wall:
+  // Spans bx = 6.00 .. 12.00 (matching the divider wall width) and by = -9.20 .. -5.00 (from the divider wall back to the front door wall / tembok pintu depan at by = -5.00m!)
+  { id: 'livestock_east', axis: 'y', fixed: 12.00, min: -9.08, max: -5.12, thick: 0.24, rotY: -Math.PI / 2, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 },
+  { id: 'livestock_north', axis: 'x', fixed: -5.00, min: 6.12, max: 12.12, thick: 0.24, rotY: 0, matKey: 'courtyard', baseZ: -0.25, topZ: 3.78 }
 ];
 
 function addBoxMesh(w, h, d, bx, by, bz, mat, parent = archRoot, castShadow = true) {
@@ -1716,17 +2010,21 @@ function rebuildDynamicWalls() {
         if (w.axis === 'x') addBoxMesh(segLen, wallH, w.thick, segMid, w.fixed, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
         else addBoxMesh(w.thick, wallH, segLen, w.fixed, segMid, baseZ + wallH * 0.5, mat, dynamicWallsGroup);
       }
+      const opFloorZ = (baseZ < -0.10) ? baseZ : 0.0;
       const sill = op.userData.sillHeight || 0.0;
-      if (sill > 0.01) {
-        if (w.axis === 'x') addBoxMesh(ow, sill, w.thick, op.userData.wallCoord, w.fixed, baseZ + sill * 0.5, mat, dynamicWallsGroup);
-        else addBoxMesh(w.thick, sill, ow, w.fixed, op.userData.wallCoord, baseZ + sill * 0.5, mat, dynamicWallsGroup);
+      const sillBottom = baseZ;
+      const sillTop = opFloorZ + sill;
+      const sillH = sillTop - sillBottom;
+      if (sillH > 0.01) {
+        if (w.axis === 'x') addBoxMesh(ow, sillH, w.thick, op.userData.wallCoord, w.fixed, sillBottom + sillH * 0.5, mat, dynamicWallsGroup);
+        else addBoxMesh(w.thick, sillH, ow, w.fixed, op.userData.wallCoord, sillBottom + sillH * 0.5, mat, dynamicWallsGroup);
       }
-      const spandrelTop = wallH - sill;
+      const spandrelTop = topZ - sillTop;
       const sp = createWallArchSpandrel(ow, op.userData.innerArchW, op.userData.innerArchH, spandrelTop, w.thick, mat, op.userData.pointed);
       if (w.axis === 'x') {
-        sp.position.copy(bPos(op.userData.wallCoord, w.fixed, baseZ + sill));
+        sp.position.copy(bPos(op.userData.wallCoord, w.fixed, sillTop));
       } else {
-        sp.position.copy(bPos(w.fixed, op.userData.wallCoord, baseZ + sill));
+        sp.position.copy(bPos(w.fixed, op.userData.wallCoord, sillTop));
         sp.rotation.y = Math.PI / 2;
       }
       dynamicWallsGroup.add(sp);
@@ -1778,7 +2076,8 @@ function snapOpeningToNearestWall(opObj, targetBx, targetBy) {
 
   opObj.userData.wallId = bestWall.id;
   opObj.userData.wallCoord = bestU;
-  const baseZ = bestWall.baseZ !== undefined ? bestWall.baseZ : 0.0;
+  const rawBaseZ = bestWall.baseZ !== undefined ? bestWall.baseZ : 0.0;
+  const baseZ = (rawBaseZ < -0.10) ? rawBaseZ : 0.0;
   const sill = opObj.userData.sillHeight || 0.0;
   if (bestWall.axis === 'x') {
     opObj.position.copy(bPos(bestU, bestWall.fixed, baseZ + sill));
@@ -1879,9 +2178,9 @@ function buildStaticArchitecture() {
     archRoot.add(puddle);
   });
 
-  // House Architectural Foundation Podium (top lowered to -0.04m & trim top lowered to -0.025m so it NEVER Z-fights with 0.00m interior floor!)
-  addBoxMesh(12.16, 0.46, 10.16, 0.0, 0.0, -0.27, wallMaterials.south_ext, archRoot, true);
-  addBoxMesh(12.28, 0.05, 10.28, 0.0, 0.0, -0.050, matArchTrim, archRoot, true);
+  // House Architectural Foundation Podium (12.24m x 10.24m flush with the +/-6.12m x +/-5.12m outer walls, top at -0.04m meeting wall baseZ -0.04m with zero seam and zero interior floor Z-fighting!)
+  addBoxMesh(12.24, 0.46, 10.24, 0.0, 0.0, -0.27, wallMaterials.south_ext, archRoot, true);
+  addBoxMesh(12.30, 0.06, 10.30, 0.0, 0.0, -0.47, matArchTrim, archRoot, true);
 
   // Main House Interior Floors (top face cleanly at bz = 0.000m, bathroom Zellige top at +0.027m)
   addBoxMesh(12.0, 0.18, 10.0, 0.0, 0.0, -0.09, matMainFloor, archRoot, false);
@@ -2774,6 +3073,94 @@ function buildStaticArchitecture() {
   registerDraggable(cabinDaybedGroup, 'Cabin Guest Daybed & Walnut Console', 'ديوان وسرير مقصورة الضيوف التونسية');
 
   // ==========================================================================
+  // LIVESTOCK CABIN BEHIND THE RIGHT CABIN / DIVIDER WALL ("CABIN UNTUK TERNAK")
+  //   - Spans bx = 6.00m .. 12.00m (width = 6.00m, matching the divider wall between the main house and right cabin)
+  //   - Spans by = -9.20m .. -5.00m (depth = 4.20m = matching the right terrace wall up to the front door wall / tembok pintu depan at by = -5.00m!)
+  //   - Center: bx = 9.00m, by = -7.10m, floor elevation bz = -0.25m
+  //   - Livestock Barn Door ("pintu untuk ternak") on livestock_north (by = -5.00m, bx = 9.00m) facing the back of the main house (+by, North)!
+  // ==========================================================================
+  const liveCenterX = 9.00;
+  const liveCenterY = -7.10;
+  // Livestock Cabin Foundation Podium (bx = 6.12..12.12m, by = -9.20..-4.88m, flush with livestock_east & livestock_north outer faces!) & Rustic Stone-Tile Barn Floor (bz = -0.25m)
+  addBoxMesh(6.00, 0.24, 4.32, 9.12, -7.04, -0.37, wallMaterials.courtyard, archRoot, true);
+  addBoxMesh(5.72, 0.018, 3.92, liveCenterX, liveCenterY, -0.244, matCourtyardFloor, archRoot, false);
+  // Wide Livestock Threshold Ramp/Step outside the North Livestock Door (bx = 9.00, by = -5.00) facing the back of the main house
+  addBoxMesh(2.28, 0.125, 0.48, liveCenterX, -4.65, -0.4375, matCourtyardFloor, archRoot, true);
+  addBoxMesh(2.36, 0.065, 0.28, liveCenterX, -4.34, -0.4675, matArchTrim, archRoot, true);
+
+  // Top Cornice Trim Caps (bz = 3.81m) along livestock_east (bx = 12.00, by = -9.20..-5.00) and livestock_north (by = -5.00, bx = 6.12..12.15)
+  addBoxMesh(0.30, 0.06, 4.38, 12.00, -7.04, 3.81, matArchTrim, archRoot, true);
+  addBoxMesh(6.03, 0.06, 0.30, 9.135, -5.00, 3.81, matArchTrim, archRoot, true);
+  // Base Trim Collars at exterior soil level (bz = -0.47m) along livestock_east & livestock_north
+  addBoxMesh(0.30, 0.06, 4.38, 12.00, -7.04, -0.47, matArchTrim, archRoot, true);
+  addBoxMesh(6.03, 0.06, 0.30, 9.135, -5.00, -0.47, matArchTrim, archRoot, true);
+
+  // Livestock Cabin Interior Furnishing 1: Rustic Timber & Wrought-Iron Hay Manger + Stone & Brass Water Trough (against East wall bx = 10.95, by = -6.55..-8.35)
+  const livestockMangerGroup = new THREE.Group();
+  const matGoldenHay = new THREE.MeshStandardMaterial({
+    color: 0xd8a63a,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    roughness: 0.88,
+    metalness: 0.02
+  });
+  const matTroughWater = new THREE.MeshStandardMaterial({
+    color: 0x3898b8,
+    roughness: 0.12,
+    metalness: 0.15,
+    transparent: true,
+    opacity: 0.84
+  });
+  // Carved timber feed manger trough (2.10m long along East wall)
+  addBoxMesh(0.76, 0.56, 2.10, 10.95, -6.55, 0.03, matWalnut, livestockMangerGroup);
+  addBoxMesh(0.80, 0.04, 2.16, 10.95, -6.55, 0.32, matBrass, livestockMangerGroup);
+  // Golden hay mound inside the manger
+  addBoxMesh(0.62, 0.24, 1.92, 10.95, -6.55, 0.36, matGoldenHay, livestockMangerGroup);
+  addBoxMesh(0.48, 0.18, 1.68, 10.98, -6.55, 0.50, matGoldenHay, livestockMangerGroup);
+  // Slanted upper hay rack bars along the wall
+  for (let bi = 0; bi < 6; bi++) {
+    const byBar = -7.38 + bi * 0.33;
+    const rackBar = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.68, 8), matDarkSteel);
+    rackBar.position.copy(bPos(11.16, byBar, 0.64));
+    rackBar.rotation.z = 0.28;
+    livestockMangerGroup.add(rackBar);
+  }
+  addBoxMesh(0.10, 0.06, 2.12, 11.24, -6.55, 0.94, matWalnut, livestockMangerGroup);
+  // Carved stone & brass livestock drinking water trough right next to the hay manger (by = -8.25)
+  addBoxMesh(0.78, 0.44, 1.08, 10.95, -8.25, -0.03, matCourtyardFloor, livestockMangerGroup);
+  addBoxMesh(0.82, 0.035, 1.12, 10.95, -8.25, 0.20, matBrass, livestockMangerGroup);
+  addBoxMesh(0.64, 0.04, 0.94, 10.95, -8.25, 0.21, matTroughWater, livestockMangerGroup);
+  archRoot.add(livestockMangerGroup);
+  window.livestockHayMangerObj = livestockMangerGroup;
+  registerDraggable(livestockMangerGroup, 'Livestock Hay Manger & Water Trough', 'معلف تبن وحوض ماء للمواشي');
+
+  // Livestock Cabin Interior Furnishing 2: Stacked Golden Hay & Straw Bales on Timber Pallet (in SW corner bx = 7.25, by = -7.85)
+  const livestockHayBalesGroup = new THREE.Group();
+  // Slatted wooden barn pallet
+  addBoxMesh(1.16, 0.08, 2.10, 7.25, -7.85, -0.21, matWalnut, livestockHayBalesGroup);
+  // Bottom tier of 3 golden hay bales + twine bands
+  [-0.64, 0.0, 0.64].forEach((dyBale, bIdx) => {
+    const bxB = 7.25 + (bIdx % 2 === 0 ? -0.04 : 0.05);
+    const byB = -7.85 + dyBale;
+    addBoxMesh(0.88, 0.46, 0.58, bxB, byB, 0.06, matGoldenHay, livestockHayBalesGroup);
+    [-0.16, 0.16].forEach((twOff) => {
+      addBoxMesh(0.90, 0.475, 0.018, bxB, byB + twOff, 0.06, matBrass, livestockHayBalesGroup);
+    });
+  });
+  // Upper tier of 2 golden hay bales stacked on top
+  [-0.32, 0.34].forEach((dyBale, bIdx) => {
+    const bxB = 7.28 + (bIdx === 0 ? 0.03 : -0.03);
+    const byB = -7.85 + dyBale;
+    addBoxMesh(0.84, 0.44, 0.56, bxB, byB, 0.51, matGoldenHay, livestockHayBalesGroup);
+    [-0.15, 0.15].forEach((twOff) => {
+      addBoxMesh(0.86, 0.455, 0.018, bxB, byB + twOff, 0.51, matBrass, livestockHayBalesGroup);
+    });
+  });
+  archRoot.add(livestockHayBalesGroup);
+  window.livestockStrawBalesObj = livestockHayBalesGroup;
+  registerDraggable(livestockHayBalesGroup, 'Golden Barn Hay & Straw Bales', 'بالات قش وتبن الحظيرة');
+
+  // ==========================================================================
   // NEW TERRACE IN FRONT OF THE SHIFTED CABIN ("DAN TERRACENYA, GESER KE KANAN SEPANJANG KABIN ITU SENDIRI")
   //   - Spans bx = 12.00m .. 18.00m (width = 6.00m, center bx = 15.00m), by = -13.40m .. -16.50m (depth = 3.10m, center by = -14.95m)
   //   - Sits at bz = -0.25m (matching the Right Arched Terrace & Left Concrete Terrace)
@@ -2930,6 +3317,9 @@ function buildStaticArchitecture() {
   // East Guest Cabin Flat Roof Slab & Terrace Surface (shifted right by cabin length to bx = 12.00..18.00, by = -13.40..-9.20; hides with roofGroup when Open Roof Cutaway is ON!)
   addBoxMesh(6.24, 0.24, 4.44, 15.00, -11.30, 3.62, wallMaterials.courtyard, roofGroup);
   addBoxMesh(5.76, 0.03, 3.96, 15.00, -11.30, 3.755, matCourtyardFloor, roofGroup);
+  // Livestock Cabin Flat Roof Slab & Terrace Surface (bx = 6.00..12.00, by = -9.20..-5.00, center bx = 9.00, by = -7.10; hides with roofGroup when Open Roof Cutaway is ON!)
+  addBoxMesh(6.24, 0.24, 4.44, 9.00, -7.10, 3.62, wallMaterials.courtyard, roofGroup);
+  addBoxMesh(5.76, 0.03, 3.96, 9.00, -7.10, 3.755, matCourtyardFloor, roofGroup);
 
   const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
@@ -3191,6 +3581,14 @@ function rebuildOpenings() {
   cabinDoor.userData.labelAr = 'باب مقصورة الضيوف المقوس';
   openingsGroup.add(cabinDoor);
   snapOpeningToNearestWall(cabinDoor, 12.00, -11.30);
+
+  // 6. Livestock Cabin Wide Double-Leaf Barn Door ("pintu untuk ternak, menghadap belakang rumah utama")
+  //    Installed on livestock_north (Y = -5.00m, X = 9.00m) facing the back of the main house (+by, North)!
+  const livestockDoor = createLivestockBarnDoorAssembly(1.96, 2.68, 0.28, 0.14);
+  livestockDoor.userData.labelEn = 'Livestock Barn Double Door (Facing Back)';
+  livestockDoor.userData.labelAr = 'باب حظيرة المواشي المزدوج (خلفي)';
+  openingsGroup.add(livestockDoor);
+  snapOpeningToNearestWall(livestockDoor, 9.00, -5.00);
 }
 
 
@@ -3393,6 +3791,93 @@ function attachNpcTargetWorld(obj, standWorld, lookWorld, smokeWorld = null) {
   }
 }
 
+const OBJECT_CATALOG_REGISTRY = new Map([
+  ['White Farm Chicken', {
+    key: 'White Farm Chicken',
+    labelEn: 'White Farm Chicken (Roaming AI)',
+    labelAr: 'دجاجة مزرعة بيضاء (متحركة)',
+    category: 'livestock',
+    icon: '🐔',
+    isAnimal: true,
+    animalType: 'chicken'
+  }],
+  ['Holstein Dairy Cow', {
+    key: 'Holstein Dairy Cow',
+    labelEn: 'Holstein Dairy Cow (Roaming AI)',
+    labelAr: 'بقرة هولشتاين حلوب (متحركة)',
+    category: 'livestock',
+    icon: '🐄',
+    isAnimal: true,
+    animalType: 'cow'
+  }]
+]);
+window.OBJECT_CATALOG_REGISTRY = OBJECT_CATALOG_REGISTRY;
+
+function classifyCatalogItem(labelEn) {
+  const s = (labelEn || '').toLowerCase();
+  if (s.includes('livestock') || s.includes('manger') || s.includes('hay') || s.includes('straw') || s.includes('trough') || s.includes('barn')) {
+    return { category: 'livestock', icon: s.includes('manger') || s.includes('trough') ? '🪣' : '🌾' };
+  }
+  if (s.includes('chandelier') || s.includes('pendant') || s.includes('lantern')) {
+    return { category: 'lamps', icon: s.includes('lantern') ? '🏮' : '💡' };
+  }
+  if (
+    s.includes('refrigerator') || s.includes('kitchen') || s.includes('stove') ||
+    s.includes('espresso') || s.includes('cooking pot') || s.includes('olive oil pitcher') ||
+    s.includes('breakfast barstool')
+  ) {
+    let icon = '🍽️';
+    if (s.includes('refrigerator')) icon = '🧊';
+    else if (s.includes('stove')) icon = '🍳';
+    else if (s.includes('espresso')) icon = '☕';
+    else if (s.includes('pot')) icon = '🍲';
+    else if (s.includes('barstool')) icon = '🪑';
+    else if (s.includes('pitcher') || s.includes('jar')) icon = '🏺';
+    return { category: 'kitchen', icon };
+  }
+  if (
+    s.includes('bed') && !s.includes('lawn bed') && !s.includes('daybed') ||
+    s.includes('nightstand') || s.includes('hammam') || s.includes('toilet') ||
+    s.includes('vanity') || s.includes('shower') || s.includes('cabin guest daybed')
+  ) {
+    let icon = '🛏️';
+    if (s.includes('shower')) icon = '🚿';
+    else if (s.includes('toilet')) icon = '🚽';
+    else if (s.includes('vanity')) icon = '🚰';
+    else if (s.includes('mirror')) icon = '🪞';
+    else if (s.includes('rug')) icon = '🧶';
+    else if (s.includes('nightstand')) icon = '🗄️';
+    return { category: 'bedroom', icon };
+  }
+  if (
+    s.includes('tree') || s.includes('plant') || s.includes('grill') || s.includes('bbq') ||
+    s.includes('bonfire') || s.includes('pool') || s.includes('fence') || s.includes('walkway') ||
+    s.includes('rooftop') || s.includes('pergola') || s.includes('post-swim') ||
+    s.includes('cabin terrace') || s.includes('jalsa')
+  ) {
+    let icon = '🌿';
+    if (s.includes('orange tree')) icon = '🍊';
+    else if (s.includes('olive')) icon = '🫒';
+    else if (s.includes('shade tree')) icon = '🌳';
+    else if (s.includes('plant')) icon = '🪴';
+    else if (s.includes('grill') || s.includes('bonfire') || s.includes('fire pit')) icon = '🔥';
+    else if (s.includes('poolside')) icon = '🍾';
+    else if (s.includes('fence')) icon = '🚧';
+    else if (s.includes('walkway')) icon = '🛤️';
+    else if (s.includes('pergola')) icon = '🏛️';
+    else if (s.includes('sofa') || s.includes('lounge') || s.includes('jalsa')) icon = '🛋️';
+    else if (s.includes('barstool')) icon = '🪑';
+    return { category: 'outdoor', icon };
+  }
+  let icon = '🛋️';
+  if (s.includes('tv')) icon = '📺';
+  else if (s.includes('table')) icon = '☕';
+  else if (s.includes('carpet') || s.includes('rug')) icon = '🧶';
+  else if (s.includes('vase') || s.includes('coffee pot')) icon = '🏺';
+  else if (s.includes('armchair') || s.includes('pouf')) icon = '🪑';
+  return { category: 'salon', icon };
+}
+
 function registerDraggable(obj, labelEn, labelAr) {
   if (obj.children && obj.children.length > 0 && !obj.userData.noAutoRecenter) {
     obj.updateMatrixWorld(true);
@@ -3427,6 +3912,37 @@ function registerDraggable(obj, labelEn, labelAr) {
   obj.userData.baseScale = obj.scale.clone();
   obj.userData.scaleFactor = 1.0;
   draggableObjects.push(obj);
+
+  // Automatically register a clean master template in OBJECT_CATALOG_REGISTRY for Object Catalog spawning & Copy/Paste
+  if (!obj.userData.isAnimal && labelEn && !OBJECT_CATALOG_REGISTRY.has(labelEn)) {
+    const meta = classifyCatalogItem(labelEn);
+    const rawY = obj.position.y;
+    let deltaH = 0.0;
+    if (rawY > 3.50) {
+      deltaH = Math.max(0.0, rawY - 3.78);
+    } else if (rawY > 0.22) {
+      deltaH = rawY;
+    }
+    const heightAboveSurface = (deltaH >= 0.22 && deltaH <= 3.30) ? deltaH : 0.0;
+    const tplClone = obj.clone(true);
+    OBJECT_CATALOG_REGISTRY.set(labelEn, {
+      key: labelEn,
+      labelEn,
+      labelAr: labelAr || labelEn,
+      category: meta.category,
+      icon: meta.icon,
+      isAnimal: false,
+      template: tplClone,
+      baseScale: obj.scale.clone(),
+      defaultRotY: obj.rotation.y || 0,
+      heightAboveSurface,
+      isWoodenFence: !!obj.userData.isWoodenFence,
+      isLivestockTurnFence: !!obj.userData.isLivestockTurnFence,
+      isDynamicLWalkway: !!obj.userData.isDynamicLWalkway,
+      keepTrunkBasePivot: !!obj.userData.keepTrunkBasePivot,
+      npcActivityId: obj.userData.npcActivityId || null
+    });
+  }
 }
 
 // ============================================================================
@@ -6633,8 +7149,7 @@ async function buildStaticPolyHavenDecor() {
     tMesh.rotation.y = yawSpread;
     tMesh.scale.set(sXZ, sY, sXZ);
     tMesh.userData.isLed = true;
-    bonfireFlameGroup.add(tMesh);
-    window.bonfireFlameMeshes.push({
+    const flameEntry = {
       mesh: tMesh,
       baseX,
       baseY,
@@ -6649,7 +7164,11 @@ async function buildStaticPolyHavenDecor() {
       phase: ti * 1.13,
       spinSpeed: (ti % 2 === 0 ? 1 : -1) * 0.25,
       isCone: false
-    });
+    };
+    tMesh.userData.bonfireAnimType = 'flame';
+    tMesh.userData.bonfireAnimParams = { ...flameEntry, mesh: null };
+    bonfireFlameGroup.add(tMesh);
+    window.bonfireFlameMeshes.push(flameEntry);
   }
 
   // 18 Rising & Swirling 3D Glowing Fire Sparks / Cinders inside bonfireFlameGroup
@@ -6668,8 +7187,7 @@ async function buildStaticPolyHavenDecor() {
     sMesh.raycast = () => {};
     sMesh.userData.isAODecal = true; // Exclude high flying sparks from selection bounding box height
     sMesh.userData.isLed = true;
-    bonfireFlameGroup.add(sMesh);
-    window.bonfireSparkMeshes.push({
+    const sparkEntry = {
       mesh: sMesh,
       age: (si / 18) * 1.8,
       maxAge: 1.5 + (si % 4) * 0.35,
@@ -6677,7 +7195,11 @@ async function buildStaticPolyHavenDecor() {
       swirlSpeed: (si % 2 === 0 ? 1 : -1) * (2.2 + (si % 3) * 0.65),
       riseSpeed: 0.62 + (si % 4) * 0.14,
       phase: si * 0.95
-    });
+    };
+    sMesh.userData.bonfireAnimType = 'spark';
+    sMesh.userData.bonfireAnimParams = { ...sparkEntry, mesh: null };
+    bonfireFlameGroup.add(sMesh);
+    window.bonfireSparkMeshes.push(sparkEntry);
   }
 
   // 10 Multi-Layered Billowing 3D Wood-Smoke Cloud Puffs inside bonfireFlameGroup (so the rising smoke plume moves & scales 100% in lockstep when dragging or resizing the bonfire!)
@@ -6716,14 +7238,17 @@ async function buildStaticPolyHavenDecor() {
     smMesh.raycast = () => {};
     smMesh.userData.isAODecal = true; // Exclude high smoke plume from selection bounding box height
     smMesh.userData.isLed = true;
-    bonfireFlameGroup.add(smMesh);
-    window.bonfireLocalSmokeClouds.push({
+    const smokeEntry = {
       mesh: smMesh,
       age: (smi / 10) * 2.6,
       maxAge: 2.6,
       driftAng: smi * 2.15,
       phase: smi * 0.85
-    });
+    };
+    smMesh.userData.bonfireAnimType = 'smoke';
+    smMesh.userData.bonfireAnimParams = { ...smokeEntry, mesh: null };
+    bonfireFlameGroup.add(smMesh);
+    window.bonfireLocalSmokeClouds.push(smokeEntry);
   }
 
   // Smoke spawn anchor node right above the bonfire flame crown (local y = 0.96m) — moves & scales automatically with tunisianBonfireGroup!
@@ -7150,7 +7675,7 @@ async function buildStaticPolyHavenDecor() {
   })();
 
   // Helper to build a single modular Diamond-Lattice Fence Panel bay ("badan pagar sperti screenshot contoh kiri", media_1793923988848_07faa4b8.jpg)
-  function addDiamondLatticeFenceSegment(parentGrp, xStart, xEnd, numBays) {
+  function addDiamondLatticeFenceSegment(parentGrp, xStart, xEnd, numBays, opts) {
     const totalLen = xEnd - xStart;
     if (totalLen < 0.25 || numBays < 1) return;
     const bayW = totalLen / numBays;
@@ -7160,9 +7685,13 @@ async function buildStaticPolyHavenDecor() {
     const topRailY = 0.93;
     const railH = 0.072;
     const railD = 0.056;
+    const skipStartPost = !!(opts && opts.skipStartPost);
+    const skipEndPost = !!(opts && opts.skipEndPost);
 
     // Square Vertical Posts with Chamfered Neck Groove & Post Cap at each bay boundary
     for (let i = 0; i <= numBays; i++) {
+      if (i === 0 && skipStartPost) continue;
+      if (i === numBays && skipEndPost) continue;
       const px = xStart + i * bayW;
       const postBody = new THREE.Mesh(new THREE.BoxGeometry(postW, postH - 0.08, postW), matFenceWood);
       postBody.position.set(px, (postH - 0.08) * 0.5, 0);
@@ -7233,11 +7762,301 @@ async function buildStaticPolyHavenDecor() {
     }
   }
 
-  function rebuildWoodenFencePanels() {
-    while (fenceBodySubGroup.children.length > 0) {
-      fenceBodySubGroup.remove(fenceBodySubGroup.children[0]);
+  // Helper to build an identical Diamond-Lattice Fence segment between any 2D endpoints (x0, z0) -> (x1, z1)
+  function addDiamondLatticeFenceLine(parentGrp, x0, z0, x1, z1, numBays, opts) {
+    const dx = x1 - x0;
+    const dz = z1 - z0;
+    const segLen = Math.hypot(dx, dz);
+    if (segLen < 0.25 || numBays < 1) return;
+    const segGrp = new THREE.Group();
+    segGrp.position.set(x0, 0, z0);
+    segGrp.rotation.y = Math.atan2(-dz, dx);
+    addDiamondLatticeFenceSegment(segGrp, 0, segLen, numBays, opts);
+    parentGrp.add(segGrp);
+  }
+
+  // Build the Short 2-Leaf Wooden Livestock Gate ("gatenya kini pendek dengan 2 daun pintu kayu (pagar ternak bukan garden)")
+  const matLivestockGateIron = new THREE.MeshStandardMaterial({
+    color: 0x26292e,
+    roughness: 0.38,
+    metalness: 0.84,
+    envMapIntensity: 0.65,
+    userData: { customEnvIntensity: 0.65 }
+  });
+
+  function buildLivestockDoubleGateMesh(gateSubGrp) {
+    while (gateSubGrp.children.length > 0) {
+      gateSubGrp.remove(gateSubGrp.children[0]);
     }
-    const ud = woodenFenceGroup.userData;
+    const gateHalfW = 0.725; // Post center-to-center X (+/-0.725m -> outer gate width = 1.56m)
+    const postThick = 0.112;
+    const postH = 1.14; // Short livestock gate post matching the 1.12m diamond-lattice fence height (NO garden arch!)
+
+    // 1. Left & Right Short Square Wooden Gate Hinge Posts (with base plinth, chamfered neck groove & beveled cap)
+    [-gateHalfW, gateHalfW].forEach((px) => {
+      const postBody = new THREE.Mesh(new THREE.BoxGeometry(postThick, postH - 0.08, postThick), matFenceWood);
+      postBody.position.set(px, (postH - 0.08) * 0.5, 0);
+      postBody.castShadow = true;
+      postBody.receiveShadow = true;
+      gateSubGrp.add(postBody);
+
+      const footCollar = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.024, 0.044, postThick + 0.024), matFenceWoodCap);
+      footCollar.position.set(px, 0.022, 0);
+      gateSubGrp.add(footCollar);
+
+      const postNeck = new THREE.Mesh(new THREE.BoxGeometry(postThick * 0.86, 0.022, postThick * 0.86), matFenceWoodCap);
+      postNeck.position.set(px, postH - 0.072, 0);
+      gateSubGrp.add(postNeck);
+
+      const postCap = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.016, 0.068, postThick + 0.016), matFenceWoodCap);
+      postCap.position.set(px, postH - 0.032, 0);
+      postCap.castShadow = true;
+      gateSubGrp.add(postCap);
+    });
+
+    // 2. Two Short Hinged Wooden Gate Leaves ("2 daun pintu kayu")
+    const leafW = 0.648; // Each leaf spans 0.648m from hinge pivot toward center x = 0
+    const buildSingleGateLeaf = (isLeft) => {
+      const dir = isLeft ? 1 : -1;
+      const pivot = new THREE.Group();
+      pivot.name = isLeft ? 'leftGateLeafPivot' : 'rightGateLeafPivot';
+      pivot.position.set(isLeft ? -(gateHalfW - postThick * 0.55) : (gateHalfW - postThick * 0.55), 0, 0);
+
+      // Outer Hinge Stile & Inner Center Latch Stile (y = 0.12m .. 0.99m)
+      [0.032, leafW - 0.032].forEach((sx) => {
+        const stile = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.87, 0.052), matFenceWood);
+        stile.position.set(dir * sx, 0.555, 0);
+        stile.castShadow = true;
+        stile.receiveShadow = true;
+        pivot.add(stile);
+      });
+
+      // Bottom, Middle & Top Horizontal Timber Rails (matching the fence rail heights!)
+      [0.17, 0.55, 0.93].forEach((ry) => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(leafW, 0.068, 0.046), matFenceWood);
+        rail.position.set(dir * (leafW * 0.5), ry, 0);
+        rail.castShadow = true;
+        rail.receiveShadow = true;
+        pivot.add(rail);
+      });
+
+      // Top Chamfered Cap Rail across the leaf (y = 0.982m)
+      const leafCap = new THREE.Mesh(new THREE.BoxGeometry(leafW + 0.008, 0.032, 0.060), matFenceWoodCap);
+      leafCap.position.set(dir * (leafW * 0.5), 0.982, 0);
+      leafCap.castShadow = true;
+      pivot.add(leafCap);
+
+      // 5 Vertical Wooden Paddock Planks / Slats inside each leaf frame
+      const numPlanks = 5;
+      const innerStart = 0.088;
+      const innerEnd = leafW - 0.088;
+      for (let p = 0; p < numPlanks; p++) {
+        const t = numPlanks > 1 ? p / (numPlanks - 1) : 0.5;
+        const px = innerStart + t * (innerEnd - innerStart);
+        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.076, 0.78, 0.026), matFenceWoodCap);
+        plank.position.set(dir * px, 0.55, 0);
+        plank.castShadow = true;
+        plank.receiveShadow = true;
+        pivot.add(plank);
+      }
+
+      // Classic Livestock Barn Diagonal Z-Brace Crossbar (from bottom-hinge corner up to top-center corner)
+      const x0 = dir * 0.055, y0 = 0.19;
+      const x1 = dir * (leafW - 0.055), y1 = 0.91;
+      const braceLen = Math.hypot(x1 - x0, y1 - y0);
+      const braceAng = Math.atan2(y1 - y0, x1 - x0);
+      [-0.018, 0.018].forEach((bz) => {
+        const brace = new THREE.Mesh(new THREE.BoxGeometry(braceLen, 0.054, 0.018), matFenceWoodCap);
+        brace.position.set((x0 + x1) * 0.5, (y0 + y1) * 0.5, bz);
+        brace.rotation.z = braceAng;
+        brace.castShadow = true;
+        pivot.add(brace);
+      });
+
+      // 2 Forged Black Wrought-Iron Strap Hinges per leaf (at y = 0.17m & y = 0.93m)
+      [0.17, 0.93].forEach((hy) => {
+        const strap = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.034, 0.058), matLivestockGateIron);
+        strap.position.set(dir * 0.11, hy, 0);
+        strap.castShadow = true;
+        pivot.add(strap);
+
+        const knuckle = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.068, 10), matLivestockGateIron);
+        knuckle.position.set(0, hy, 0);
+        pivot.add(knuckle);
+      });
+
+      // Central Livestock Gate Sliding Latch & Ring Handle near the meeting stile
+      const latchPlate = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.042, 0.060), matLivestockGateIron);
+      latchPlate.position.set(dir * (leafW - 0.048), 0.58, 0);
+      pivot.add(latchPlate);
+
+      if (isLeft) {
+        // Sliding iron throw bolt bridging the two wooden gate leaves at center
+        const latchBolt = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.022, 0.068), matLivestockGateIron);
+        latchBolt.position.set(leafW - 0.01, 0.58, 0);
+        pivot.add(latchBolt);
+      }
+
+      gateSubGrp.add(pivot);
+      return pivot;
+    };
+
+    gateSubGrp.userData.leftLeafPivot = buildSingleGateLeaf(true);
+    gateSubGrp.userData.rightLeafPivot = buildSingleGateLeaf(false);
+    gateSubGrp.userData.hasBuiltLivestockGate = true;
+  }
+
+  // Project a 3D point (in livestockFenceGroup's local space) onto the 2-leg wrap-around L-path (returns path distance s in [0, eastLen + northLen])
+  function projectPointToLivestockFencePath(fGrp, localPt) {
+    const ud = (fGrp && fGrp.userData) ? fGrp.userData : {};
+    const leftPanels = Math.max(2, Math.min(24, Math.round(ud.leftPanels || 6)));
+    const rightPanels = Math.max(2, Math.min(24, Math.round(ud.rightPanels || 4)));
+    const zStartE = 4.78; // Flush outside the Livestock Cabin North wall & trim (by = -4.85m)
+    const xCorner = 3.00;
+    const eastLen = Math.max(3.60, 9.78 + (leftPanels - 6) * 1.65);
+    const northLen = Math.max(3.20, 5.78 + (rightPanels - 4) * 1.50);
+    const zCorner = zStartE - eastLen;
+    const xEndN = xCorner - northLen; // -2.78 at default (world bx = +6.22m, flush outside Main House +6.15m base trim!)
+
+    // Candidate 1: projection onto East Leg (x = +3.00, z in [zCorner, zStartE])
+    const z1 = Math.max(zCorner, Math.min(zStartE, localPt.z));
+    const d1 = Math.hypot(localPt.x - xCorner, localPt.z - z1);
+    const s1 = zStartE - z1; // 0 .. eastLen
+
+    // Candidate 2: projection onto North/Back Leg (z = zCorner, x in [xEndN, +3.00])
+    const x2 = Math.max(xEndN, Math.min(xCorner, localPt.x));
+    const d2 = Math.hypot(localPt.x - x2, localPt.z - zCorner);
+    const s2 = eastLen + (xCorner - x2); // eastLen .. eastLen + northLen
+
+    return (d1 <= d2) ? s1 : s2;
+  }
+  window.projectPointToLivestockFencePath = projectPointToLivestockFencePath;
+
+  function rebuildWoodenFencePanels(targetFence) {
+    const fGrp = targetFence
+      || ((typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence) ? selectedObject : null)
+      || window.woodenFenceObj
+      || woodenFenceGroup;
+    if (!fGrp) return;
+    const bodyGrp = fGrp.getObjectByName('fenceBodySubGroup') || fenceBodySubGroup;
+    const gateGrp = fGrp.getObjectByName('fenceGateSubGroup') || fenceGateSubGroup;
+    if (!bodyGrp || !gateGrp) return;
+
+    while (bodyGrp.children.length > 0) {
+      bodyGrp.remove(bodyGrp.children[0]);
+    }
+    const ud = fGrp.userData;
+
+    // ========================================================================
+    // CASE A: WRAP-AROUND LIVESTOCK WOODEN FENCE ("pagar kayu berputar" with Short 2-Leaf Wooden Gate)
+    //   - Leg 1 (East Side): starts flush outside the Livestock Cabin North wall/trim (by = -4.79m -> local x = +3.00, z = +4.79)
+    //     and runs straight back (+by / -z) to the outer back-right corner (bx = 12.00, by = +5.00 -> local x = +3.00, z = -5.00)
+    //   - Leg 2 (North/Back Side): turns 90° West (-bx) from (local x = +3.00, z = -5.00) to flush outside the Main House
+    //     back-right podium/wall trim (bx = 6.20, by = +5.00 -> local x = -2.80, z = -5.00), eliminating any overlap with the Main House!
+    //   - Shared single corner post at (xCorner, zCorner) and shared gate hinge posts at +/-gateHalfW eliminate all double-post overlaps!
+    // ========================================================================
+    if (ud.isLivestockTurnFence) {
+      if (!gateGrp.userData.hasBuiltLivestockGate) {
+        buildLivestockDoubleGateMesh(gateGrp);
+      }
+      const gateHalfW = 0.725; // Matches buildLivestockDoubleGateMesh post center-to-center (+/-0.725m)
+      const gateW = gateHalfW * 2.0; // 1.45m center-to-center between the 2 gate hinge posts
+      ud.gateWidth = gateW;
+      const leftPanels = Math.max(2, Math.min(24, Math.round(ud.leftPanels || 6)));
+      const rightPanels = Math.max(2, Math.min(24, Math.round(ud.rightPanels || 4)));
+      ud.leftPanels = leftPanels;
+      ud.rightPanels = rightPanels;
+
+      const zStartE = 4.78; // Flush outside Livestock Cabin North wall & base trim (by = -4.85m)
+      const xCorner = 3.00;
+      const eastLen = Math.max(3.60, 9.78 + (leftPanels - 6) * 1.65);
+      const northLen = Math.max(3.20, 5.78 + (rightPanels - 4) * 1.50);
+      ud.eastLen = eastLen;
+      ud.northLen = northLen;
+
+      const zCorner = zStartE - eastLen; // -5.00 at default (by = +5.00m)
+      const xEndN = xCorner - northLen;  // -2.78 at default (world bx = +6.22m, flush outside Main House +6.15m foundation trim!)
+
+      const minS1 = gateHalfW + 0.55;
+      const maxS1 = eastLen - gateHalfW - 0.55;
+      const minS2 = eastLen + gateHalfW + 0.55;
+      const maxS2 = eastLen + northLen - gateHalfW - 0.55;
+
+      const rawS = (typeof ud.gateOffsetX === 'number') ? ud.gateOffsetX : 4.80;
+      if (rawS <= eastLen) {
+        // Gate is on Leg 1 (East Side, bx = 12.00m) -> oriented North-South (rotation.y = Math.PI / 2)
+        const s = Math.max(minS1, Math.min(maxS1, rawS));
+        ud.gateOffsetX = s;
+        ud.gateLeg = 'east';
+        const gz = zStartE - s;
+        gateGrp.position.set(xCorner, 0, gz);
+        gateGrp.rotation.y = Math.PI / 2;
+
+        const zGateSouth = gz + gateHalfW;
+        const zGateNorth = gz - gateHalfW;
+        const spanSouth = zStartE - zGateSouth;
+        const spanNorth = zGateNorth - zCorner;
+        const baysSouth = Math.max(1, Math.round(spanSouth / (eastLen / leftPanels)));
+        const baysNorth = Math.max(1, Math.round(spanNorth / (eastLen / leftPanels)));
+
+        // Connect directly into the gate's South & North hinge posts (skipEndPost / skipStartPost) and share a single corner post at (xCorner, zCorner)!
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, baysSouth, { skipEndPost: true });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, baysNorth, { skipStartPost: true });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, rightPanels, { skipStartPost: true });
+      } else {
+        // Gate has turned 90° onto Leg 2 (North/Back Side, by = +5.00m) -> oriented East-West (rotation.y = 0)
+        const s = Math.max(minS2, Math.min(maxS2, rawS));
+        ud.gateOffsetX = s;
+        ud.gateLeg = 'north';
+        const u = s - eastLen;
+        const gx = xCorner - u;
+        gateGrp.position.set(gx, 0, zCorner);
+        gateGrp.rotation.y = 0;
+
+        const xGateEast = gx + gateHalfW;
+        const xGateWest = gx - gateHalfW;
+        const spanEast = xCorner - xGateEast;
+        const spanWest = xGateWest - xEndN;
+        const baysEast = Math.max(1, Math.round(spanEast / (northLen / rightPanels)));
+        const baysWest = Math.max(1, Math.round(spanWest / (northLen / rightPanels)));
+
+        // East leg builds the single shared corner post at (xCorner, zCorner); North leg segments skip the corner post & gate hinge posts!
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels);
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, baysEast, { skipStartPost: true, skipEndPost: true });
+        addDiamondLatticeFenceLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, baysWest, { skipStartPost: true });
+      }
+
+      // Ground contact AO strips under both legs of the wrap-around fence (clamped strictly between post endpoints so they never overlap the walls!)
+      const eastAo = new THREE.Mesh(new THREE.PlaneGeometry(0.38, eastLen), matAODecal);
+      eastAo.rotation.x = -Math.PI / 2;
+      eastAo.position.set(xCorner, 0.004, (zStartE + zCorner) * 0.5);
+      eastAo.raycast = () => {};
+      eastAo.userData.isAODecal = true;
+      bodyGrp.add(eastAo);
+
+      const northAo = new THREE.Mesh(new THREE.PlaneGeometry(northLen, 0.38), matAODecal);
+      northAo.rotation.x = -Math.PI / 2;
+      northAo.position.set((xCorner + xEndN) * 0.5, 0.004, zCorner);
+      northAo.raycast = () => {};
+      northAo.userData.isAODecal = true;
+      bodyGrp.add(northAo);
+
+      // Apply current open angle to the 2 wooden gate leaves if open
+      const leafAng = ud.gateOpenAngle || 0;
+      if (gateGrp.userData.leftLeafPivot) gateGrp.userData.leftLeafPivot.rotation.y = leafAng;
+      if (gateGrp.userData.rightLeafPivot) gateGrp.userData.rightLeafPivot.rotation.y = -leafAng;
+
+      if (typeof selectedObject !== 'undefined' && selectedObject === fGrp) {
+        setSelectionHighlight(bodyGrp, true);
+      }
+      fGrp.updateMatrixWorld(true);
+      requestShadowUpdate();
+      return;
+    }
+
+    // ========================================================================
+    // CASE B: STRAIGHT WOODEN DIAMOND-LATTICE FENCE & ARCHED GARDEN GATE
+    // ========================================================================
     const panelW = ud.panelWidth || 1.80;
     const gateW = ud.gateWidth || 1.49;
     const leftPanels = Math.max(1, Math.min(24, Math.round(ud.leftPanels || 6)));
@@ -7260,7 +8079,8 @@ async function buildStaticPolyHavenDecor() {
     ud.gateOffsetX = Math.max(minGateX, Math.min(maxGateX, ud.gateOffsetX || 0.0));
 
     // Position the Arched Garden Gate along the horizontal fence line (local X only!)
-    fenceGateSubGroup.position.set(ud.gateOffsetX, 0, 0);
+    gateGrp.position.set(ud.gateOffsetX, 0, 0);
+    gateGrp.rotation.y = 0;
 
     // Automatically readjust the Left and Right fence segments around the gate's horizontal position!
     const gateLeftX = ud.gateOffsetX - gateW * 0.5;
@@ -7273,8 +8093,8 @@ async function buildStaticPolyHavenDecor() {
     const numLeftBays = Math.max(1, Math.round(leftSpan / panelW));
     const numRightBays = Math.max(1, Math.round(rightSpan / panelW));
 
-    addDiamondLatticeFenceSegment(fenceBodySubGroup, leftEdgeX, gateLeftX, numLeftBays);
-    addDiamondLatticeFenceSegment(fenceBodySubGroup, gateRightX, rightEdgeX, numRightBays);
+    addDiamondLatticeFenceSegment(bodyGrp, leftEdgeX, gateLeftX, numLeftBays);
+    addDiamondLatticeFenceSegment(bodyGrp, gateRightX, rightEdgeX, numRightBays);
 
     // Ground contact AO strip under the full fence span
     const spanTotal = rightEdgeX - leftEdgeX;
@@ -7283,44 +8103,71 @@ async function buildStaticPolyHavenDecor() {
     fenceAo.position.set((leftEdgeX + rightEdgeX) * 0.5, 0.004, 0);
     fenceAo.raycast = () => {};
     fenceAo.userData.isAODecal = true;
-    fenceBodySubGroup.add(fenceAo);
+    bodyGrp.add(fenceAo);
 
     // Keep golden selection highlight in sync if the fence is currently selected
-    if (typeof selectedObject !== 'undefined' && selectedObject === woodenFenceGroup) {
-      setSelectionHighlight(fenceBodySubGroup, true);
+    if (typeof selectedObject !== 'undefined' && selectedObject === fGrp) {
+      setSelectionHighlight(bodyGrp, true);
     }
-    woodenFenceGroup.updateMatrixWorld(true);
+    fGrp.updateMatrixWorld(true);
     requestShadowUpdate();
   }
 
   window.rebuildWoodenFencePanels = rebuildWoodenFencePanels;
 
   window.adjustWoodenFencePanels = function(side, delta) {
-    if (!window.woodenFenceObj) return;
-    const ud = window.woodenFenceObj.userData;
+    const fGrp = (typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence)
+      ? selectedObject
+      : window.woodenFenceObj;
+    if (!fGrp) return;
+    const ud = fGrp.userData;
+    const minP = ud.isLivestockTurnFence ? 2 : 1;
     if (side === 'left') {
-      ud.leftPanels = Math.max(1, Math.min(24, (ud.leftPanels || 6) + delta));
+      ud.leftPanels = Math.max(minP, Math.min(24, (ud.leftPanels || 6) + delta));
     } else if (side === 'right') {
-      ud.rightPanels = Math.max(1, Math.min(24, (ud.rightPanels || 6) + delta));
+      ud.rightPanels = Math.max(minP, Math.min(24, (ud.rightPanels || (ud.isLivestockTurnFence ? 4 : 6)) + delta));
     }
-    rebuildWoodenFencePanels();
+    rebuildWoodenFencePanels(fGrp);
     if (typeof updateSelectedHudText === 'function') updateSelectedHudText();
   };
 
-  window.setWoodenFenceGateOffset = function(newLocalX) {
-    if (!window.woodenFenceObj) return;
-    window.woodenFenceObj.userData.gateOffsetX = newLocalX;
-    rebuildWoodenFencePanels();
+  window.setWoodenFenceGateOffset = function(newLocalX, targetFence) {
+    const fGrp = targetFence
+      || ((typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence) ? selectedObject : null)
+      || window.woodenFenceObj;
+    if (!fGrp) return;
+    fGrp.userData.gateOffsetX = newLocalX;
+    rebuildWoodenFencePanels(fGrp);
     if (typeof updateSelectedHudText === 'function') updateSelectedHudText();
   };
 
   window.slideWoodenFenceGate = function(deltaLocalX) {
-    if (!window.woodenFenceObj) return;
-    const cur = window.woodenFenceObj.userData.gateOffsetX || 0.0;
-    window.setWoodenFenceGateOffset(cur + deltaLocalX);
+    const fGrp = (typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence)
+      ? selectedObject
+      : window.woodenFenceObj;
+    if (!fGrp) return;
+    const ud = fGrp.userData;
+    if (ud.isLivestockTurnFence) {
+      const eastLen = ud.eastLen || 9.79;
+      const gateHalfW = 0.725;
+      const maxS1 = eastLen - gateHalfW - 0.55;
+      const minS2 = eastLen + gateHalfW + 0.55;
+      const cur = (typeof ud.gateOffsetX === 'number') ? ud.gateOffsetX : 4.80;
+      let next = cur + deltaLocalX;
+      // Smoothly turn 90° around the corner when sliding past the corner between the East leg and North leg!
+      if (deltaLocalX > 0 && cur <= eastLen && next > maxS1) {
+        next = minS2;
+      } else if (deltaLocalX < 0 && cur > eastLen && next < minS2) {
+        next = maxS1;
+      }
+      window.setWoodenFenceGateOffset(next, fGrp);
+      return;
+    }
+    const cur = ud.gateOffsetX || 0.0;
+    window.setWoodenFenceGateOffset(cur + deltaLocalX, fGrp);
   };
 
-  rebuildWoodenFencePanels();
+  rebuildWoodenFencePanels(woodenFenceGroup);
 
   window.woodenFenceObj = woodenFenceGroup;
   registerDraggable(
@@ -7329,6 +8176,46 @@ async function buildStaticPolyHavenDecor() {
     'سياج خشبي مشبك مع بوابة حديقة مقوسة'
   );
   g.add(woodenFenceGroup);
+
+  // ==========================================================================
+  // 7B. WRAP-AROUND LIVESTOCK WOODEN FENCE & SHORT 2-LEAF WOODEN GATE ("pagar kayu berputar ... pendek dengan 2 daun pintu kayu (pagar ternak bukan garden)")
+  //     - Encloses the 6.00m x 10.00m livestock paddock behind the Livestock Cabin (bx = 6.00..12.00m, by = -5.00..+5.00m, bz = -0.50m)
+  //     - East Leg (10.00m): bx = 12.00m, from by = -5.00m to by = +5.00m
+  //     - 90° Corner Turn at (bx = 12.00m, by = +5.00m)
+  //     - North/Back Leg (6.00m): by = +5.00m, from bx = 12.00m to bx = 6.00m (back-right corner of the Main House)
+  //     - Short 2-Leaf Wooden Gate can slide and turn 90° ("move berputar") along the entire wrap-around fence!
+  // ==========================================================================
+  const livestockFenceGroup = new THREE.Group();
+  livestockFenceGroup.position.copy(bPos(9.00, 0.00, -0.50));
+  livestockFenceGroup.userData.noAutoRecenter = true;
+  livestockFenceGroup.userData.isWoodenFence = true;
+  livestockFenceGroup.userData.isLivestockTurnFence = true;
+  livestockFenceGroup.userData.leftPanels = 6;   // 6 bays along the 10.00m East leg
+  livestockFenceGroup.userData.rightPanels = 4;  // 4 bays along the 6.00m North/Back leg
+  livestockFenceGroup.userData.gateWidth = 1.56;
+  livestockFenceGroup.userData.gateOffsetX = 4.80; // Default gate position near the middle of the East leg (path s in [0, 16.00m])
+  livestockFenceGroup.userData.gateLeavesOpen = false;
+  livestockFenceGroup.userData.gateOpenAngle = 0.0;
+
+  const lsFenceBodySubGroup = new THREE.Group();
+  lsFenceBodySubGroup.name = 'fenceBodySubGroup';
+  livestockFenceGroup.add(lsFenceBodySubGroup);
+
+  const lsFenceGateSubGroup = new THREE.Group();
+  lsFenceGateSubGroup.name = 'fenceGateSubGroup';
+  lsFenceGateSubGroup.userData.isFenceGate = true;
+  livestockFenceGroup.add(lsFenceGateSubGroup);
+
+  buildLivestockDoubleGateMesh(lsFenceGateSubGroup);
+  rebuildWoodenFencePanels(livestockFenceGroup);
+
+  window.livestockFenceObj = livestockFenceGroup;
+  registerDraggable(
+    livestockFenceGroup,
+    'Livestock Wrap-Around Wooden Fence & 2-Leaf Gate',
+    'سياج خشبي التفافي للمواشي مع بوابة خشبية مزدوجة قصيرة'
+  );
+  g.add(livestockFenceGroup);
 
   // Rooftop Stone BBQ Fire Pit & Barstools (Rooftop sofas & coffee table replaced by Rooftop Tunisian Sofa Lesehan & Meja Lesehan in buildStaticArchitecture!)
   const bbq = await loadPHModel('stone_fire_pit');
@@ -8028,6 +8915,10 @@ function deselectObject() {
   selectObject(null);
 }
 
+let copiedObjectBlueprint = null;
+let _copyFlashActive = false;
+let _copyFlashTimer = null;
+
 function updateSelectedHudText() {
   const el = document.getElementById('sel-name');
   const openBtn = document.getElementById('btn-hud-open');
@@ -8037,22 +8928,30 @@ function updateSelectedHudText() {
   const rotLBtn = document.getElementById('btn-hud-rot-l');
   const rotRBtn = document.getElementById('btn-hud-rot-r');
   const rot90Btn = document.getElementById('btn-hud-rot-90');
+  const copyBtn = document.getElementById('btn-hud-copy');
+  const pasteBtn = document.getElementById('btn-hud-paste');
+  const delBtn = document.getElementById('btn-hud-delete');
   const fenceCtrl = document.getElementById('fence-hud-controls');
   const animalCtrl = document.getElementById('animal-hud-controls');
-  const delAnimalBtn = document.getElementById('btn-hud-delete-animal');
   const radDecBtn = document.getElementById('btn-animal-rad-dec');
   const radIncBtn = document.getElementById('btn-animal-rad-inc');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
   if (bigBtn) bigBtn.textContent = t('btnBigger');
-  if (delAnimalBtn) delAnimalBtn.textContent = t('btnDeleteAnimal');
   if (radDecBtn) radDecBtn.textContent = t('btnAreaMinus');
   if (radIncBtn) radIncBtn.textContent = t('btnAreaPlus');
+  if (copyBtn) copyBtn.textContent = _copyFlashActive ? t('btnCopiedObj') : t('btnCopyObj');
+  if (pasteBtn) pasteBtn.textContent = t('btnPasteObj');
+  if (delBtn) delBtn.textContent = t('btnDeleteObj');
+
   if (!selectedObject) {
     el.textContent = t('hudDefault');
     if (openBtn) openBtn.style.display = 'none';
     if (deselBtn) deselBtn.style.display = 'none';
     if (fenceCtrl) fenceCtrl.style.display = 'none';
     if (animalCtrl) animalCtrl.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+    if (delBtn) delBtn.style.display = 'none';
+    if (pasteBtn) pasteBtn.style.display = copiedObjectBlueprint ? 'inline-block' : 'none';
     if (smallBtn) smallBtn.style.display = 'inline-block';
     if (bigBtn) bigBtn.style.display = 'inline-block';
     if (rotLBtn) rotLBtn.style.display = 'inline-block';
@@ -8066,8 +8965,11 @@ function updateSelectedHudText() {
     const sf = selectedObject.userData.scaleFactor || 1.0;
     const scaleTag = (!isWalkway && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
     const isFence = !!(selectedObject.userData && selectedObject.userData.isWoodenFence);
+    const isTurnFence = !!(selectedObject.userData && selectedObject.userData.isLivestockTurnFence);
     const fenceTag = isFence
-      ? ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}]`
+      ? (isTurnFence
+          ? ` [East:${selectedObject.userData.leftPanels || 6} | Back:${selectedObject.userData.rightPanels || 4} | Gate:${selectedObject.userData.gateLeg === 'north' ? 'Back' : 'East'}]`
+          : ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}]`)
       : '';
     const isAnimal = !!(selectedObject.userData && selectedObject.userData.isAnimal);
     const animalTag = (isAnimal && selectedObject.userData.animalState)
@@ -8086,15 +8988,29 @@ function updateSelectedHudText() {
     if (rotLBtn) rotLBtn.style.display = transformDisp;
     if (rotRBtn) rotRBtn.style.display = transformDisp;
     if (rot90Btn) rot90Btn.style.display = transformDisp;
+    if (copyBtn) copyBtn.style.display = 'inline-block';
+    if (pasteBtn) pasteBtn.style.display = copiedObjectBlueprint ? 'inline-block' : 'none';
+    if (delBtn) delBtn.style.display = 'inline-block';
     if (deselBtn) {
       deselBtn.style.display = 'inline-block';
       deselBtn.textContent = t('btnDeselect');
     }
-    if (openBtn) openBtn.style.display = 'none';
+    if (openBtn) {
+      openBtn.style.display = isTurnFence ? 'inline-block' : 'none';
+      if (isTurnFence) {
+        openBtn.textContent = selectedObject.userData.gateLeavesOpen ? t('btnCloseLeaf') : t('winSignBtn');
+      }
+    }
   }
 }
 
 function toggleSelectedOpening() {
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isLivestockTurnFence) {
+    selectedObject.userData.gateLeavesOpen = !selectedObject.userData.gateLeavesOpen;
+    requestShadowUpdate();
+    updateSelectedHudText();
+    return;
+  }
   const target = (selectedObject && selectedObject.userData.isOpening) ? selectedObject : nearbyWindowOpening;
   if (!target || !target.userData.isOpening) return;
   target.userData.isOpenPermanent = !target.userData.isOpenPermanent;
@@ -8140,15 +9056,19 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     }
   }
 
-  // SPECIAL RULE FOR THE ARCHED GARDEN GATE:
-  // Pressing & dragging on the Garden Gate slides ONLY the Gate strictly along the horizontal fence line (local X)
-  // without moving the fence itself, automatically readjusting the left & right fence panels!
+  // SPECIAL RULE FOR THE FENCE GATE (Both Straight Arched Garden Gate & Wrap-Around Short 2-Leaf Livestock Gate):
+  // Pressing & dragging on the Gate slides ONLY the Gate along the fence perimeter (including rotating 90° around the corner on the Livestock Fence!)
   if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isWoodenFence && hitFenceGate) {
     if (selectedObject !== downHitRoot) selectObject(downHitRoot);
     dragPlane.constant = -downHitRoot.position.y;
     if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
       const localPt = downHitRoot.worldToLocal(planeIntersect.clone());
-      gateDragLocalOffset = (downHitRoot.userData.gateOffsetX || 0) - localPt.x;
+      if (downHitRoot.userData.isLivestockTurnFence && typeof window.projectPointToLivestockFencePath === 'function') {
+        const sHit = window.projectPointToLivestockFencePath(downHitRoot, localPt);
+        gateDragLocalOffset = (downHitRoot.userData.gateOffsetX || 4.80) - sHit;
+      } else {
+        gateDragLocalOffset = (downHitRoot.userData.gateOffsetX || 0) - localPt.x;
+      }
     } else {
       gateDragLocalOffset = 0;
     }
@@ -8209,7 +9129,20 @@ window.addEventListener('pointermove', (e) => {
     if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
       const localPt = selectedObject.worldToLocal(planeIntersect.clone());
       if (typeof window.setWoodenFenceGateOffset === 'function') {
-        window.setWoodenFenceGateOffset(localPt.x + gateDragLocalOffset);
+        if (selectedObject.userData.isLivestockTurnFence && typeof window.projectPointToLivestockFencePath === 'function') {
+          const sHit = window.projectPointToLivestockFencePath(selectedObject, localPt);
+          const eastLen = selectedObject.userData.eastLen || 9.79;
+          const gateHalfW = 0.725;
+          const maxS1 = eastLen - gateHalfW - 0.55;
+          const minS2 = eastLen + gateHalfW + 0.55;
+          let targetS = sHit + gateDragLocalOffset;
+          if (targetS > maxS1 && targetS < minS2) {
+            targetS = (sHit <= eastLen) ? maxS1 : minS2;
+          }
+          window.setWoodenFenceGateOffset(targetS, selectedObject);
+        } else {
+          window.setWoodenFenceGateOffset(localPt.x + gateDragLocalOffset, selectedObject);
+        }
       }
     }
     return;
@@ -8270,6 +9203,10 @@ window.addEventListener('pointerup', (e) => {
   if (isDraggingFenceGate) {
     isDraggingFenceGate = false;
     controls.enabled = true;
+    if (dist < 6 && downHitRoot && downHitRoot.userData && downHitRoot.userData.isLivestockTurnFence) {
+      downHitRoot.userData.gateLeavesOpen = !downHitRoot.userData.gateLeavesOpen;
+      updateSelectedHudText();
+    }
     requestShadowUpdate();
     downOpeningRoot = null;
     downHitRoot = null;
@@ -8329,12 +9266,531 @@ function scaleSelected(factor) {
   updateSelectedHudText();
 }
 
+// ============================================================================
+// UNIVERSAL COPY, PASTE, DELETE & OBJECT CATALOG SPAWNER SYSTEM
+// ============================================================================
+function isDescendantOf(childNode, parentRoot) {
+  let curr = childNode;
+  while (curr) {
+    if (curr === parentRoot) return true;
+    curr = curr.parent;
+  }
+  return false;
+}
+
+function registerClonedBonfireAnimations(bonfireRoot) {
+  if (!bonfireRoot) return;
+  bonfireRoot.traverse((ch) => {
+    if (!ch.isMesh || !ch.userData || !ch.userData.bonfireAnimType) return;
+    const p = ch.userData.bonfireAnimParams || {};
+    if (ch.userData.bonfireAnimType === 'flame' && window.bonfireFlameMeshes) {
+      window.bonfireFlameMeshes.push({ ...p, mesh: ch });
+    } else if (ch.userData.bonfireAnimType === 'spark' && window.bonfireSparkMeshes) {
+      window.bonfireSparkMeshes.push({ ...p, mesh: ch });
+    } else if (ch.userData.bonfireAnimType === 'smoke' && window.bonfireLocalSmokeClouds) {
+      window.bonfireLocalSmokeClouds.push({ ...p, mesh: ch });
+    }
+  });
+}
+
+function findSmartCatalogSpawnPosition(entry, preferNearPoint) {
+  let baseX = 3.20, baseZ = 11.20;
+  let refRoofHint = undefined;
+
+  if (preferNearPoint && typeof preferNearPoint.x === 'number') {
+    baseX = preferNearPoint.x;
+    baseZ = preferNearPoint.z;
+    if (typeof preferNearPoint.y === 'number') {
+      refRoofHint = preferNearPoint.y;
+    }
+  } else if (viewMode === 'walk') {
+    baseX = walkState.pos.x - Math.sin(walkState.yaw) * 2.40;
+    baseZ = walkState.pos.z - Math.cos(walkState.yaw) * 2.40;
+    refRoofHint = walkState.pos.y - 1.68;
+  } else if (controls && controls.target) {
+    const isDefaultExterior = (
+      viewMode === 'orbit' &&
+      state.roofVisible &&
+      activeCamera.position.z > 11.0 &&
+      Math.abs(controls.target.x - 2.2) < 2.5 &&
+      Math.abs(controls.target.z - 6.6) < 2.8
+    );
+    if (isDefaultExterior) {
+      baseX = 3.20;
+      baseZ = 11.20;
+    } else {
+      baseX = controls.target.x;
+      baseZ = controls.target.z;
+    }
+  }
+
+  // Avoid dropping furniture/trees directly inside the Swimming Pool water basin
+  if (baseX >= -10.35 && baseX <= -8.05 && baseZ >= -1.05 && baseZ <= 5.05) {
+    baseX = -9.20;
+    baseZ = 6.25;
+  }
+
+  const baseSurfY = (typeof getAnimalSurfaceY === 'function')
+    ? getAnimalSurfaceY(baseX, baseZ, null, refRoofHint)
+    : -0.50;
+  const hOff = (entry && typeof entry.heightAboveSurface === 'number') ? entry.heightAboveSurface : 0.0;
+
+  // Golden-angle spiral search so consecutive spawns never stack at the exact same point
+  for (let i = 0; i < 36; i++) {
+    const r = (i === 0) ? 0.0 : (0.72 + i * 0.32);
+    const ang = i * 2.3999632;
+    const cx = Math.max(-23.0, Math.min(23.0, baseX + Math.cos(ang) * r));
+    const cz = Math.max(-17.0, Math.min(25.0, baseZ + Math.sin(ang) * r));
+    if (cx >= -10.35 && cx <= -8.05 && cz >= -1.05 && cz <= 5.05) continue;
+    const surfY = (typeof getAnimalSurfaceY === 'function')
+      ? getAnimalSurfaceY(cx, cz, null, baseSurfY)
+      : baseSurfY;
+    if (Math.abs(surfY - baseSurfY) > 0.12) continue;
+
+    let occupied = false;
+    for (let j = 0; j < draggableObjects.length; j++) {
+      const other = draggableObjects[j];
+      if (!other || other.userData.isDynamicLWalkway) continue;
+      if (Math.abs(other.position.y - (surfY + hOff)) < 0.85 && Math.hypot(cx - other.position.x, cz - other.position.z) < 0.62) {
+        occupied = true;
+        break;
+      }
+    }
+    if (!occupied) {
+      return { x: cx, y: surfY + hOff, z: cz };
+    }
+  }
+  return { x: baseX, y: baseSurfY + hOff, z: baseZ };
+}
+
+function spawnCatalogInstanceFromEntry(entry, customOpts) {
+  if (!entry) return null;
+  if (entry.isAnimal && entry.animalType) {
+    return deployAnimal(entry.animalType, customOpts || null);
+  }
+  if (!entry.template) return null;
+
+  // Special case: if the anchored L-Walkway was deleted and user spawns it again, restore the anchored L-Walkway first
+  if (entry.isDynamicLWalkway && window.letterLWalkwayObj && !draggableObjects.includes(window.letterLWalkwayObj)) {
+    const restored = window.letterLWalkwayObj;
+    if (!restored.parent) furnGroups.staticDecor.add(restored);
+    draggableObjects.push(restored);
+    if (typeof window.rebuildDynamicLWalkway === 'function') {
+      window.rebuildDynamicLWalkway(
+        (customOpts && typeof customOpts.endBx === 'number') ? customOpts.endBx : -10.61,
+        (customOpts && typeof customOpts.walkBy === 'number') ? customOpts.walkBy : -11.45
+      );
+    }
+    if (!customOpts || !customOpts.skipSelect) selectObject(restored);
+    requestShadowUpdate();
+    return restored;
+  }
+
+  const cloned = entry.template.clone(true);
+  cloned.traverse((ch) => {
+    if (ch.isMesh && ch.material) {
+      if (Array.isArray(ch.material)) {
+        ch.material = ch.material.map(m => m ? m.clone() : m);
+      } else {
+        ch.material = ch.material.clone();
+      }
+      ch.userData._origMatCloned = false;
+    }
+    if (ch.name === 'npcStandNode') cloned.userData.npcStandNode = ch;
+    if (ch.name === 'npcLookNode') cloned.userData.npcLookNode = ch;
+    if (ch.name === 'npcSmokeNode') cloned.userData.npcSmokeNode = ch;
+    if (ch.name === 'bonfireSmokeNode') cloned.userData.bonfireSmokeNode = ch;
+  });
+
+  cloned.userData.draggable = true;
+  cloned.userData.labelEn = entry.labelEn;
+  cloned.userData.labelAr = entry.labelAr;
+  cloned.userData.baseScale = entry.baseScale ? entry.baseScale.clone() : new THREE.Vector3(1, 1, 1);
+  cloned.userData.keepTrunkBasePivot = !!entry.keepTrunkBasePivot;
+  cloned.userData.npcActivityId = entry.npcActivityId || null;
+
+  // If the original anchored L-walkway is already in the scene, make any extra spawned/pasted L-walkway freely movable/rotatable/resizable!
+  if (entry.isDynamicLWalkway) {
+    cloned.userData.isDynamicLWalkway = false;
+    cloned.userData.noAutoRecenter = false;
+    cloned.position.set(0, 0, 0);
+    cloned.rotation.set(0, 0, 0);
+    cloned.updateMatrixWorld(true);
+    const box = new THREE.Box3();
+    cloned.traverse((ch) => {
+      if (ch.isMesh && (!ch.userData || !ch.userData.isAODecal)) box.expandByObject(ch);
+    });
+    if (!box.isEmpty()) {
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      const shift = new THREE.Vector3(center.x, box.min.y, center.z);
+      cloned.children.forEach(ch => ch.position.sub(shift));
+    }
+  }
+
+  const sf = (customOpts && typeof customOpts.s === 'number' && customOpts.s > 0.1) ? customOpts.s : 1.0;
+  cloned.userData.scaleFactor = sf;
+  const bs = cloned.userData.baseScale;
+  cloned.scale.set(bs.x * sf, bs.y * sf, bs.z * sf);
+
+  const spawnPos = (customOpts && typeof customOpts.x === 'number')
+    ? { x: customOpts.x, y: customOpts.y, z: customOpts.z }
+    : findSmartCatalogSpawnPosition(entry, customOpts && customOpts.nearPoint ? customOpts.nearPoint : null);
+
+  cloned.position.set(spawnPos.x, spawnPos.y, spawnPos.z);
+  cloned.rotation.y = (customOpts && typeof customOpts.ry === 'number') ? customOpts.ry : (entry.defaultRotY || 0);
+
+  if (entry.isWoodenFence) {
+    cloned.userData.isWoodenFence = true;
+    cloned.userData.isLivestockTurnFence = !!entry.isLivestockTurnFence;
+    cloned.userData.noAutoRecenter = !!entry.isLivestockTurnFence;
+    cloned.userData.leftPanels = (customOpts && typeof customOpts.leftPanels === 'number') ? customOpts.leftPanels : 6;
+    cloned.userData.rightPanels = (customOpts && typeof customOpts.rightPanels === 'number') ? customOpts.rightPanels : (entry.isLivestockTurnFence ? 4 : 6);
+    cloned.userData.panelWidth = 1.80;
+    cloned.userData.gateWidth = entry.isLivestockTurnFence ? 1.56 : 1.49;
+    cloned.userData.gateOffsetX = (customOpts && typeof customOpts.gateOffsetX === 'number') ? customOpts.gateOffsetX : (entry.isLivestockTurnFence ? 4.80 : 0.0);
+    if (entry.isLivestockTurnFence) {
+      const gateGrp = cloned.getObjectByName('fenceGateSubGroup');
+      if (gateGrp) {
+        gateGrp.userData.isFenceGate = true;
+        gateGrp.userData.hasBuiltLivestockGate = false;
+      }
+    }
+    if (typeof window.rebuildWoodenFencePanels === 'function') {
+      window.rebuildWoodenFencePanels(cloned);
+    }
+  }
+
+  if (entry.labelEn === 'Tunisian Stone & Brick Bonfire Pit') {
+    registerClonedBonfireAnimations(cloned);
+    if (!window.tunisianBonfireObj || !draggableObjects.includes(window.tunisianBonfireObj)) {
+      window.tunisianBonfireObj = cloned;
+    }
+  }
+
+  const parentGrp = (spawnPos.y > 2.20) ? roofGroup : furnGroups.staticDecor;
+  parentGrp.add(cloned);
+  cloned.updateMatrixWorld(true);
+  draggableObjects.push(cloned);
+
+  if (!customOpts || !customOpts.skipSelect) {
+    selectObject(cloned);
+  }
+  requestShadowUpdate();
+  return cloned;
+}
+
+function copySelectedObject() {
+  if (!selectedObject) return;
+  const ud = selectedObject.userData || {};
+  if (ud.isAnimal) {
+    const st = ud.animalState;
+    copiedObjectBlueprint = {
+      isAnimal: true,
+      animalType: ud.animalType || 'chicken',
+      labelEn: ud.labelEn,
+      labelAr: ud.labelAr,
+      s: ud.scaleFactor || 1.0,
+      ry: selectedObject.rotation.y,
+      roamRadius: st ? st.roamRadius : 2.4,
+      srcX: selectedObject.position.x,
+      srcY: selectedObject.position.y,
+      srcZ: selectedObject.position.z,
+      pasteCount: 0
+    };
+  } else {
+    copiedObjectBlueprint = {
+      isAnimal: false,
+      key: ud.labelEn,
+      labelEn: ud.labelEn,
+      labelAr: ud.labelAr,
+      s: ud.scaleFactor || 1.0,
+      ry: selectedObject.rotation.y,
+      leftPanels: ud.leftPanels,
+      rightPanels: ud.rightPanels,
+      gateOffsetX: ud.gateOffsetX,
+      srcX: selectedObject.position.x,
+      srcY: selectedObject.position.y,
+      srcZ: selectedObject.position.z,
+      pasteCount: 0
+    };
+  }
+  _copyFlashActive = true;
+  if (_copyFlashTimer) clearTimeout(_copyFlashTimer);
+  updateSelectedHudText();
+  _copyFlashTimer = setTimeout(() => {
+    _copyFlashActive = false;
+    updateSelectedHudText();
+  }, 1200);
+}
+
+function pasteCopiedObject() {
+  if (!copiedObjectBlueprint) return null;
+  copiedObjectBlueprint.pasteCount = (copiedObjectBlueprint.pasteCount || 0) + 1;
+  const stepIdx = copiedObjectBlueprint.pasteCount;
+  const offsetDist = 0.85 + (stepIdx - 1) * 0.65;
+  const offsetAng = stepIdx * 0.785398; // 45° increments around source or camera target
+
+  let refX = copiedObjectBlueprint.srcX;
+  let refY = copiedObjectBlueprint.srcY;
+  let refZ = copiedObjectBlueprint.srcZ;
+  if (selectedObject && !selectedObject.userData.isDynamicLWalkway) {
+    refX = selectedObject.position.x + Math.cos(offsetAng) * offsetDist;
+    refZ = selectedObject.position.z + Math.sin(offsetAng) * offsetDist;
+    refY = selectedObject.position.y;
+  } else {
+    refX += Math.cos(offsetAng) * offsetDist;
+    refZ += Math.sin(offsetAng) * offsetDist;
+  }
+
+  if (copiedObjectBlueprint.isAnimal) {
+    const surfY = (typeof getAnimalSurfaceY === 'function')
+      ? getAnimalSurfaceY(refX, refZ, null, refY)
+      : refY;
+    return deployAnimal(copiedObjectBlueprint.animalType, {
+      x: refX,
+      y: surfY,
+      z: refZ,
+      ry: copiedObjectBlueprint.ry,
+      s: copiedObjectBlueprint.s,
+      roamRadius: copiedObjectBlueprint.roamRadius
+    });
+  }
+
+  const entry = OBJECT_CATALOG_REGISTRY.get(copiedObjectBlueprint.key);
+  if (!entry) return null;
+  const spawnPos = findSmartCatalogSpawnPosition(entry, { x: refX, y: refY, z: refZ });
+  return spawnCatalogInstanceFromEntry(entry, {
+    x: spawnPos.x,
+    y: spawnPos.y,
+    z: spawnPos.z,
+    ry: copiedObjectBlueprint.ry,
+    s: copiedObjectBlueprint.s,
+    leftPanels: copiedObjectBlueprint.leftPanels,
+    rightPanels: copiedObjectBlueprint.rightPanels,
+    gateOffsetX: copiedObjectBlueprint.gateOffsetX
+  });
+}
+
+function deleteSelectedObject() {
+  if (!selectedObject) return;
+  if (selectedObject.userData && selectedObject.userData.isAnimal) {
+    deleteSelectedAnimal();
+    return;
+  }
+  const targetObj = selectedObject;
+  deselectObject();
+
+  const dIdx = draggableObjects.indexOf(targetObj);
+  if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
+
+  if (window.leftTerracePots) {
+    const pIdx = window.leftTerracePots.indexOf(targetObj);
+    if (pIdx !== -1) window.leftTerracePots.splice(pIdx, 1);
+  }
+  if (window.majlisSofas) {
+    const mIdx = window.majlisSofas.indexOf(targetObj);
+    if (mIdx !== -1) window.majlisSofas.splice(mIdx, 1);
+  }
+  if (window.roofSofas) {
+    window.roofSofas = window.roofSofas.filter(s => s !== targetObj && !isDescendantOf(s, targetObj));
+  }
+  if (window.bonfireFlameMeshes) {
+    window.bonfireFlameMeshes = window.bonfireFlameMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+  }
+  if (window.bonfireSparkMeshes) {
+    window.bonfireSparkMeshes = window.bonfireSparkMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+  }
+  if (window.bonfireLocalSmokeClouds) {
+    window.bonfireLocalSmokeClouds = window.bonfireLocalSmokeClouds.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+  }
+  if (window.tunisianBonfireObj === targetObj) {
+    window.tunisianBonfireObj = draggableObjects.find(o => o.userData && o.userData.labelEn === 'Tunisian Stone & Brick Bonfire Pit') || null;
+  }
+  if (window.woodenFenceObj === targetObj) {
+    window.woodenFenceObj = draggableObjects.find(o => o.userData && o.userData.isWoodenFence) || null;
+  }
+
+  if (targetObj.parent) {
+    targetObj.parent.remove(targetObj);
+  }
+  requestShadowUpdate();
+}
+
+// ============================================================================
+// INTERACTIVE OBJECT CATALOG MODAL (<dialog closedby="any">)
+// ============================================================================
+let currentCatalogCategory = 'all';
+const CATALOG_CATEGORIES = [
+  { id: 'all', i18nKey: 'catAll', icon: '✨' },
+  { id: 'livestock', i18nKey: 'catLivestock', icon: '🐄' },
+  { id: 'outdoor', i18nKey: 'catOutdoor', icon: '🌴' },
+  { id: 'salon', i18nKey: 'catSalon', icon: '🛋️' },
+  { id: 'bedroom', i18nKey: 'catBedroom', icon: '🛏️' },
+  { id: 'kitchen', i18nKey: 'catKitchen', icon: '🍳' },
+  { id: 'lamps', i18nKey: 'catLamps', icon: '🏮' }
+];
+
+const catalogDialog = document.getElementById('object-catalog-modal');
+if (catalogDialog && !('closedBy' in HTMLDialogElement.prototype)) {
+  catalogDialog.addEventListener('click', (e) => {
+    if (e.target === catalogDialog) catalogDialog.close();
+  });
+}
+if (catalogDialog) {
+  catalogDialog.addEventListener('close', () => {
+    const btn = document.getElementById('btn-object-catalog');
+    if (btn) btn.classList.remove('active');
+  });
+}
+
+function renderObjectCatalogTabs() {
+  const tabsEl = document.getElementById('catalog-category-tabs');
+  if (!tabsEl) return;
+  tabsEl.innerHTML = '';
+  const allEntries = Array.from(OBJECT_CATALOG_REGISTRY.values());
+  const badgeEl = document.getElementById('catalog-count-badge');
+  if (badgeEl) {
+    badgeEl.textContent = `${allEntries.length} ${state.lang === 'ar' ? 'عنصر' : 'Objects'}`;
+  }
+  CATALOG_CATEGORIES.forEach((cat) => {
+    const count = cat.id === 'all'
+      ? allEntries.length
+      : allEntries.filter(e => e.category === cat.id).length;
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab-btn' + (currentCatalogCategory === cat.id ? ' active' : '');
+    btn.textContent = `${cat.icon} ${t(cat.i18nKey)} (${count})`;
+    btn.onclick = () => {
+      currentCatalogCategory = cat.id;
+      renderObjectCatalogTabs();
+      renderObjectCatalogGrid();
+    };
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderObjectCatalogGrid() {
+  const gridEl = document.getElementById('catalog-grid');
+  if (!gridEl) return;
+  const searchInput = document.getElementById('catalog-search-input');
+  const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+  gridEl.innerHTML = '';
+
+  const catLabels = {
+    livestock: t('catLivestock'),
+    outdoor: t('catOutdoor'),
+    salon: t('catSalon'),
+    bedroom: t('catBedroom'),
+    kitchen: t('catKitchen'),
+    lamps: t('catLamps')
+  };
+
+  const entries = Array.from(OBJECT_CATALOG_REGISTRY.values()).filter((entry) => {
+    if (currentCatalogCategory !== 'all' && entry.category !== currentCatalogCategory) return false;
+    if (!query) return true;
+    return (entry.labelEn && entry.labelEn.toLowerCase().includes(query)) ||
+           (entry.labelAr && entry.labelAr.toLowerCase().includes(query));
+  });
+
+  entries.forEach((entry) => {
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.onclick = () => spawnCatalogObject(entry.key);
+
+    const topRow = document.createElement('div');
+    topRow.className = 'cat-card-top';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'cat-card-icon';
+    iconWrap.textContent = entry.icon || '📦';
+
+    const infoWrap = document.createElement('div');
+    infoWrap.className = 'cat-card-info';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'cat-card-title';
+    nameEl.textContent = state.lang === 'ar' ? (entry.labelAr || entry.labelEn) : entry.labelEn;
+
+    const tagEl = document.createElement('div');
+    tagEl.className = 'cat-card-sub';
+    tagEl.textContent = catLabels[entry.category] || entry.category;
+
+    infoWrap.appendChild(nameEl);
+    infoWrap.appendChild(tagEl);
+    topRow.appendChild(iconWrap);
+    topRow.appendChild(infoWrap);
+
+    const spawnBtn = document.createElement('button');
+    spawnBtn.className = 'cat-card-btn';
+    spawnBtn.type = 'button';
+    spawnBtn.textContent = t('btnSpawnItem');
+    spawnBtn.onclick = (ev) => {
+      ev.stopPropagation();
+      spawnCatalogObject(entry.key);
+    };
+
+    card.appendChild(topRow);
+    card.appendChild(spawnBtn);
+    gridEl.appendChild(card);
+  });
+}
+
+function spawnCatalogObject(key) {
+  const entry = OBJECT_CATALOG_REGISTRY.get(key);
+  if (!entry) return null;
+  const spawned = spawnCatalogInstanceFromEntry(entry, null);
+  const keepOpenChk = document.getElementById('catalog-keep-open');
+  if (catalogDialog && catalogDialog.open && (!keepOpenChk || !keepOpenChk.checked)) {
+    closeObjectCatalog();
+  }
+  return spawned;
+}
+
+function toggleObjectCatalog() {
+  if (!catalogDialog) return;
+  const btn = document.getElementById('btn-object-catalog');
+  if (catalogDialog.open) {
+    catalogDialog.close();
+    if (btn) btn.classList.remove('active');
+  } else {
+    renderObjectCatalogTabs();
+    renderObjectCatalogGrid();
+    catalogDialog.showModal();
+    if (btn) btn.classList.add('active');
+  }
+}
+
+function closeObjectCatalog() {
+  if (!catalogDialog) return;
+  if (catalogDialog.open) catalogDialog.close();
+  const btn = document.getElementById('btn-object-catalog');
+  if (btn) btn.classList.remove('active');
+}
+
 window.addEventListener('keydown', (e) => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   const k = e.key.toLowerCase();
-  // Delete / Backspace removes the currently selected deployed animal
-  if (selectedObject && selectedObject.userData && selectedObject.userData.isAnimal && viewMode !== 'walk' && (e.key === 'Delete' || e.key === 'Backspace')) {
+  // Universal Copy (Ctrl+C / Cmd+C) and Paste (Ctrl+V / Cmd+V) for any selectable object
+  if ((e.ctrlKey || e.metaKey) && k === 'c' && selectedObject && viewMode !== 'walk') {
     e.preventDefault();
-    if (typeof deleteSelectedAnimal === 'function') deleteSelectedAnimal();
+    copySelectedObject();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && k === 'v' && copiedObjectBlueprint && viewMode !== 'walk') {
+    e.preventDefault();
+    pasteCopiedObject();
+    return;
+  }
+  // Universal Delete / Backspace removes ANY currently selected object (furniture, tree, fence, bonfire, or animal)
+  if (selectedObject && viewMode !== 'walk' && (e.key === 'Delete' || e.key === 'Backspace')) {
+    e.preventDefault();
+    deleteSelectedObject();
+    return;
+  }
+  // Q / E keyboard rotation shortcuts when an object is selected
+  if (selectedObject && viewMode !== 'walk' && (k === 'q' || k === 'e')) {
+    e.preventDefault();
+    rotateSelected(k === 'q' ? -Math.PI / 12 : Math.PI / 12);
     return;
   }
   // When any selectable 3D object is selected (in non-walk mode), ArrowUp = Bigger and ArrowDown = Smaller (preserving composition)
@@ -8464,6 +9920,63 @@ function resolveWalkCollisions(px, pz) {
     }
   }
 
+  // 3. Push out smoothly from the Wrap-Around Livestock Wooden Fence (with a pass-through portal at the Short 2-Leaf Wooden Gate!)
+  if (!isAtRoofLevel && window.livestockFenceObj && draggableObjects.includes(window.livestockFenceObj)) {
+    const lf = window.livestockFenceObj;
+    const ud = lf.userData || {};
+    const eastLen = ud.eastLen || 9.79;
+    const northLen = ud.northLen || 5.80;
+    const gateW = ud.gateWidth || 1.45;
+    const sGate = (typeof ud.gateOffsetX === 'number') ? ud.gateOffsetX : 4.80;
+    const localVec = lf.worldToLocal(new THREE.Vector3(px, lf.position.y, pz));
+    const minDist = 0.08 + playerRadius;
+    const zStartE = 4.79;
+    const xCorner = 3.00;
+    const zCorner = zStartE - eastLen;
+    const xEndN = xCorner - northLen;
+    const fenceSegs = [];
+
+    if (sGate <= eastLen) {
+      const gz = zStartE - sGate;
+      const halfPortal = gateW * 0.50 + minDist - 0.04;
+      fenceSegs.push([xCorner, zGateClamp(gz + halfPortal, zCorner, zStartE), xCorner, zStartE]);
+      fenceSegs.push([xCorner, zCorner, xCorner, zGateClamp(gz - halfPortal, zCorner, zStartE)]);
+      fenceSegs.push([xEndN, zCorner, xCorner, zCorner]);
+    } else {
+      const gx = xCorner - (sGate - eastLen);
+      const halfPortal = gateW * 0.50 + minDist - 0.04;
+      fenceSegs.push([xCorner, zCorner, xCorner, zStartE]);
+      fenceSegs.push([zGateClamp(gx + halfPortal, xEndN, xCorner), zCorner, xCorner, zCorner]);
+      fenceSegs.push([xEndN, zCorner, zGateClamp(gx - halfPortal, xEndN, xCorner), zCorner]);
+    }
+
+    function zGateClamp(v, lo, hi) {
+      return Math.max(lo, Math.min(hi, v));
+    }
+
+    let movedLocal = false;
+    for (let si = 0; si < fenceSegs.length; si++) {
+      const [ax, az, bx, bz] = fenceSegs[si];
+      if (Math.hypot(bx - ax, bz - az) < 0.08) continue;
+      const cx = Math.max(Math.min(ax, bx), Math.min(Math.max(ax, bx), localVec.x));
+      const cz = Math.max(Math.min(az, bz), Math.min(Math.max(az, bz), localVec.z));
+      const dx = localVec.x - cx;
+      const dz = localVec.z - cz;
+      const dist = Math.hypot(dx, dz);
+      if (dist < minDist && dist > 0.0001) {
+        const push = minDist - dist;
+        localVec.x += (dx / dist) * push;
+        localVec.z += (dz / dist) * push;
+        movedLocal = true;
+      }
+    }
+    if (movedLocal) {
+      const worldResolved = lf.localToWorld(localVec);
+      px = worldResolved.x;
+      pz = worldResolved.z;
+    }
+  }
+
   return { x: px, z: pz };
 }
 
@@ -8518,6 +10031,13 @@ function updateWalkAndOpenings(dt) {
     } else if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
       // Right Arched Terrace (bz = -0.25m)
       groundY = -0.25;
+    } else if (wx >= 6.00 && wx <= 12.00 && wz >= 5.00 && wz <= 9.20) {
+      // Livestock Cabin Interior (bx = 6.00..12.00, by = -9.20..-5.00, bz = -0.25m, or 3.78m on roof)
+      groundY = (walkState.pos.y > 4.20) ? 3.78 : -0.25;
+    } else if (wx >= 7.80 && wx <= 10.20 && wz >= 4.25 && wz < 5.00) {
+      // North Livestock Door threshold ramp (-0.25m <-> -0.50m) outside by = -5.00m
+      const tRamp = (5.00 - wz) / 0.75;
+      groundY = -0.25 - 0.25 * tRamp;
     } else if (wz > 9.20 && wz <= 16.55 && wx >= 12.00 && wx <= 18.00) {
       // Shifted East Guest Cabin Interior (bx = 12.00..18.00, by = -9.20..-13.40) & New Cabin Front Terrace (by = -13.40..-16.50, bz = -0.25m)
       groundY = -0.25;
@@ -8590,7 +10110,7 @@ function updateWalkAndOpenings(dt) {
       }
     }
 
-    // Also automatically swing doors open when Maître Maher or his Wife NPC walks through them!
+    // Also automatically swing doors open when Maître Maher, Mme Maher, or any deployed animal walks through them!
     if (op.userData.isDoor && !doorHeldByActor) {
       const npcStates = [window.maherNpcState, window.wifeNpcState];
       for (let ni = 0; ni < npcStates.length; ni++) {
@@ -8613,6 +10133,28 @@ function updateWalkAndOpenings(dt) {
           }
         }
       }
+      if (!doorHeldByActor && typeof deployedAnimals !== 'undefined') {
+        for (let ai = 0; ai < deployedAnimals.length; ai++) {
+          const an = deployedAnimals[ai];
+          if (an && an.root && an.root.position.y < 1.5) {
+            const adx = an.root.position.x - op.position.x;
+            const adz = an.root.position.z - op.position.z;
+            const cosR = Math.cos(-op.rotation.y);
+            const sinR = Math.sin(-op.rotation.y);
+            const localX = adx * cosR - adz * sinR;
+            const localZ = adx * sinR + adz * cosR;
+            if (Math.abs(localX) < op.userData.openingWidth * 1.05 && Math.abs(localZ) < 2.25) {
+              doorHeldByActor = true;
+              if (!op.userData._walkHolding) {
+                op.userData._walkHolding = true;
+                op.userData._walkPushSign = localZ >= 0 ? -1 : 1;
+              }
+              targetAngle = op.userData._walkPushSign * 1.48;
+              break;
+            }
+          }
+        }
+      }
     }
 
     if (!doorHeldByActor) {
@@ -8628,6 +10170,41 @@ function updateWalkAndOpenings(dt) {
       anyOpeningMoved = true;
     }
   });
+
+  // Animate the 2 Wooden Gate Leaves ("2 daun pintu kayu") on all Wrap-Around Livestock Fences
+  for (let fi = 0; fi < draggableObjects.length; fi++) {
+    const fObj = draggableObjects[fi];
+    if (!fObj || !fObj.userData || !fObj.userData.isLivestockTurnFence) continue;
+    const gateGrp = fObj.getObjectByName('fenceGateSubGroup');
+    if (!gateGrp || !gateGrp.userData.leftLeafPivot || !gateGrp.userData.rightLeafPivot) continue;
+
+    let gateNearActor = false;
+    const gateWorldPos = new THREE.Vector3();
+    gateGrp.getWorldPosition(gateWorldPos);
+
+    if (viewMode === 'walk' && Math.hypot(walkState.pos.x - gateWorldPos.x, walkState.pos.z - gateWorldPos.z) < 2.15) {
+      gateNearActor = true;
+    }
+    if (!gateNearActor && typeof deployedAnimals !== 'undefined') {
+      for (let ai = 0; ai < deployedAnimals.length; ai++) {
+        const an = deployedAnimals[ai];
+        if (an && an.root && Math.hypot(an.root.position.x - gateWorldPos.x, an.root.position.z - gateWorldPos.z) < 2.15) {
+          gateNearActor = true;
+          break;
+        }
+      }
+    }
+    const targetLeafAng = (fObj.userData.gateLeavesOpen || gateNearActor) ? 1.32 : 0.0;
+    const curLeafAng = fObj.userData.gateOpenAngle || 0.0;
+    if (Math.abs(targetLeafAng - curLeafAng) > 0.001) {
+      const nextLeafAng = curLeafAng + (targetLeafAng - curLeafAng) * Math.min(1, dt * 9.5);
+      fObj.userData.gateOpenAngle = nextLeafAng;
+      gateGrp.userData.leftLeafPivot.rotation.y = nextLeafAng;
+      gateGrp.userData.rightLeafPivot.rotation.y = -nextLeafAng;
+      anyOpeningMoved = true;
+    }
+  }
+
   if (anyOpeningMoved) requestShadowUpdate();
 
   nearbyWindowOpening = closestWin;
@@ -8675,6 +10252,13 @@ function updateStaticUIStrings() {
   setText('btn-time-night', t('night'));
   setText('btn-photoshoot', t('photoshoot'));
   setText('btn-deploy-animals', t('btnDeployAnimals'));
+  setText('btn-object-catalog', t('btnObjectCatalog'));
+  setText('catalog-modal-title', t('catalogTitle'));
+  setText('ui-catalog-keep-open', t('catalogKeepOpen'));
+  const catSearch = document.getElementById('catalog-search-input');
+  if (catSearch) catSearch.placeholder = t('catalogSearchPlaceholder');
+  if (typeof renderObjectCatalogTabs === 'function') renderObjectCatalogTabs();
+  if (typeof renderObjectCatalogGrid === 'function') renderObjectCatalogGrid();
   setText('ui-animal-panel-title', t('animalPanelTitle'));
   setText('btn-spawn-chicken', t('btnSpawnChicken'));
   setText('btn-spawn-cow', t('btnSpawnCow'));
@@ -12322,6 +13906,14 @@ function getAnimalSurfaceY(wx, wz, animalObj, lockRoofHint) {
   if (wz > 5.05 && wz <= 7.15 && wx >= -7.45 && wx < 1.40) {
     return -0.25;
   }
+  // Livestock Cabin behind Right Cabin / Divider Wall (bx = 6.00..12.00, by = -9.20..-5.00 -> wz = 5.00..9.20)
+  if (wx >= 6.00 && wx <= 12.00 && wz >= 5.00 && wz <= 9.20) {
+    if (typeof lockRoofHint === 'number') return lockRoofHint > 2.0 ? 3.78 : -0.25;
+    if (viewMode === 'top2') return 3.78;
+    if (viewMode === 'top1' || !state.roofVisible) return -0.25;
+    if (animalObj && animalObj.position.y > 2.0) return 3.78;
+    return -0.25;
+  }
   // Shifted East Guest Cabin & New Cabin Front Terrace
   if (wz > 9.20 && wz <= 16.55 && wx >= 12.00 && wx <= 18.00) {
     return -0.25;
@@ -12814,7 +14406,10 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Stone BBQ Grill & Fire Pit","x":-4.65,"y":4.72,"z":-2.65,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-0.95,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-1.95,"ry":0,"s":1},
-  {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-2.95,"ry":0,"s":1}
+  {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-2.95,"ry":0,"s":1},
+  {"labelEn":"Livestock Hay Manger & Water Trough","x":10.971,"y":-0.25,"z":6.905,"ry":0,"s":1},
+  {"labelEn":"Golden Barn Hay & Straw Bales","x":7.255,"y":-0.25,"z":7.85,"ry":0,"s":1},
+  {"labelEn":"Livestock Wrap-Around Wooden Fence & 2-Leaf Gate","x":9,"y":-0.5,"z":0,"ry":0,"s":1,"leftPanels":6,"rightPanels":4,"gateOffsetX":4.8}
 ];
 
 function applyLayoutPositions(layoutList) {
@@ -12862,7 +14457,15 @@ function applyLayoutPositions(layoutList) {
         bestObj.updateMatrixWorld(true);
         return;
       }
-      bestObj.position.set(sp.x, sp.y, sp.z);
+      let targetX = sp.x;
+      let targetZ = sp.z;
+      if (normLabel === 'Livestock Hay Manger & Water Trough' && Math.abs(targetX - 10.971) < 0.15 && Math.abs(targetZ - 1.105) < 0.25) {
+        targetZ = 6.905;
+      } else if (normLabel === 'Golden Barn Hay & Straw Bales' && Math.abs(targetX - 10.855) < 0.15 && Math.abs(targetZ - 6.2) < 0.25) {
+        targetX = 7.255;
+        targetZ = 7.85;
+      }
+      bestObj.position.set(targetX, sp.y, targetZ);
       bestObj.rotation.y = sp.ry;
       if (typeof sp.s === 'number' && sp.s > 0.1) {
         bestObj.userData.scaleFactor = sp.s;
@@ -12873,9 +14476,24 @@ function applyLayoutPositions(layoutList) {
         if (typeof sp.leftPanels === 'number') bestObj.userData.leftPanels = sp.leftPanels;
         if (typeof sp.rightPanels === 'number') bestObj.userData.rightPanels = sp.rightPanels;
         if (typeof sp.gateOffsetX === 'number') bestObj.userData.gateOffsetX = sp.gateOffsetX;
-        if (typeof window.rebuildWoodenFencePanels === 'function') window.rebuildWoodenFencePanels();
+        if (typeof window.rebuildWoodenFencePanels === 'function') window.rebuildWoodenFencePanels(bestObj);
       }
       bestObj.updateMatrixWorld(true);
+    } else if (OBJECT_CATALOG_REGISTRY && OBJECT_CATALOG_REGISTRY.has(normLabel)) {
+      // Spawn extra user-created objects (from Object Catalog or Copy/Paste) saved in localStorage
+      const entry = OBJECT_CATALOG_REGISTRY.get(normLabel);
+      const spawned = spawnCatalogInstanceFromEntry(entry, {
+        x: sp.x,
+        y: sp.y,
+        z: sp.z,
+        ry: sp.ry,
+        s: sp.s,
+        leftPanels: sp.leftPanels,
+        rightPanels: sp.rightPanels,
+        gateOffsetX: sp.gateOffsetX,
+        skipSelect: true
+      });
+      if (spawned) usedObjs.add(spawned);
     }
   });
 }
