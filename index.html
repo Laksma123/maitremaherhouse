@@ -268,8 +268,8 @@
 
   <div id="animal-deploy-panel">
     <span class="animal-panel-title" id="ui-animal-panel-title">🐾 Deploy Animals (Unlimited):</span>
-    <button class="btn-pill btn-spawn-chicken" id="btn-spawn-chicken" onclick="deployAnimal('chicken')">🐔 + Chicken (Ayam)</button>
-    <button class="btn-pill btn-spawn-cow" id="btn-spawn-cow" onclick="deployAnimal('cow')">🐄 + Cow (Sapi)</button>
+    <button class="btn-pill btn-spawn-chicken" id="btn-spawn-chicken" onclick="deployAnimal('chicken')">🐔 + Chicken</button>
+    <button class="btn-pill btn-spawn-cow" id="btn-spawn-cow" onclick="deployAnimal('cow')">🐄 + Cow</button>
     <span class="animal-count-badge" id="animal-count-badge">🐔 0 | 🐄 0</span>
     <button class="btn-pill" id="btn-close-animal-panel" onclick="toggleAnimalDeployPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
@@ -404,8 +404,8 @@ const I18N = {
     savedMsg: '✅ Villa layout saved to browser storage!',
     btnDeployAnimals: '🐾 Deploy Animals',
     animalPanelTitle: '🐾 Deploy Animals (Unlimited):',
-    btnSpawnChicken: '🐔 + Chicken (Ayam)',
-    btnSpawnCow: '🐄 + Cow (Sapi)',
+    btnSpawnChicken: '🐔 + Chicken',
+    btnSpawnCow: '🐄 + Cow',
     btnDeleteAnimal: '🗑️ Delete Animal',
     btnAreaMinus: '⭕ Area -',
     btnAreaPlus: '⭕ Area +'
@@ -452,8 +452,8 @@ const I18N = {
     savedMsg: '✅ تم حفظ التصميم بنجاح!',
     btnDeployAnimals: '🐾 إضافة حيوانات',
     animalPanelTitle: '🐾 إضافة حيوانات (بلا حدود):',
-    btnSpawnChicken: '🐔 + دجاجة (Chicken)',
-    btnSpawnCow: '🐄 + بقرة (Cow)',
+    btnSpawnChicken: '🐔 + دجاجة',
+    btnSpawnCow: '🐄 + بقرة',
     btnDeleteAnimal: '🗑️ حذف الحيوان',
     btnAreaMinus: '⭕ نطاق -',
     btnAreaPlus: '⭕ نطاق +'
@@ -2399,7 +2399,7 @@ function buildStaticArchitecture() {
   );
   leftTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.leftTerraceLesehanObj = leftTerraceLesehanGroup;
-  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge (Lesehan)', 'جلسة تونسية أرضية للاستجمام بعد السباحة');
+  registerDraggable(leftTerraceLesehanGroup, 'Tunisian Post-Swim Floor Lounge', 'جلسة تونسية أرضية للاستجمام بعد السباحة');
 
   // Glitch-free Berber / Kairouan Rugs (selectable, movable & rotatable, raised cleanly above 0.00m floor)
   const rugBed = addBoxMesh(3.40, 0.014, 3.10, -4.20, 2.50, 0.011, matRug, archRoot, false);
@@ -2879,7 +2879,7 @@ function buildStaticArchitecture() {
   );
   cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
-  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'جلسة أرضية تونسية في شرفة المقصورة');
+  registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa', 'جلسة أرضية تونسية في شرفة المقصورة');
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -3085,7 +3085,7 @@ function buildStaticArchitecture() {
   rooftopLesehanNorthSeat.userData.npcActivityId = 'ROOF_LOUNGE';
   window.activeRoofSofa = rooftopLesehanGroup;
   window.roofSofas = [rooftopLesehanGroup, rooftopLesehanNorthSeat];
-  registerDraggable(rooftopLesehanGroup, 'Rooftop Tunisian Floor Sofa & Meja Lesehan', 'جلسة وطاولة أرضية تونسية في السطح');
+  registerDraggable(rooftopLesehanGroup, 'Rooftop Tunisian Floor Sofa & Low Table', 'جلسة وطاولة أرضية تونسية في السطح');
 
   const roofBarGroup = new THREE.Group();
   addBoxMesh(1.10, 0.92, 3.40, -4.65, 2.20, 4.22, matMashrabiya, roofBarGroup);
@@ -12781,18 +12781,18 @@ function updateDeployedAnimals(dt) {
 // BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (70 OBJECTS)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
-  {"labelEn":"Tunisian Post-Swim Floor Lounge (Lesehan)","x":-2.45,"y":-0.25,"z":5.92,"ry":0,"s":1},
+  {"labelEn":"Tunisian Post-Swim Floor Lounge","x":-2.45,"y":-0.25,"z":5.92,"ry":0,"s":1},
   {"labelEn":"King Bedroom Kairouan Rug","x":-4.2,"y":0.011,"z":-2.5,"ry":0,"s":1},
   {"labelEn":"Grand Majlis Berber Carpet","x":3.509,"y":0.011,"z":0.218,"ry":0,"s":1},
   {"labelEn":"Tunisian Majlis Floor Sofa (Jalsa)","x":4.65,"y":-0.25,"z":5.82,"ry":0,"s":1},
   {"labelEn":"Covered Outdoor BBQ Grill (Fish & Steak)","x":4.593,"y":-0.25,"z":9.427,"ry":3.1416,"s":1},
   {"labelEn":"Cabin Guest Daybed & Walnut Console","x":15.885,"y":-0.25,"z":11.05,"ry":0,"s":1},
-  {"labelEn":"Cabin Terrace Tunisian Floor Sofa (Lesehan)","x":15,"y":-0.25,"z":14.742,"ry":0,"s":1},
+  {"labelEn":"Cabin Terrace Tunisian Floor Sofa","x":15,"y":-0.25,"z":14.742,"ry":0,"s":1},
   {"labelEn":"Hammam Walk-In Rain Shower","x":-4.968,"y":-0.025,"z":4,"ry":0,"s":1},
   {"labelEn":"Luxury Porcelain Toilet","x":-5.46,"y":0,"z":1.85,"ry":0,"s":1},
   {"labelEn":"Walnut Vanity & Brass Sink","x":-3.15,"y":0,"z":4.56,"ry":0,"s":1},
   {"labelEn":"Rooftop Walnut Pergola","x":2.85,"y":3.745,"z":-1.4,"ry":0,"s":1},
-  {"labelEn":"Rooftop Tunisian Floor Sofa & Meja Lesehan","x":2.85,"y":3.778,"z":-1.4,"ry":0,"s":1},
+  {"labelEn":"Rooftop Tunisian Floor Sofa & Low Table","x":2.85,"y":3.778,"z":-1.4,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Bar & Counter","x":-4.65,"y":3.76,"z":-2.2,"ry":0,"s":1},
   {"labelEn":"French-Door Smart Refrigerator","x":-1.55,"y":0,"z":4.512,"ry":0,"s":1},
   {"labelEn":"Luxury Espresso & Arabic Coffee Machine","x":-0.75,"y":0.91,"z":4.501,"ry":0,"s":1},
@@ -12869,11 +12869,15 @@ function applyLayoutPositions(layoutList) {
       });
       return;
     }
+    const normLabel = (sp.labelEn || '')
+      .replace('Tunisian Post-Swim Floor Lounge (Lesehan)', 'Tunisian Post-Swim Floor Lounge')
+      .replace('Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'Cabin Terrace Tunisian Floor Sofa')
+      .replace('Rooftop Tunisian Floor Sofa & Meja Lesehan', 'Rooftop Tunisian Floor Sofa & Low Table');
     let bestObj = null;
     let bestScore = Infinity;
     for (let i = 0; i < draggableObjects.length; i++) {
       const cand = draggableObjects[i];
-      if (usedObjs.has(cand) || cand.userData.labelEn !== sp.labelEn) continue;
+      if (usedObjs.has(cand) || cand.userData.labelEn !== normLabel) continue;
       // Strongly weight elevation (y) difference so ground-floor vs rooftop items (e.g. Mediterranean Potted Plants) never cross-swap
       const dy = Math.abs(cand.position.y - sp.y);
       const dxz = Math.hypot(cand.position.x - sp.x, cand.position.z - sp.z);
