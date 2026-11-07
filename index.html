@@ -442,6 +442,10 @@
     <button class="hud-btn" id="btn-animal-rad-dec" onclick="adjustSelectedAnimalRadius(-0.35)" title="Smaller Roam Radius">⭕ Area -</button>
     <button class="hud-btn" id="btn-animal-rad-inc" onclick="adjustSelectedAnimalRadius(0.35)" title="Larger Roam Radius">⭕ Area +</button>
   </span>
+  <span id="olive-hud-controls" style="display:none; gap:6px; align-items:center;">
+    <button class="hud-btn" id="btn-hud-olive-pot" onclick="toggleSelectedSmallOlivePot()" title="Toggle Pot On/Off for Selected Small Olive(s)">🏺 Pot: ON</button>
+    <button class="hud-btn" id="btn-hud-olive-grass" onclick="buildGrassBedForSelectedOlives()" title="Shift+Click multiple small olives, then click to build a line grass bed and merge them into 1 group" style="background:rgba(46,125,50,0.38);border-color:#81c784;color:#e8f5e9;font-weight:600;">🌿 Build Grass Bed (Group)</button>
+  </span>
   <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
   <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
   <button class="hud-btn" id="btn-hud-rot-l" onclick="rotateSelected(-Math.PI/12)">↺ -15°</button>
@@ -553,6 +557,9 @@ const I18N = {
     btnCopiedObj: '✅ Copied!',
     btnPasteObj: '📥 Paste',
     btnDeleteObj: '🗑️ Delete',
+    btnOlivePotOn: '🏺 Pot: ON (Click for No Pot)',
+    btnOlivePotOff: '🌱 Pot: OFF (Click for Pot)',
+    btnOliveBuildGrass: '🌿 Build Grass Bed & Group',
     catAll: '✨ All',
     catSalon: '🛋️ Salon & Lounge',
     catBedroom: '🛏️ Bedroom & Bath',
@@ -617,6 +624,9 @@ const I18N = {
     btnCopiedObj: '✅ تم النسخ!',
     btnPasteObj: '📥 لصق',
     btnDeleteObj: '🗑️ حذف',
+    btnOlivePotOn: '🏺 بأصيص (انقر لإزالة الأصيص)',
+    btnOlivePotOff: '🌱 بدون أصيص (انقر لإضافة أصيص)',
+    btnOliveBuildGrass: '🌿 إنشاء حوض عشب ودمج كمجموعة',
     catAll: '✨ الكل',
     catSalon: '🛋️ الصالة والجلسات',
     catBedroom: '🛏️ بيت النوم والحمام',
@@ -5372,14 +5382,14 @@ async function buildStaticPolyHavenDecor() {
   // ==========================================================================
   // UNIFIED FRONT OLIVE LAWN BED GROUP (`frontOliveGardenGroup`):
   // Combines the manicured green lawn slab (`matLawnBed`), golden stone base trim (`matArchTrim`),
-  // spiky 3D grass tufts, and all 11 small potted olive trees into ONE selectable/movable/resizable/rotatable group!
-  // ("khusus lahan rumput alas dari pot2 olives kecil, aku ingin mngklik rumput akan select rumput, alas, beserta semua pot dan olivesnya, bisa ku pindahkan dan geser dan resize dan rotate sesuka hati seperti object lain")
+  // spiky 3D grass tufts, and 5 evenly distributed small potted olive trees into ONE selectable/movable/resizable/rotatable group!
+  // ("11 olives yg saat ini sudah ada, buat ini menjadi hanya 5 olives, tapi dengan panjang alas rumput yg sama dengan yg sekarang brarti 1 olives di ujung keduanya dan 3 d tengah terdistribusi rata")
   // ==========================================================================
   const frontOliveGardenGroup = new THREE.Group();
   addBoxMesh(22.80, 0.054, 1.55, 0.75, -19.00, -0.468, window.matLawnBed, frontOliveGardenGroup, false);
   addBoxMesh(22.92, 0.038, 1.65, 0.75, -19.00, -0.481, matArchTrim, frontOliveGardenGroup, false);
 
-  // Spiky 3D grass tufts around the 11 shifted front potted olive trees (by = -19.00m) stretching from the Swimming Pool (bx = -10.40m) to the New Cabin Front Terrace (bx = +11.85m)
+  // Spiky 3D grass tufts along the full 22.80m grass bed (by = -19.00m) stretching from the Swimming Pool (bx = -10.40m) to the New Cabin Front Terrace (bx = +11.85m)
   for (let bx = -10.40; bx <= 11.90; bx += 0.58) {
     const tuftFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(bx * 10)) % 3) * 0.035, 52, bx * 2.3 + 11.0);
     tuftFront.position.copy(bPos(bx, -18.48, -0.455));
@@ -5389,8 +5399,8 @@ async function buildStaticPolyHavenDecor() {
     tuftBack.position.copy(bPos(bx, -19.52, -0.455));
     frontOliveGardenGroup.add(tuftBack);
   }
-  // Taller spiky ornamental grass clusters between each of the 11 potted olive trees along bx = -10.00 .. +11.50 (by = -19.00m)
-  [-8.92, -6.77, -4.62, -2.47, -0.32, 1.83, 3.98, 6.13, 8.28, 10.43].forEach((mx, idx) => {
+  // Taller spiky ornamental grass clusters at the 4 midpoints between the 5 evenly distributed potted olive trees along bx = -10.00 .. +11.50 (by = -19.00m)
+  [-7.3125, -1.9375, 3.4375, 8.8125].forEach((mx, idx) => {
     const tallTuft = createSpikyGrassTuft(0.38, 0.34, 68, idx * 5.1 + 41.0);
     tallTuft.position.copy(bPos(mx, -19.00, -0.455));
     frontOliveGardenGroup.add(tallTuft);
@@ -5585,62 +5595,161 @@ async function buildStaticPolyHavenDecor() {
   g.add(bigOliveGroup);
 
   // ==========================================================================
-  // 2. ELEVEN SMALL POTTED OLIVE TREES (~1.5m Scale) SHIFTED FORWARD TO by = -19.00m
-  //    DISTRIBUTED FROM THE SWIMMING POOL (bx = -10.00m) TO THE NEW CABIN FRONT TERRACE (bx = +11.50m)
+  // REUSABLE BUILDER FOR SMALL OLIVE TREES (~1.5m Scale) WITH OR WITHOUT POT
+  // ("small olives kini bisa d spawn per biji dengan/tanpa pot bisa pilih")
   // ==========================================================================
-  const smallOliveX = [-10.00, -7.85, -5.70, -3.55, -1.40, 0.75, 2.90, 5.05, 7.20, 9.35, 11.50];
-  window.smallOliveTrees = [];
-  for (let i = 0; i < smallOliveX.length; i++) {
-    const ox = smallOliveX[i];
-    const smallOliveGroup = new THREE.Group();
-    smallOliveGroup.position.copy(bPos(ox, -19.00, -0.455));
-
-    // Rustic Wooden Planter Box (planter_box_01) or Terracotta Pot (planter_pot_clay)
-    const useWoodenBox = (i % 2 === 0);
-    if (useWoodenBox && boxPlanterProto) {
-      const boxW = fitAndPlaceModel(boxPlanterProto.clone(true), [0.84, 0.84, 0.48], null, 0);
-      smallOliveGroup.add(boxW);
-    } else if (clayPotProto) {
-      const potW = fitAndPlaceModel(clayPotProto.clone(true), [0.68, 0.68, 0.50], null, i * 0.8);
-      smallOliveGroup.add(potW);
+  function populateSmallOliveTreeGeometry(smallOliveGroup, withPot, seedIdx = 0) {
+    while (smallOliveGroup.children.length > 0) {
+      const ch = smallOliveGroup.children[0];
+      if (ch.name === 'npcStandNode' || ch.name === 'npcLookNode') {
+        smallOliveGroup.remove(ch);
+      } else {
+        smallOliveGroup.remove(ch);
+      }
     }
+    const yDrop = withPot ? 0.0 : -0.39;
+    if (withPot) {
+      // Rustic Wooden Planter Box (planter_box_01) or Terracotta Pot (planter_pot_clay)
+      const useWoodenBox = (seedIdx % 2 === 0);
+      if (useWoodenBox && boxPlanterProto) {
+        const boxW = fitAndPlaceModel(boxPlanterProto.clone(true), [0.84, 0.84, 0.48], null, 0);
+        smallOliveGroup.add(boxW);
+      } else if (clayPotProto) {
+        const potW = fitAndPlaceModel(clayPotProto.clone(true), [0.68, 0.68, 0.50], null, seedIdx * 0.8);
+        smallOliveGroup.add(potW);
+      }
 
-    // Dark potting soil mound + small spiky grass sprouts inside the planter
-    const potSoil = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.28, 0.30, 0.08, 16),
-      new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x473626, roughness: 0.92 })
-    );
-    potSoil.position.y = 0.44;
-    smallOliveGroup.add(potSoil);
+      // Dark potting soil mound + small spiky grass sprouts inside the planter
+      const potSoil = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.28, 0.30, 0.08, 16),
+        new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x473626, roughness: 0.92 })
+      );
+      potSoil.position.y = 0.44;
+      smallOliveGroup.add(potSoil);
 
-    const potGrass = createSpikyGrassTuft(0.22, 0.14, 28, i * 4.3 + 1.2);
-    potGrass.position.y = 0.46;
-    smallOliveGroup.add(potGrass);
+      const potGrass = createSpikyGrassTuft(0.22, 0.14, 28, seedIdx * 4.3 + 1.2);
+      potGrass.position.y = 0.46;
+      smallOliveGroup.add(potGrass);
+    } else {
+      // Unpotted natural root-flare earth mound & 4 gnarled surface roots directly in the soil (y = 0.00m)
+      const rootSoil = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.20, 0.34, 0.06, 16),
+        new THREE.MeshStandardMaterial({ map: soilDiffTex, normalMap: soilNorTex, color: 0x4b3928, roughness: 0.92 })
+      );
+      rootSoil.position.y = 0.025;
+      rootSoil.castShadow = true;
+      rootSoil.receiveShadow = true;
+      smallOliveGroup.add(rootSoil);
+
+      for (let r = 0; r < 4; r++) {
+        const ra = (r / 4) * Math.PI * 2 + 0.35;
+        const ca = Math.cos(ra), sa = Math.sin(ra);
+        const rMesh = createTaperedOliveBranchMesh([
+          new THREE.Vector3(ca * 0.05, 0.14, sa * 0.05),
+          new THREE.Vector3(ca * 0.18, 0.06, sa * 0.18),
+          new THREE.Vector3(ca * 0.32, 0.005, sa * 0.32)
+        ], 0.048, 0.015, 10, 6, matOliveBark);
+        smallOliveGroup.add(rMesh);
+      }
+
+      [[-0.18, 0.14], [0.19, 0.12], [0.02, -0.21]].forEach(([gx, gz], gIdx) => {
+        const baseTuft = createSpikyGrassTuft(0.18, 0.15, 24, seedIdx * 3.7 + gIdx * 2.1 + 0.8);
+        baseTuft.position.set(gx, 0.0, gz);
+        smallOliveGroup.add(baseTuft);
+      });
+    }
 
     // Gnarled bonsai-style multi-branched olive trunk
     const sTrunk = createTaperedOliveBranchMesh([
-      new THREE.Vector3(0.0, 0.42, 0.0),
-      new THREE.Vector3(0.04 * ((i % 2) ? 1 : -1), 0.72, 0.02),
-      new THREE.Vector3(-0.03, 1.02, -0.02)
+      new THREE.Vector3(0.0, 0.42 + yDrop, 0.0),
+      new THREE.Vector3(0.04 * ((seedIdx % 2) ? 1 : -1), 0.72 + yDrop, 0.02),
+      new THREE.Vector3(-0.03, 1.02 + yDrop, -0.02)
     ], 0.11, 0.075, 14, 8, matOliveBark);
     smallOliveGroup.add(sTrunk);
 
     const sBranches = [
-      { pts: [[0.0, 0.92, 0.0], [-0.26, 1.22, 0.14], [-0.42, 1.48, 0.22]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
-      { pts: [[0.0, 0.95, 0.0], [0.28, 1.26, 0.12], [0.44, 1.54, 0.18]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
-      { pts: [[0.0, 0.96, 0.0], [0.06, 1.28, -0.24], [0.12, 1.56, -0.38]], r0: 0.055, r1: 0.02, padR: 0.44, padH: 0.30 },
-      { pts: [[0.0, 0.94, 0.0], [-0.14, 1.26, -0.20], [-0.28, 1.52, -0.32]], r0: 0.052, r1: 0.02, padR: 0.42, padH: 0.29 },
-      { pts: [[-0.02, 1.00, 0.0], [-0.04, 1.38, 0.02], [0.0, 1.72, 0.0]], r0: 0.06, r1: 0.024, padR: 0.52, padH: 0.35 }
+      { pts: [[0.0, 0.92 + yDrop, 0.0], [-0.26, 1.22 + yDrop, 0.14], [-0.42, 1.48 + yDrop, 0.22]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
+      { pts: [[0.0, 0.95 + yDrop, 0.0], [0.28, 1.26 + yDrop, 0.12], [0.44, 1.54 + yDrop, 0.18]], r0: 0.06, r1: 0.022, padR: 0.46, padH: 0.32 },
+      { pts: [[0.0, 0.96 + yDrop, 0.0], [0.06, 1.28 + yDrop, -0.24], [0.12, 1.56 + yDrop, -0.38]], r0: 0.055, r1: 0.02, padR: 0.44, padH: 0.30 },
+      { pts: [[0.0, 0.94 + yDrop, 0.0], [-0.14, 1.26 + yDrop, -0.20], [-0.28, 1.52 + yDrop, -0.32]], r0: 0.052, r1: 0.02, padR: 0.42, padH: 0.29 },
+      { pts: [[-0.02, 1.00 + yDrop, 0.0], [-0.04, 1.38 + yDrop, 0.02], [0.0, 1.72 + yDrop, 0.0]], r0: 0.06, r1: 0.024, padR: 0.52, padH: 0.35 }
     ];
     sBranches.forEach((sb, bIdx) => {
       const vPts = sb.pts.map(p => new THREE.Vector3(p[0], p[1], p[2]));
       smallOliveGroup.add(createTaperedOliveBranchMesh(vPts, sb.r0, sb.r1, 12, 7, matOliveBark));
       const tip = vPts[vPts.length - 1];
-      const pad = createOliveCanopyPad(sb.padR, sb.padH, null, null, i * 3.1 + bIdx);
+      const pad = createOliveCanopyPad(sb.padR, sb.padH, null, null, seedIdx * 3.1 + bIdx);
       pad.position.set(tip.x, tip.y + 0.04, tip.z);
       smallOliveGroup.add(pad);
     });
 
+    smallOliveGroup.userData.hasPot = !!withPot;
+    attachNpcTargetWorld(
+      smallOliveGroup,
+      new THREE.Vector3(smallOliveGroup.position.x, smallOliveGroup.position.y, smallOliveGroup.position.z - 0.92),
+      new THREE.Vector3(smallOliveGroup.position.x, smallOliveGroup.position.y, smallOliveGroup.position.z)
+    );
+    smallOliveGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+    return smallOliveGroup;
+  }
+  window.populateSmallOliveTreeGeometry = populateSmallOliveTreeGeometry;
+
+  // Register Individual Small Olive Tree (With Pot & Without Pot) in OBJECT_CATALOG_REGISTRY so user can spawn them per-tree anywhere!
+  const singleOliveWithPotTpl = new THREE.Group();
+  populateSmallOliveTreeGeometry(singleOliveWithPotTpl, true, 0);
+  singleOliveWithPotTpl.userData.isIndividualSmallOlive = true;
+  singleOliveWithPotTpl.userData.hasPot = true;
+  singleOliveWithPotTpl.userData.keepTrunkBasePivot = true;
+  OBJECT_CATALOG_REGISTRY.set('Small Olive Tree (Single — With Pot)', {
+    key: 'Small Olive Tree (Single — With Pot)',
+    labelEn: 'Small Olive Tree (Single — With Pot)',
+    labelAr: 'شجرة زيتون صغيرة فردية (مع أصيص)',
+    category: 'outdoor',
+    icon: '🪴',
+    isAnimal: false,
+    template: singleOliveWithPotTpl,
+    baseScale: new THREE.Vector3(1, 1, 1),
+    defaultRotY: 0,
+    heightAboveSurface: 0.0,
+    isIndividualSmallOlive: true,
+    hasPot: true,
+    keepTrunkBasePivot: true,
+    npcActivityId: 'WATER_OLIVE_GARDEN'
+  });
+
+  const singleOliveNoPotTpl = new THREE.Group();
+  populateSmallOliveTreeGeometry(singleOliveNoPotTpl, false, 1);
+  singleOliveNoPotTpl.userData.isIndividualSmallOlive = true;
+  singleOliveNoPotTpl.userData.hasPot = false;
+  singleOliveNoPotTpl.userData.keepTrunkBasePivot = true;
+  OBJECT_CATALOG_REGISTRY.set('Small Olive Tree (Single — Without Pot)', {
+    key: 'Small Olive Tree (Single — Without Pot)',
+    labelEn: 'Small Olive Tree (Single — Without Pot)',
+    labelAr: 'شجرة زيتون صغيرة فردية (بدون أصيص)',
+    category: 'outdoor',
+    icon: '🫒',
+    isAnimal: false,
+    template: singleOliveNoPotTpl,
+    baseScale: new THREE.Vector3(1, 1, 1),
+    defaultRotY: 0,
+    heightAboveSurface: 0.0,
+    isIndividualSmallOlive: true,
+    hasPot: false,
+    keepTrunkBasePivot: true,
+    npcActivityId: 'WATER_OLIVE_GARDEN'
+  });
+
+  // ==========================================================================
+  // 2. FIVE SMALL POTTED OLIVE TREES (~1.5m Scale) ON THE SAME 22.80M FRONT LAWN BED (by = -19.00m)
+  //    1 AT EACH END (bx = -10.00m & bx = +11.50m) AND 3 EVENLY DISTRIBUTED IN THE MIDDLE (-4.625, +0.75, +6.125)
+  // ==========================================================================
+  const smallOliveX = [-10.00, -4.625, 0.75, 6.125, 11.50];
+  window.smallOliveTrees = [];
+  for (let i = 0; i < smallOliveX.length; i++) {
+    const ox = smallOliveX[i];
+    const smallOliveGroup = new THREE.Group();
+    smallOliveGroup.position.copy(bPos(ox, -19.00, -0.455));
+    populateSmallOliveTreeGeometry(smallOliveGroup, true, i);
     smallOliveGroup.rotation.y = (i * 0.45) - 0.5;
     attachNpcTargetWorld(
       smallOliveGroup,
@@ -5661,8 +5770,8 @@ async function buildStaticPolyHavenDecor() {
   window.frontOliveGardenObj = frontOliveGardenGroup;
   registerDraggable(
     frontOliveGardenGroup,
-    'Front Olive Lawn Bed & 11 Potted Olive Trees',
-    'حوض العشب وأشجار الزيتون الأمامية (11 شجرة)'
+    'Front Olive Lawn Bed & 5 Potted Olive Trees',
+    'حوض العشب وأشجار الزيتون الأمامية (5 أشجار)'
   );
   g.add(frontOliveGardenGroup);
 
@@ -7762,20 +7871,80 @@ async function buildStaticPolyHavenDecor() {
     }
   }
 
-  // Helper to build an identical Diamond-Lattice Fence segment between any 2D endpoints (x0, z0) -> (x1, z1)
+  // Helper to build an identical Diamond-Lattice Fence segment between any 2D endpoints (x0, z0) -> (x1, z1) with optional vertical elevation yOffset
   function addDiamondLatticeFenceLine(parentGrp, x0, z0, x1, z1, numBays, opts) {
     const dx = x1 - x0;
     const dz = z1 - z0;
     const segLen = Math.hypot(dx, dz);
     if (segLen < 0.25 || numBays < 1) return;
+    const yOff = (opts && typeof opts.yOffset === 'number') ? opts.yOffset : 0;
     const segGrp = new THREE.Group();
-    segGrp.position.set(x0, 0, z0);
+    segGrp.position.set(x0, yOff, z0);
     segGrp.rotation.y = Math.atan2(-dz, dx);
     addDiamondLatticeFenceSegment(segGrp, 0, segLen, numBays, opts);
     parentGrp.add(segGrp);
   }
 
-  // Build the Short 2-Leaf Wooden Livestock Gate ("gatenya kini pendek dengan 2 daun pintu kayu (pagar ternak bukan garden)")
+  // Helper to build the Lower Plastered Masonry Wall (height = 1.12m, matching the wooden fence height) underneath the Wrap-Around Livestock Wooden Fence
+  // ("buat tembok dinding setinggi pagar kayu memutar seperti pagar kayu, baru letakkan pagar kayu di atasnya")
+  function addLivestockMasonryWallLine(parentGrp, x0, z0, x1, z1, wallH, opts) {
+    const dx = x1 - x0;
+    const dz = z1 - z0;
+    const rawLen = Math.hypot(dx, dz);
+    if (rawLen < 0.12) return;
+    const extStart = (opts && typeof opts.extendStart === 'number') ? opts.extendStart : 0;
+    const extEnd = (opts && typeof opts.extendEnd === 'number') ? opts.extendEnd : 0;
+    const totalLen = rawLen + extStart + extEnd;
+    if (totalLen < 0.12) return;
+
+    const ux = dx / rawLen;
+    const uz = dz / rawLen;
+    const sx = x0 - ux * extStart;
+    const sz = z0 - uz * extStart;
+    const ex = x1 + ux * extEnd;
+    const ez = z1 + uz * extEnd;
+    const cx = (sx + ex) * 0.5;
+    const cz = (sz + ez) * 0.5;
+    const rotY = Math.atan2(-dz, dx);
+
+    const wallThick = 0.22;
+    const trimThick = 0.256;
+    const wallGrp = new THREE.Group();
+    wallGrp.position.set(cx, 0, cz);
+    wallGrp.rotation.y = rotY;
+
+    // 1. Plastered Tunisian Masonry Wall Body (y = 0.04m .. wallH - 0.035m)
+    const bodyH = Math.max(0.20, wallH - 0.075);
+    const bodyGeo = new THREE.BoxGeometry(totalLen, bodyH, wallThick);
+    applyWorldBoxUVs(bodyGeo, 0.35);
+    const bodyMesh = new THREE.Mesh(bodyGeo, wallMaterials.courtyard);
+    bodyMesh.position.set(0, 0.04 + bodyH * 0.5, 0);
+    bodyMesh.castShadow = true;
+    bodyMesh.receiveShadow = true;
+    wallGrp.add(bodyMesh);
+
+    // 2. Golden Stone Base Plinth Collar (y = 0.00m .. 0.052m)
+    const baseGeo = new THREE.BoxGeometry(totalLen + 0.016, 0.052, trimThick);
+    applyWorldBoxUVs(baseGeo, 0.35);
+    const baseMesh = new THREE.Mesh(baseGeo, matArchTrim);
+    baseMesh.position.set(0, 0.026, 0);
+    baseMesh.castShadow = true;
+    baseMesh.receiveShadow = true;
+    wallGrp.add(baseMesh);
+
+    // 3. Golden Stone Top Coping Cap (y = wallH - 0.042m .. wallH, directly supporting the wooden fence on top!)
+    const capGeo = new THREE.BoxGeometry(totalLen + 0.020, 0.044, trimThick);
+    applyWorldBoxUVs(capGeo, 0.35);
+    const capMesh = new THREE.Mesh(capGeo, matArchTrim);
+    capMesh.position.set(0, wallH - 0.022, 0);
+    capMesh.castShadow = true;
+    capMesh.receiveShadow = true;
+    wallGrp.add(capMesh);
+
+    parentGrp.add(wallGrp);
+  }
+
+  // Build the Tall Full-Height 2-Leaf Wooden Livestock Gate ("untuk pintu, tetap gate kayu tapi kali ini lebih tinggi, setinggi jumlah dinding dan kayu d tumpuk")
   const matLivestockGateIron = new THREE.MeshStandardMaterial({
     color: 0x26292e,
     roughness: 0.38,
@@ -7788,11 +7957,13 @@ async function buildStaticPolyHavenDecor() {
     while (gateSubGrp.children.length > 0) {
       gateSubGrp.remove(gateSubGrp.children[0]);
     }
-    const gateHalfW = 0.725; // Post center-to-center X (+/-0.725m -> outer gate width = 1.56m)
-    const postThick = 0.112;
-    const postH = 1.14; // Short livestock gate post matching the 1.12m diamond-lattice fence height (NO garden arch!)
+    const gateHalfW = 0.725; // Post center-to-center X (+/-0.725m -> outer gate width = 1.58m)
+    const postThick = 0.124;
+    const wallH = 1.12;
+    const fenceH = 1.12;
+    const postH = wallH + fenceH + 0.02; // 2.26m tall = full stacked height of 1.12m lower masonry wall + 1.12m upper wooden fence!
 
-    // 1. Left & Right Short Square Wooden Gate Hinge Posts (with base plinth, chamfered neck groove & beveled cap)
+    // 1. Left & Right Full-Height Square Wooden Gate Hinge Posts (with base plinth, mid-wall belt collar at y = 1.12m, chamfered neck groove & beveled cap)
     [-gateHalfW, gateHalfW].forEach((px) => {
       const postBody = new THREE.Mesh(new THREE.BoxGeometry(postThick, postH - 0.08, postThick), matFenceWood);
       postBody.position.set(px, (postH - 0.08) * 0.5, 0);
@@ -7800,100 +7971,107 @@ async function buildStaticPolyHavenDecor() {
       postBody.receiveShadow = true;
       gateSubGrp.add(postBody);
 
-      const footCollar = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.024, 0.044, postThick + 0.024), matFenceWoodCap);
-      footCollar.position.set(px, 0.022, 0);
+      const footCollar = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.032, 0.052, postThick + 0.032), matFenceWoodCap);
+      footCollar.position.set(px, 0.026, 0);
       gateSubGrp.add(footCollar);
+
+      // Mid-height timber & stone transition collar at y = 1.12m (aligned with the top coping of the lower masonry wall)
+      const midCollar = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.024, 0.046, postThick + 0.024), matFenceWoodCap);
+      midCollar.position.set(px, wallH, 0);
+      gateSubGrp.add(midCollar);
 
       const postNeck = new THREE.Mesh(new THREE.BoxGeometry(postThick * 0.86, 0.022, postThick * 0.86), matFenceWoodCap);
       postNeck.position.set(px, postH - 0.072, 0);
       gateSubGrp.add(postNeck);
 
-      const postCap = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.016, 0.068, postThick + 0.016), matFenceWoodCap);
+      const postCap = new THREE.Mesh(new THREE.BoxGeometry(postThick + 0.020, 0.068, postThick + 0.020), matFenceWoodCap);
       postCap.position.set(px, postH - 0.032, 0);
       postCap.castShadow = true;
       gateSubGrp.add(postCap);
     });
 
-    // 2. Two Short Hinged Wooden Gate Leaves ("2 daun pintu kayu")
+    // 2. Two Tall Full-Height Hinged Wooden Gate Leaves ("tetap gate kayu tapi kali ini lebih tinggi, setinggi jumlah dinding dan kayu d tumpuk")
     const leafW = 0.648; // Each leaf spans 0.648m from hinge pivot toward center x = 0
     const buildSingleGateLeaf = (isLeft) => {
       const dir = isLeft ? 1 : -1;
       const pivot = new THREE.Group();
       pivot.name = isLeft ? 'leftGateLeafPivot' : 'rightGateLeafPivot';
-      pivot.position.set(isLeft ? -(gateHalfW - postThick * 0.55) : (gateHalfW - postThick * 0.55), 0, 0);
+      pivot.position.set(isLeft ? -(gateHalfW - postThick * 0.52) : (gateHalfW - postThick * 0.52), 0, 0);
 
-      // Outer Hinge Stile & Inner Center Latch Stile (y = 0.12m .. 0.99m)
+      // Outer Hinge Stile & Inner Center Latch Stile spanning full stacked height (y = 0.08m .. 2.18m, height = 2.10m)
       [0.032, leafW - 0.032].forEach((sx) => {
-        const stile = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.87, 0.052), matFenceWood);
-        stile.position.set(dir * sx, 0.555, 0);
+        const stile = new THREE.Mesh(new THREE.BoxGeometry(0.064, 2.10, 0.054), matFenceWood);
+        stile.position.set(dir * sx, 1.13, 0);
         stile.castShadow = true;
         stile.receiveShadow = true;
         pivot.add(stile);
       });
 
-      // Bottom, Middle & Top Horizontal Timber Rails (matching the fence rail heights!)
-      [0.17, 0.55, 0.93].forEach((ry) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(leafW, 0.068, 0.046), matFenceWood);
+      // 4 Horizontal Timber Rails across the tall gate leaf (bottom, lower-mid, upper-mid at wall-top 1.12m, and top rail at 2.05m)
+      [0.16, 0.64, 1.12, 1.60, 2.05].forEach((ry) => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(leafW, 0.068, 0.048), matFenceWood);
         rail.position.set(dir * (leafW * 0.5), ry, 0);
         rail.castShadow = true;
         rail.receiveShadow = true;
         pivot.add(rail);
       });
 
-      // Top Chamfered Cap Rail across the leaf (y = 0.982m)
-      const leafCap = new THREE.Mesh(new THREE.BoxGeometry(leafW + 0.008, 0.032, 0.060), matFenceWoodCap);
-      leafCap.position.set(dir * (leafW * 0.5), 0.982, 0);
+      // Top Chamfered Cap Rail across the tall wooden leaf (y = 2.185m)
+      const leafCap = new THREE.Mesh(new THREE.BoxGeometry(leafW + 0.008, 0.034, 0.062), matFenceWoodCap);
+      leafCap.position.set(dir * (leafW * 0.5), 2.185, 0);
       leafCap.castShadow = true;
       pivot.add(leafCap);
 
-      // 5 Vertical Wooden Paddock Planks / Slats inside each leaf frame
+      // 5 Full-Height Vertical Wooden Paddock Planks / Slats inside each leaf frame (y = 0.12m .. 2.10m)
       const numPlanks = 5;
       const innerStart = 0.088;
       const innerEnd = leafW - 0.088;
       for (let p = 0; p < numPlanks; p++) {
         const t = numPlanks > 1 ? p / (numPlanks - 1) : 0.5;
         const px = innerStart + t * (innerEnd - innerStart);
-        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.076, 0.78, 0.026), matFenceWoodCap);
-        plank.position.set(dir * px, 0.55, 0);
+        const plank = new THREE.Mesh(new THREE.BoxGeometry(0.078, 1.98, 0.026), matFenceWoodCap);
+        plank.position.set(dir * px, 1.11, 0);
         plank.castShadow = true;
         plank.receiveShadow = true;
         pivot.add(plank);
       }
 
-      // Classic Livestock Barn Diagonal Z-Brace Crossbar (from bottom-hinge corner up to top-center corner)
-      const x0 = dir * 0.055, y0 = 0.19;
-      const x1 = dir * (leafW - 0.055), y1 = 0.91;
-      const braceLen = Math.hypot(x1 - x0, y1 - y0);
-      const braceAng = Math.atan2(y1 - y0, x1 - x0);
-      [-0.018, 0.018].forEach((bz) => {
-        const brace = new THREE.Mesh(new THREE.BoxGeometry(braceLen, 0.054, 0.018), matFenceWoodCap);
-        brace.position.set((x0 + x1) * 0.5, (y0 + y1) * 0.5, bz);
-        brace.rotation.z = braceAng;
-        brace.castShadow = true;
-        pivot.add(brace);
+      // Double-Tier Livestock Barn Diagonal Z-Brace Crossbars (lower bay y = 0.18..1.10m and upper bay y = 1.14..2.03m)
+      [[0.18, 1.10], [1.14, 2.03]].forEach(([y0, y1]) => {
+        const x0 = dir * 0.055;
+        const x1 = dir * (leafW - 0.055);
+        const braceLen = Math.hypot(x1 - x0, y1 - y0);
+        const braceAng = Math.atan2(y1 - y0, x1 - x0);
+        [-0.018, 0.018].forEach((bz) => {
+          const brace = new THREE.Mesh(new THREE.BoxGeometry(braceLen, 0.052, 0.018), matFenceWoodCap);
+          brace.position.set((x0 + x1) * 0.5, (y0 + y1) * 0.5, bz);
+          brace.rotation.z = braceAng;
+          brace.castShadow = true;
+          pivot.add(brace);
+        });
       });
 
-      // 2 Forged Black Wrought-Iron Strap Hinges per leaf (at y = 0.17m & y = 0.93m)
-      [0.17, 0.93].forEach((hy) => {
-        const strap = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.034, 0.058), matLivestockGateIron);
-        strap.position.set(dir * 0.11, hy, 0);
+      // 3 Forged Black Wrought-Iron Strap Hinges per tall leaf (at y = 0.20m, y = 1.12m, and y = 2.02m)
+      [0.20, 1.12, 2.02].forEach((hy) => {
+        const strap = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.036, 0.060), matLivestockGateIron);
+        strap.position.set(dir * 0.12, hy, 0);
         strap.castShadow = true;
         pivot.add(strap);
 
-        const knuckle = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.068, 10), matLivestockGateIron);
+        const knuckle = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.072, 10), matLivestockGateIron);
         knuckle.position.set(0, hy, 0);
         pivot.add(knuckle);
       });
 
-      // Central Livestock Gate Sliding Latch & Ring Handle near the meeting stile
-      const latchPlate = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.042, 0.060), matLivestockGateIron);
-      latchPlate.position.set(dir * (leafW - 0.048), 0.58, 0);
+      // Central Livestock Gate Sliding Latch & Ring Handle at comfortable hand height (y = 1.12m)
+      const latchPlate = new THREE.Mesh(new THREE.BoxGeometry(0.088, 0.046, 0.062), matLivestockGateIron);
+      latchPlate.position.set(dir * (leafW - 0.048), 1.12, 0);
       pivot.add(latchPlate);
 
       if (isLeft) {
         // Sliding iron throw bolt bridging the two wooden gate leaves at center
-        const latchBolt = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.022, 0.068), matLivestockGateIron);
-        latchBolt.position.set(leafW - 0.01, 0.58, 0);
+        const latchBolt = new THREE.Mesh(new THREE.BoxGeometry(0.165, 0.024, 0.070), matLivestockGateIron);
+        latchBolt.position.set(leafW - 0.01, 1.12, 0);
         pivot.add(latchBolt);
       }
 
@@ -7948,17 +8126,16 @@ async function buildStaticPolyHavenDecor() {
     const ud = fGrp.userData;
 
     // ========================================================================
-    // CASE A: WRAP-AROUND LIVESTOCK WOODEN FENCE ("pagar kayu berputar" with Short 2-Leaf Wooden Gate)
-    //   - Leg 1 (East Side): starts flush outside the Livestock Cabin North wall/trim (by = -4.79m -> local x = +3.00, z = +4.79)
-    //     and runs straight back (+by / -z) to the outer back-right corner (bx = 12.00, by = +5.00 -> local x = +3.00, z = -5.00)
-    //   - Leg 2 (North/Back Side): turns 90° West (-bx) from (local x = +3.00, z = -5.00) to flush outside the Main House
-    //     back-right podium/wall trim (bx = 6.20, by = +5.00 -> local x = -2.80, z = -5.00), eliminating any overlap with the Main House!
-    //   - Shared single corner post at (xCorner, zCorner) and shared gate hinge posts at +/-gateHalfW eliminate all double-post overlaps!
+    // CASE A: WRAP-AROUND LIVESTOCK MASONRY WALL (1.12M) + WOODEN FENCE ON TOP (1.12M -> 2.24M)
+    //         & TALL 2-LEAF WOODEN GATE (2.26M) THAT AUTOMATICALLY CARVES THE LOWER MASONRY WALL
+    //   - "buat tembok dinding setinggi pagar kayu memutar seperti pagar kayu, baru letakkan pagar kayu di atasnya."
+    //   - "untuk pintu, tetap gate kayu tapi kali ini lebih tinggi, setinggi jumlah dinding dan kayu d tumpuk. pintu kayu ktika d move, otomatis melubangi posisi dinding bawah."
     // ========================================================================
     if (ud.isLivestockTurnFence) {
       if (!gateGrp.userData.hasBuiltLivestockGate) {
         buildLivestockDoubleGateMesh(gateGrp);
       }
+      const wallH = 1.12; // Lower plastered masonry wall height = 1.12m (matching the 1.12m wooden fence stacked on top!)
       const gateHalfW = 0.725; // Matches buildLivestockDoubleGateMesh post center-to-center (+/-0.725m)
       const gateW = gateHalfW * 2.0; // 1.45m center-to-center between the 2 gate hinge posts
       ud.gateWidth = gateW;
@@ -7999,10 +8176,15 @@ async function buildStaticPolyHavenDecor() {
         const baysSouth = Math.max(1, Math.round(spanSouth / (eastLen / leftPanels)));
         const baysNorth = Math.max(1, Math.round(spanNorth / (eastLen / leftPanels)));
 
-        // Connect directly into the gate's South & North hinge posts (skipEndPost / skipStartPost) and share a single corner post at (xCorner, zCorner)!
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, baysSouth, { skipEndPost: true });
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, baysNorth, { skipStartPost: true });
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, rightPanels, { skipStartPost: true });
+        // 1. Lower 1.12m Masonry Wall (automatically carved open between zGateSouth and zGateNorth where the tall wooden gate stands!)
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, wallH, { extendEnd: -0.05 });
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, wallH, { extendStart: -0.05, extendEnd: 0.11 });
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, wallH, { extendStart: -0.11 });
+
+        // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, baysSouth, { skipEndPost: true, yOffset: wallH });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, baysNorth, { skipStartPost: true, yOffset: wallH });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, rightPanels, { skipStartPost: true, yOffset: wallH });
       } else {
         // Gate has turned 90° onto Leg 2 (North/Back Side, by = +5.00m) -> oriented East-West (rotation.y = 0)
         const s = Math.max(minS2, Math.min(maxS2, rawS));
@@ -8020,10 +8202,15 @@ async function buildStaticPolyHavenDecor() {
         const baysEast = Math.max(1, Math.round(spanEast / (northLen / rightPanels)));
         const baysWest = Math.max(1, Math.round(spanWest / (northLen / rightPanels)));
 
-        // East leg builds the single shared corner post at (xCorner, zCorner); North leg segments skip the corner post & gate hinge posts!
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels);
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, baysEast, { skipStartPost: true, skipEndPost: true });
-        addDiamondLatticeFenceLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, baysWest, { skipStartPost: true });
+        // 1. Lower 1.12m Masonry Wall (East leg solid, North leg automatically carved open between xGateEast and xGateWest where the tall wooden gate stands!)
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, wallH, { extendEnd: 0.11 });
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, wallH, { extendStart: -0.11, extendEnd: -0.05 });
+        addLivestockMasonryWallLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, wallH, { extendStart: -0.05 });
+
+        // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels, { yOffset: wallH });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, baysEast, { skipStartPost: true, skipEndPost: true, yOffset: wallH });
+        addDiamondLatticeFenceLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, baysWest, { skipStartPost: true, yOffset: wallH });
       }
 
       // Ground contact AO strips under both legs of the wrap-around fence (clamped strictly between post endpoints so they never overlap the walls!)
@@ -8890,7 +9077,257 @@ function setSelectionHighlight(obj, active) {
   });
 }
 
+let multiSelectedOlives = [];
+window.multiSelectedOlives = multiSelectedOlives;
+
+function clearMultiSelectedOlives(keepObj) {
+  for (let i = 0; i < multiSelectedOlives.length; i++) {
+    const ol = multiSelectedOlives[i];
+    if (ol && ol !== keepObj) {
+      setSelectionHighlight(ol, false);
+    }
+  }
+  multiSelectedOlives.length = 0;
+  if (keepObj && keepObj.userData && keepObj.userData.isIndividualSmallOlive) {
+    multiSelectedOlives.push(keepObj);
+  }
+}
+
+function toggleOliveMultiSelection(oliveObj) {
+  if (!oliveObj || !oliveObj.userData || !oliveObj.userData.isIndividualSmallOlive) return;
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive && !multiSelectedOlives.includes(selectedObject)) {
+    multiSelectedOlives.push(selectedObject);
+  } else if (selectedObject && (!selectedObject.userData || !selectedObject.userData.isIndividualSmallOlive)) {
+    setSelectionHighlight(selectedObject, false);
+    selectedObject = null;
+  }
+
+  const idx = multiSelectedOlives.indexOf(oliveObj);
+  if (idx !== -1) {
+    if (multiSelectedOlives.length > 1) {
+      multiSelectedOlives.splice(idx, 1);
+      setSelectionHighlight(oliveObj, false);
+      selectedObject = multiSelectedOlives[multiSelectedOlives.length - 1];
+    }
+  } else {
+    multiSelectedOlives.push(oliveObj);
+    setSelectionHighlight(oliveObj, true);
+    selectedObject = oliveObj;
+  }
+
+  multiSelectedOlives.forEach(ol => setSelectionHighlight(ol, true));
+  updateSelectedHudText();
+  if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+}
+window.toggleOliveMultiSelection = toggleOliveMultiSelection;
+
+function toggleSelectedSmallOlivePot() {
+  const targets = (multiSelectedOlives.length > 0)
+    ? multiSelectedOlives.filter(o => o && o.userData && o.userData.isIndividualSmallOlive)
+    : ((selectedObject && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive) ? [selectedObject] : []);
+  if (targets.length === 0 || typeof window.populateSmallOliveTreeGeometry !== 'function') return;
+
+  const nextHasPot = !targets[0].userData.hasPot;
+  targets.forEach((ol, i) => {
+    setSelectionHighlight(ol, false);
+    const seed = Math.round(Math.abs(ol.position.x * 7 + ol.position.z * 11)) + i;
+    window.populateSmallOliveTreeGeometry(ol, nextHasPot, seed);
+    ol.userData.hasPot = nextHasPot;
+    ol.userData.labelEn = nextHasPot ? 'Small Olive Tree (Single — With Pot)' : 'Small Olive Tree (Single — Without Pot)';
+    ol.userData.labelAr = nextHasPot ? 'شجرة زيتون صغيرة فردية (مع أصيص)' : 'شجرة زيتون صغيرة فردية (بدون أصيص)';
+    ol.updateMatrixWorld(true);
+    setSelectionHighlight(ol, true);
+  });
+  updateSelectedHudText();
+  requestShadowUpdate();
+}
+window.toggleSelectedSmallOlivePot = toggleSelectedSmallOlivePot;
+
+function buildGrassBedForSelectedOlives(customOlivesArray) {
+  const rawList = Array.isArray(customOlivesArray) && customOlivesArray.length > 0
+    ? customOlivesArray
+    : (multiSelectedOlives.length > 0
+        ? multiSelectedOlives.slice()
+        : ((selectedObject && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive) ? [selectedObject] : []));
+  const olives = rawList.filter(o => o && o.userData && o.userData.isIndividualSmallOlive && draggableObjects.includes(o));
+  if (olives.length === 0) return null;
+
+  // 1. Collect world positions of the selected individual small olives and order them along their principal line
+  const pts = olives.map((ol, i) => ({
+    ol,
+    x: ol.position.x,
+    y: ol.position.y,
+    z: ol.position.z,
+    ry: ol.rotation.y,
+    sf: ol.userData.scaleFactor || 1.0,
+    hasPot: !!ol.userData.hasPot,
+    idx: i
+  }));
+
+  let cx = 0, cz = 0;
+  pts.forEach(p => { cx += p.x; cz += p.z; });
+  cx /= pts.length;
+  cz /= pts.length;
+
+  if (pts.length >= 2) {
+    let sxx = 0, szz = 0, sxz = 0;
+    pts.forEach(p => {
+      const dx = p.x - cx;
+      const dz = p.z - cz;
+      sxx += dx * dx;
+      szz += dz * dz;
+      sxz += dx * dz;
+    });
+    const theta = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+    const ax = Math.cos(theta);
+    const az = Math.sin(theta);
+    pts.sort((a, b) => ((a.x - cx) * ax + (a.z - cz) * az) - ((b.x - cx) * ax + (b.z - cz) * az));
+  }
+
+  const baseGroundY = pts[0].y;
+  const customBedGroup = new THREE.Group();
+
+  // Helper to construct a manicured lawn bed + golden stone trim + spiky 3D grass tufts along a segment (pA -> pB)
+  const addGrassBedSegment = (pA, pB, extStart, extEnd, segSeed) => {
+    const dx = pB.x - pA.x;
+    const dz = pB.z - pA.z;
+    const rawDist = Math.hypot(dx, dz);
+    const ux = rawDist > 0.001 ? (dx / rawDist) : 1.0;
+    const uz = rawDist > 0.001 ? (dz / rawDist) : 0.0;
+    const sx = pA.x - ux * extStart;
+    const sz = pA.z - uz * extStart;
+    const ex = pB.x + ux * extendEndVal(extEnd);
+    const ez = pB.z + uz * extendEndVal(extEnd);
+    function extendEndVal(v) { return typeof v === 'number' ? v : 0.80; }
+    const bedLen = Math.max(1.55, rawDist + extStart + extendEndVal(extEnd));
+    const mx = (sx + ex) * 0.5;
+    const mz = (sz + ez) * 0.5;
+    const angY = rawDist > 0.001 ? Math.atan2(-dz, dx) : 0;
+
+    const segGrp = new THREE.Group();
+    segGrp.position.set(mx, baseGroundY, mz);
+    segGrp.rotation.y = angY;
+
+    const lawnGeo = new THREE.BoxGeometry(bedLen, 0.054, 1.55);
+    applyWorldBoxUVs(lawnGeo, 0.45);
+    const lawnMesh = new THREE.Mesh(lawnGeo, window.matLawnBed);
+    lawnMesh.position.set(0, 0.032, 0);
+    lawnMesh.castShadow = false;
+    lawnMesh.receiveShadow = true;
+    segGrp.add(lawnMesh);
+
+    const trimGeo = new THREE.BoxGeometry(bedLen + 0.12, 0.038, 1.65);
+    applyWorldBoxUVs(trimGeo, 0.35);
+    const trimMesh = new THREE.Mesh(trimGeo, matArchTrim);
+    trimMesh.position.set(0, 0.019, 0);
+    trimMesh.castShadow = false;
+    trimMesh.receiveShadow = true;
+    segGrp.add(trimMesh);
+
+    const halfSpan = Math.max(0.35, bedLen * 0.5 - 0.25);
+    for (let lx = -halfSpan; lx <= halfSpan + 0.01; lx += 0.60) {
+      const tFront = createSpikyGrassTuft(0.30, 0.22 + (Math.abs(Math.round(lx * 10)) % 3) * 0.03, 48, lx * 2.3 + segSeed + 11.0);
+      tFront.position.set(lx, 0.045, 0.52);
+      segGrp.add(tFront);
+
+      const tBack = createSpikyGrassTuft(0.30, 0.23 + (Math.abs(Math.round(lx * 7)) % 3) * 0.03, 48, -lx * 2.9 + segSeed + 23.0);
+      tBack.position.set(lx, 0.045, -0.52);
+      segGrp.add(tBack);
+    }
+    customBedGroup.add(segGrp);
+  };
+
+  if (pts.length === 1) {
+    addGrassBedSegment(pts[0], pts[0], 0.85, 0.85, 1.0);
+  } else {
+    // Check if the selected olives are roughly collinear along pts[0] -> pts[last]
+    const pFirst = pts[0];
+    const pLast = pts[pts.length - 1];
+    const ldx = pLast.x - pFirst.x;
+    const ldz = pLast.z - pFirst.z;
+    const lineLen = Math.hypot(ldx, ldz);
+    let maxPerp = 0;
+    if (lineLen > 0.05) {
+      for (let i = 1; i < pts.length - 1; i++) {
+        const perp = Math.abs((pts[i].x - pFirst.x) * (-ldz) + (pts[i].z - pFirst.z) * ldx) / lineLen;
+        if (perp > maxPerp) maxPerp = perp;
+      }
+    }
+    if (maxPerp <= 0.32) {
+      // Single continuous line grass bed spanning from the first selected olive to the last selected olive
+      addGrassBedSegment(pFirst, pLast, 0.80, 0.80, 5.0);
+    } else {
+      // Multi-segment polyline grass bed following each consecutive pair of selected olives
+      for (let i = 0; i < pts.length - 1; i++) {
+        addGrassBedSegment(
+          pts[i],
+          pts[i + 1],
+          i === 0 ? 0.80 : 0.44,
+          i === pts.length - 2 ? 0.80 : 0.44,
+          i * 13.0 + 7.0
+        );
+      }
+    }
+
+    // Add ornamental spiky grass clusters at the midpoints between consecutive selected olives
+    for (let i = 0; i < pts.length - 1; i++) {
+      const midX = (pts[i].x + pts[i + 1].x) * 0.5;
+      const midZ = (pts[i].z + pts[i + 1].z) * 0.5;
+      const tallTuft = createSpikyGrassTuft(0.38, 0.34, 64, i * 5.1 + 41.0);
+      tallTuft.position.set(midX, baseGroundY + 0.045, midZ);
+      customBedGroup.add(tallTuft);
+    }
+  }
+
+  // 2. Reparent all selected olives into `customBedGroup` and permanently disable per-olive individual actions
+  // ("setelah d buat, maka olives2, dan alas rumput otomatis mnjadi 1 group object yg apapun aksi brikutnya akan d lakukan satu kesatuan group bukan per biji lagi. aksi per biji hanya bisa d lakukan untuk sebelum d beri alas rumput.")
+  pts.forEach((p) => {
+    const ol = p.ol;
+    setSelectionHighlight(ol, false);
+    const dIdx = draggableObjects.indexOf(ol);
+    if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
+    if (ol.parent) ol.parent.remove(ol);
+
+    ol.userData.draggable = false;
+    ol.userData.isIndividualSmallOlive = false;
+    ol.position.set(p.x, baseGroundY + 0.045, p.z);
+    ol.rotation.y = p.ry;
+    customBedGroup.add(ol);
+    if (window.smallOliveTrees && !window.smallOliveTrees.includes(ol)) {
+      window.smallOliveTrees.push(ol);
+    }
+  });
+
+  multiSelectedOlives.length = 0;
+  selectedObject = null;
+
+  attachNpcTargetWorld(
+    customBedGroup,
+    new THREE.Vector3(cx, baseGroundY, cz + 0.95),
+    new THREE.Vector3(cx, baseGroundY, cz)
+  );
+  customBedGroup.userData.npcActivityId = 'WATER_OLIVE_GARDEN';
+  customBedGroup.userData.isCustomOliveBedGroup = true;
+  customBedGroup.userData.groupedOliveCount = pts.length;
+
+  const groupLabelEn = `Custom Olive Lawn Bed (${pts.length} Olive Trees)`;
+  const groupLabelAr = `حوض عشب وأشجار زيتون مخصص (${pts.length} أشجار)`;
+  const parentGrp = (baseGroundY > 2.20) ? roofGroup : furnGroups.staticDecor;
+  parentGrp.add(customBedGroup);
+  registerDraggable(customBedGroup, groupLabelEn, groupLabelAr);
+  // Update catalog template so copying/pasting this custom group always clones the latest merged layout
+  if (OBJECT_CATALOG_REGISTRY.has(groupLabelEn)) {
+    OBJECT_CATALOG_REGISTRY.get(groupLabelEn).template = customBedGroup.clone(true);
+  }
+
+  selectObject(customBedGroup);
+  requestShadowUpdate();
+  return customBedGroup;
+}
+window.buildGrassBedForSelectedOlives = buildGrassBedForSelectedOlives;
+
 function selectObject(obj) {
+  clearMultiSelectedOlives(obj);
   if (obj && obj.userData && obj.userData.npcActivityId) {
     const actId = obj.userData.npcActivityId;
     if (actId === 'WATER_LEFT_POTS') window.activeWaterPot = obj;
@@ -8912,6 +9349,7 @@ function selectObject(obj) {
 }
 
 function deselectObject() {
+  clearMultiSelectedOlives(null);
   selectObject(null);
 }
 
@@ -8933,6 +9371,9 @@ function updateSelectedHudText() {
   const delBtn = document.getElementById('btn-hud-delete');
   const fenceCtrl = document.getElementById('fence-hud-controls');
   const animalCtrl = document.getElementById('animal-hud-controls');
+  const oliveCtrl = document.getElementById('olive-hud-controls');
+  const olivePotBtn = document.getElementById('btn-hud-olive-pot');
+  const oliveGrassBtn = document.getElementById('btn-hud-olive-grass');
   const radDecBtn = document.getElementById('btn-animal-rad-dec');
   const radIncBtn = document.getElementById('btn-animal-rad-inc');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
@@ -8949,6 +9390,7 @@ function updateSelectedHudText() {
     if (deselBtn) deselBtn.style.display = 'none';
     if (fenceCtrl) fenceCtrl.style.display = 'none';
     if (animalCtrl) animalCtrl.style.display = 'none';
+    if (oliveCtrl) oliveCtrl.style.display = 'none';
     if (copyBtn) copyBtn.style.display = 'none';
     if (delBtn) delBtn.style.display = 'none';
     if (pasteBtn) pasteBtn.style.display = copiedObjectBlueprint ? 'inline-block' : 'none';
@@ -8958,9 +9400,15 @@ function updateSelectedHudText() {
     if (rotRBtn) rotRBtn.style.display = 'inline-block';
     if (rot90Btn) rot90Btn.style.display = 'inline-block';
   } else {
-    const lbl = state.lang === 'ar'
-      ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
-      : selectedObject.userData.labelEn;
+    const isSingleOlive = !!(selectedObject.userData && selectedObject.userData.isIndividualSmallOlive);
+    const oliveSelCount = isSingleOlive ? Math.max(1, multiSelectedOlives.length) : 0;
+    const lbl = (oliveSelCount > 1)
+      ? (state.lang === 'ar'
+          ? `${oliveSelCount} أشجار زيتون صغيرة محددة (Shift+Click)`
+          : `${oliveSelCount} Small Olive Trees Selected (Shift+Click)`)
+      : (state.lang === 'ar'
+          ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
+          : selectedObject.userData.labelEn);
     const isWalkway = !!(selectedObject.userData && selectedObject.userData.isDynamicLWalkway);
     const sf = selectedObject.userData.scaleFactor || 1.0;
     const scaleTag = (!isWalkway && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
@@ -8981,6 +9429,17 @@ function updateSelectedHudText() {
     }
     if (animalCtrl) {
       animalCtrl.style.display = isAnimal ? 'inline-flex' : 'none';
+    }
+    if (oliveCtrl) {
+      oliveCtrl.style.display = isSingleOlive ? 'inline-flex' : 'none';
+      if (isSingleOlive) {
+        if (olivePotBtn) {
+          olivePotBtn.textContent = selectedObject.userData.hasPot ? t('btnOlivePotOn') : t('btnOlivePotOff');
+        }
+        if (oliveGrassBtn) {
+          oliveGrassBtn.textContent = `${t('btnOliveBuildGrass')} (${oliveSelCount})`;
+        }
+      }
     }
     const transformDisp = isWalkway ? 'none' : 'inline-block';
     if (smallBtn) smallBtn.style.display = transformDisp;
@@ -9079,6 +9538,12 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   }
 
   // SELECT-FIRST RULE (or immediate select-and-drag for autonomous roaming animals!):
+  // When Shift is held on an individual small olive, do not start dragging so pointerup toggles multi-selection cleanly!
+  if (e.shiftKey && downHitRoot && downHitRoot.userData && downHitRoot.userData.isIndividualSmallOlive) {
+    isDraggingObject = false;
+    isDraggingFenceGate = false;
+    return;
+  }
   if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isAnimal && selectedObject !== downHitRoot) {
     selectObject(downHitRoot);
   }
@@ -9222,14 +9687,18 @@ window.addEventListener('pointerup', (e) => {
     return;
   }
 
-  // Single click (< 6px): toggle door/window if clicked on opening, else select object (or deselect on empty floor/sky)
+  // Single click (< 6px): toggle door/window if clicked on opening, else select object (or Shift+Click multi-select on individual small olive trees!)
   if (dist < 6) {
     if (downOpeningRoot) {
       downOpeningRoot.userData.isOpenPermanent = !downOpeningRoot.userData.isOpenPermanent;
       downOpeningRoot.userData.openSign = 1;
       requestShadowUpdate();
     } else if (downHitRoot) {
-      selectObject(downHitRoot);
+      if (e.shiftKey && downHitRoot.userData && downHitRoot.userData.isIndividualSmallOlive) {
+        toggleOliveMultiSelection(downHitRoot);
+      } else {
+        selectObject(downHitRoot);
+      }
     } else {
       deselectObject();
     }
@@ -9408,6 +9877,15 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   cloned.userData.baseScale = entry.baseScale ? entry.baseScale.clone() : new THREE.Vector3(1, 1, 1);
   cloned.userData.keepTrunkBasePivot = !!entry.keepTrunkBasePivot;
   cloned.userData.npcActivityId = entry.npcActivityId || null;
+  cloned.userData.isIndividualSmallOlive = !!entry.isIndividualSmallOlive;
+  cloned.userData.hasPot = (customOpts && typeof customOpts.hasPot === 'boolean') ? customOpts.hasPot : !!entry.hasPot;
+  if (cloned.userData.isIndividualSmallOlive && typeof window.populateSmallOliveTreeGeometry === 'function') {
+    const seed = Math.round(Math.random() * 100);
+    window.populateSmallOliveTreeGeometry(cloned, cloned.userData.hasPot, seed);
+    if (window.smallOliveTrees && !window.smallOliveTrees.includes(cloned)) {
+      window.smallOliveTrees.push(cloned);
+    }
+  }
 
   // If the original anchored L-walkway is already in the scene, make any extra spawned/pasted L-walkway freely movable/rotatable/resizable!
   if (entry.isDynamicLWalkway) {
@@ -9578,42 +10056,50 @@ function deleteSelectedObject() {
     deleteSelectedAnimal();
     return;
   }
-  const targetObj = selectedObject;
+  const targetsToDelete = (multiSelectedOlives.length > 1 && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive)
+    ? multiSelectedOlives.slice()
+    : [selectedObject];
   deselectObject();
 
-  const dIdx = draggableObjects.indexOf(targetObj);
-  if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
+  targetsToDelete.forEach((targetObj) => {
+    if (!targetObj) return;
+    const dIdx = draggableObjects.indexOf(targetObj);
+    if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
 
-  if (window.leftTerracePots) {
-    const pIdx = window.leftTerracePots.indexOf(targetObj);
-    if (pIdx !== -1) window.leftTerracePots.splice(pIdx, 1);
-  }
-  if (window.majlisSofas) {
-    const mIdx = window.majlisSofas.indexOf(targetObj);
-    if (mIdx !== -1) window.majlisSofas.splice(mIdx, 1);
-  }
-  if (window.roofSofas) {
-    window.roofSofas = window.roofSofas.filter(s => s !== targetObj && !isDescendantOf(s, targetObj));
-  }
-  if (window.bonfireFlameMeshes) {
-    window.bonfireFlameMeshes = window.bonfireFlameMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
-  }
-  if (window.bonfireSparkMeshes) {
-    window.bonfireSparkMeshes = window.bonfireSparkMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
-  }
-  if (window.bonfireLocalSmokeClouds) {
-    window.bonfireLocalSmokeClouds = window.bonfireLocalSmokeClouds.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
-  }
-  if (window.tunisianBonfireObj === targetObj) {
-    window.tunisianBonfireObj = draggableObjects.find(o => o.userData && o.userData.labelEn === 'Tunisian Stone & Brick Bonfire Pit') || null;
-  }
-  if (window.woodenFenceObj === targetObj) {
-    window.woodenFenceObj = draggableObjects.find(o => o.userData && o.userData.isWoodenFence) || null;
-  }
+    if (window.smallOliveTrees) {
+      window.smallOliveTrees = window.smallOliveTrees.filter(ol => ol !== targetObj && !isDescendantOf(ol, targetObj));
+    }
+    if (window.leftTerracePots) {
+      const pIdx = window.leftTerracePots.indexOf(targetObj);
+      if (pIdx !== -1) window.leftTerracePots.splice(pIdx, 1);
+    }
+    if (window.majlisSofas) {
+      const mIdx = window.majlisSofas.indexOf(targetObj);
+      if (mIdx !== -1) window.majlisSofas.splice(mIdx, 1);
+    }
+    if (window.roofSofas) {
+      window.roofSofas = window.roofSofas.filter(s => s !== targetObj && !isDescendantOf(s, targetObj));
+    }
+    if (window.bonfireFlameMeshes) {
+      window.bonfireFlameMeshes = window.bonfireFlameMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+    }
+    if (window.bonfireSparkMeshes) {
+      window.bonfireSparkMeshes = window.bonfireSparkMeshes.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+    }
+    if (window.bonfireLocalSmokeClouds) {
+      window.bonfireLocalSmokeClouds = window.bonfireLocalSmokeClouds.filter(item => item && item.mesh && !isDescendantOf(item.mesh, targetObj));
+    }
+    if (window.tunisianBonfireObj === targetObj) {
+      window.tunisianBonfireObj = draggableObjects.find(o => o.userData && o.userData.labelEn === 'Tunisian Stone & Brick Bonfire Pit') || null;
+    }
+    if (window.woodenFenceObj === targetObj) {
+      window.woodenFenceObj = draggableObjects.find(o => o.userData && o.userData.isWoodenFence) || null;
+    }
 
-  if (targetObj.parent) {
-    targetObj.parent.remove(targetObj);
-  }
+    if (targetObj.parent) {
+      targetObj.parent.remove(targetObj);
+    }
+  });
   requestShadowUpdate();
 }
 
@@ -14397,7 +14883,7 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Moroccan Brass Wall Lantern","x":3.38,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":5.52,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-0.016,"y":-0.564,"z":8.039,"ry":0,"s":1},
-  {"labelEn":"Front Olive Lawn Bed & 11 Potted Olive Trees","x":5.965,"y":-0.5,"z":19.8,"ry":0,"s":1},
+  {"labelEn":"Front Olive Lawn Bed & 5 Potted Olive Trees","x":5.965,"y":-0.5,"z":19.8,"ry":0,"s":1},
   {"labelEn":"Giant Mediterranean Shade Tree (6.8m)","x":-9.355,"y":-0.596,"z":9.081,"ry":0,"s":1},
   {"labelEn":"Detailed Mediterranean Orange Tree (4.4m)","x":11.197,"y":-0.5,"z":9.382,"ry":0,"s":0.797},
   {"labelEn":"Tunisian Stone & Brick Bonfire Pit","x":14.793,"y":-0.5,"z":17.841,"ry":0,"s":1},
@@ -14431,7 +14917,8 @@ function applyLayoutPositions(layoutList) {
     const normLabel = (sp.labelEn || '')
       .replace('Tunisian Post-Swim Floor Lounge (Lesehan)', 'Tunisian Post-Swim Floor Lounge')
       .replace('Cabin Terrace Tunisian Floor Sofa (Lesehan)', 'Cabin Terrace Tunisian Floor Sofa')
-      .replace('Rooftop Tunisian Floor Sofa & Meja Lesehan', 'Rooftop Tunisian Floor Sofa & Low Table');
+      .replace('Rooftop Tunisian Floor Sofa & Meja Lesehan', 'Rooftop Tunisian Floor Sofa & Low Table')
+      .replace('Front Olive Lawn Bed & 11 Potted Olive Trees', 'Front Olive Lawn Bed & 5 Potted Olive Trees');
     let bestObj = null;
     let bestScore = Infinity;
     for (let i = 0; i < draggableObjects.length; i++) {
