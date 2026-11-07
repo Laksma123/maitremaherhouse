@@ -69,6 +69,52 @@
     background: linear-gradient(135deg, #1d4e89, #102f54);
     border: 1px solid #59a5ff; color: #fff; font-weight: 700;
   }
+  .btn-animals {
+    background: linear-gradient(135deg, #10b981, #047857);
+    border: 1px solid #6ee7b7; color: #fff; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.42);
+  }
+  .btn-animals:hover, .btn-animals.active {
+    background: linear-gradient(135deg, #34d399, #059669);
+    border-color: #fff; color: #fff;
+  }
+  #animal-deploy-panel {
+    pointer-events: auto;
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: rgba(12, 22, 28, 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid #34d399; border-radius: 12px;
+    padding: 7px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.65);
+    width: fit-content;
+  }
+  .animal-panel-title {
+    font-size: 11.5px; font-weight: 800; color: #6ee7b7; margin-right: 2px;
+  }
+  .btn-spawn-chicken {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+    border: 1px solid #fde68a; color: #fff; font-weight: 700;
+  }
+  .btn-spawn-chicken:hover {
+    background: linear-gradient(135deg, #fbbf24, #d97706); border-color: #fff;
+  }
+  .btn-spawn-cow {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: 1px solid #93c5fd; color: #fff; font-weight: 700;
+  }
+  .btn-spawn-cow:hover {
+    background: linear-gradient(135deg, #60a5fa, #2563eb); border-color: #fff;
+  }
+  .animal-count-badge {
+    background: rgba(255,255,255,0.10); border: 1px solid rgba(110, 231, 183, 0.38);
+    border-radius: 8px; padding: 4px 9px; font-size: 11px; font-weight: 700; color: var(--gold-bright);
+  }
+  .hud-btn.btn-delete-animal {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border-color: #fca5a5; color: #fff; font-weight: 700;
+  }
+  .hud-btn.btn-delete-animal:hover {
+    background: linear-gradient(135deg, #f87171, #dc2626);
+    border-color: #fff; color: #fff;
+  }
   #mode-strip {
     display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
     pointer-events: none;
@@ -197,6 +243,8 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="./maitre_maher_npc_data.js"></script>
 <script src="./maher_wife_npc_data.js"></script>
+<script src="./animal_cow_data.js"></script>
+<script src="./animal_chicken_data.js"></script>
 </head>
 <body>
 
@@ -206,6 +254,7 @@
   <div id="top-bar">
     <div class="top-actions">
       <button class="btn-pill btn-photoshoot" id="btn-photoshoot" onclick="startPhotoshootRender()">📸 Photoshoot (Blender Render)</button>
+      <button class="btn-pill btn-animals" id="btn-deploy-animals" onclick="toggleAnimalDeployPanel()">🐾 Deploy Animals</button>
       <button class="btn-pill btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">🇹🇳 العربية التونسية</button>
       <button class="btn-pill" id="btn-roof-toggle" onclick="toggleRoof()">🏠 Open Roof (Cutaway)</button>
       <button class="btn-pill active" id="btn-time-sunset" onclick="setTimeOfDay('sunset')">🌅 Sunset</button>
@@ -215,6 +264,14 @@
       <button class="btn-pill" id="btn-export-layout" onclick="exportLayoutToClipboard()">📋 Copy Layout</button>
       <button class="btn-pill" id="btn-reset" onclick="resetDesign()">🔄 Reset</button>
     </div>
+  </div>
+
+  <div id="animal-deploy-panel">
+    <span class="animal-panel-title" id="ui-animal-panel-title">🐾 Deploy Animals (Unlimited):</span>
+    <button class="btn-pill btn-spawn-chicken" id="btn-spawn-chicken" onclick="deployAnimal('chicken')">🐔 + Chicken (Ayam)</button>
+    <button class="btn-pill btn-spawn-cow" id="btn-spawn-cow" onclick="deployAnimal('cow')">🐄 + Cow (Sapi)</button>
+    <span class="animal-count-badge" id="animal-count-badge">🐔 0 | 🐄 0</span>
+    <button class="btn-pill" id="btn-close-animal-panel" onclick="toggleAnimalDeployPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
 
   <div id="mode-strip">
@@ -266,6 +323,11 @@
     <button class="hud-btn" id="btn-fence-gate-right" onclick="slideWoodenFenceGate(0.65)" title="Slide Gate Right Along Fence Line">Gate ▶</button>
     <button class="hud-btn" id="btn-fence-right-dec" onclick="adjustWoodenFencePanels('right', -1)" title="Reduce Right Fence Panels">Right Fence ➖▶</button>
     <button class="hud-btn" id="btn-fence-right-inc" onclick="adjustWoodenFencePanels('right', 1)" title="Extend Right Fence Panels">Right Fence ➕▶</button>
+  </span>
+  <span id="animal-hud-controls" style="display:none; gap:6px; align-items:center;">
+    <button class="hud-btn" id="btn-animal-rad-dec" onclick="adjustSelectedAnimalRadius(-0.35)" title="Smaller Roam Radius">⭕ Area -</button>
+    <button class="hud-btn" id="btn-animal-rad-inc" onclick="adjustSelectedAnimalRadius(0.35)" title="Larger Roam Radius">⭕ Area +</button>
+    <button class="hud-btn btn-delete-animal" id="btn-hud-delete-animal" onclick="deleteSelectedAnimal()" title="Delete Selected Animal (Del / Backspace)">🗑️ Delete Animal</button>
   </span>
   <button class="hud-btn" id="btn-hud-smaller" onclick="scaleSelected(1/1.12)" title="Smaller (Arrow Down)">➖ Smaller (↓)</button>
   <button class="hud-btn" id="btn-hud-bigger" onclick="scaleSelected(1.12)" title="Bigger (Arrow Up)">➕ Bigger (↑)</button>
@@ -339,7 +401,14 @@ const I18N = {
     psDone: '✨ Blender-Grade Photoshoot Render Complete (24x AA + Soft GI + AgX Contrast)',
     psDownload: '⬇️ Download High-Res PNG',
     psClose: '✖ Close',
-    savedMsg: '✅ Villa layout saved to browser storage!'
+    savedMsg: '✅ Villa layout saved to browser storage!',
+    btnDeployAnimals: '🐾 Deploy Animals',
+    animalPanelTitle: '🐾 Deploy Animals (Unlimited):',
+    btnSpawnChicken: '🐔 + Chicken (Ayam)',
+    btnSpawnCow: '🐄 + Cow (Sapi)',
+    btnDeleteAnimal: '🗑️ Delete Animal',
+    btnAreaMinus: '⭕ Area -',
+    btnAreaPlus: '⭕ Area +'
   },
   ar: {
     appTitle: 'فيلا تونسية وعربية عصرية 3D',
@@ -380,7 +449,14 @@ const I18N = {
     psDone: '✨ اكتمل الرندر الواقعي بنجاح (إضاءة وظلال Blender الفائقة)',
     psDownload: '⬇️ تحميل الصورة بجودة عالية PNG',
     psClose: '✖ إغلاق',
-    savedMsg: '✅ تم حفظ التصميم بنجاح!'
+    savedMsg: '✅ تم حفظ التصميم بنجاح!',
+    btnDeployAnimals: '🐾 إضافة حيوانات',
+    animalPanelTitle: '🐾 إضافة حيوانات (بلا حدود):',
+    btnSpawnChicken: '🐔 + دجاجة (Chicken)',
+    btnSpawnCow: '🐄 + بقرة (Cow)',
+    btnDeleteAnimal: '🗑️ حذف الحيوان',
+    btnAreaMinus: '⭕ نطاق -',
+    btnAreaPlus: '⭕ نطاق +'
   }
 };
 
@@ -7907,6 +7983,7 @@ function updatePointer(e) {
 
 function setSelectionHighlight(obj, active) {
   if (!obj) return;
+  if (obj.userData && obj.userData.isAnimal) return;
   obj.traverse(ch => {
     if (ch.isMesh && ch.material && ch.material.emissive && !ch.userData.isLed) {
       if (active) {
@@ -7937,12 +8014,14 @@ function selectObject(obj) {
   }
   if (selectedObject === obj) {
     updateSelectedHudText();
+    if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
     return;
   }
   if (selectedObject) setSelectionHighlight(selectedObject, false);
   selectedObject = obj;
   if (selectedObject) setSelectionHighlight(selectedObject, true);
   updateSelectedHudText();
+  if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
 }
 
 function deselectObject() {
@@ -7959,13 +8038,21 @@ function updateSelectedHudText() {
   const rotRBtn = document.getElementById('btn-hud-rot-r');
   const rot90Btn = document.getElementById('btn-hud-rot-90');
   const fenceCtrl = document.getElementById('fence-hud-controls');
+  const animalCtrl = document.getElementById('animal-hud-controls');
+  const delAnimalBtn = document.getElementById('btn-hud-delete-animal');
+  const radDecBtn = document.getElementById('btn-animal-rad-dec');
+  const radIncBtn = document.getElementById('btn-animal-rad-inc');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
   if (bigBtn) bigBtn.textContent = t('btnBigger');
+  if (delAnimalBtn) delAnimalBtn.textContent = t('btnDeleteAnimal');
+  if (radDecBtn) radDecBtn.textContent = t('btnAreaMinus');
+  if (radIncBtn) radIncBtn.textContent = t('btnAreaPlus');
   if (!selectedObject) {
     el.textContent = t('hudDefault');
     if (openBtn) openBtn.style.display = 'none';
     if (deselBtn) deselBtn.style.display = 'none';
     if (fenceCtrl) fenceCtrl.style.display = 'none';
+    if (animalCtrl) animalCtrl.style.display = 'none';
     if (smallBtn) smallBtn.style.display = 'inline-block';
     if (bigBtn) bigBtn.style.display = 'inline-block';
     if (rotLBtn) rotLBtn.style.display = 'inline-block';
@@ -7982,9 +8069,16 @@ function updateSelectedHudText() {
     const fenceTag = isFence
       ? ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}]`
       : '';
-    el.textContent = t('hudSelected') + lbl + fenceTag + scaleTag;
+    const isAnimal = !!(selectedObject.userData && selectedObject.userData.isAnimal);
+    const animalTag = (isAnimal && selectedObject.userData.animalState)
+      ? ` [Roam R: ${selectedObject.userData.animalState.roamRadius.toFixed(1)}m]`
+      : '';
+    el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + scaleTag;
     if (fenceCtrl) {
       fenceCtrl.style.display = isFence ? 'inline-flex' : 'none';
+    }
+    if (animalCtrl) {
+      animalCtrl.style.display = isAnimal ? 'inline-flex' : 'none';
     }
     const transformDisp = isWalkway ? 'none' : 'inline-block';
     if (smallBtn) smallBtn.style.display = transformDisp;
@@ -8064,7 +8158,10 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     return;
   }
 
-  // SELECT-FIRST RULE: Only drag if the user pressed down on the ALREADY-SELECTED object!
+  // SELECT-FIRST RULE (or immediate select-and-drag for autonomous roaming animals!):
+  if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isAnimal && selectedObject !== downHitRoot) {
+    selectObject(downHitRoot);
+  }
   if (downHitRoot && downHitRoot === selectedObject) {
     if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) {
       dragPlane.constant = 0.50;
@@ -8133,6 +8230,21 @@ window.addEventListener('pointermove', (e) => {
     }
     selectedObject.position.x = planeIntersect.x + dragOffset.x;
     selectedObject.position.z = planeIntersect.z + dragOffset.z;
+    if (selectedObject.userData && selectedObject.userData.isAnimal) {
+      const surfY = (typeof getAnimalSurfaceY === 'function')
+        ? getAnimalSurfaceY(selectedObject.position.x, selectedObject.position.z, selectedObject)
+        : selectedObject.position.y;
+      selectedObject.position.y = surfY;
+      const st = selectedObject.userData.animalState;
+      if (st) {
+        st.homeX = selectedObject.position.x;
+        st.homeZ = selectedObject.position.z;
+        st.homeY = surfY;
+        st.targetX = st.homeX;
+        st.targetZ = st.homeZ;
+      }
+      if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+    }
     requestShadowUpdate();
   }
 });
@@ -8193,6 +8305,12 @@ function rotateSelected(deltaRad) {
   if (!selectedObject) return;
   if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) return;
   selectedObject.rotation.y += deltaRad;
+  if (selectedObject.userData && selectedObject.userData.isAnimal && selectedObject.userData.animalState) {
+    const st = selectedObject.userData.animalState;
+    st.state = 'IDLE';
+    st.stateTimer = Math.max(st.stateTimer || 0, 3.0);
+    if (typeof playAnimalClip === 'function') playAnimalClip(st, 'idle', 0.20);
+  }
   selectedObject.updateMatrixWorld(true);
   requestShadowUpdate();
 }
@@ -8213,6 +8331,12 @@ function scaleSelected(factor) {
 
 window.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
+  // Delete / Backspace removes the currently selected deployed animal
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isAnimal && viewMode !== 'walk' && (e.key === 'Delete' || e.key === 'Backspace')) {
+    e.preventDefault();
+    if (typeof deleteSelectedAnimal === 'function') deleteSelectedAnimal();
+    return;
+  }
   // When any selectable 3D object is selected (in non-walk mode), ArrowUp = Bigger and ArrowDown = Smaller (preserving composition)
   if (selectedObject && viewMode !== 'walk' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
     e.preventDefault();
@@ -8550,6 +8674,10 @@ function updateStaticUIStrings() {
   setText('btn-time-day', t('day'));
   setText('btn-time-night', t('night'));
   setText('btn-photoshoot', t('photoshoot'));
+  setText('btn-deploy-animals', t('btnDeployAnimals'));
+  setText('ui-animal-panel-title', t('animalPanelTitle'));
+  setText('btn-spawn-chicken', t('btnSpawnChicken'));
+  setText('btn-spawn-cow', t('btnSpawnCow'));
   setText('btn-save', t('save'));
   setText('btn-reset', t('reset'));
 
@@ -8603,6 +8731,7 @@ async function startPhotoshootRender() {
   if (selectedObject) setSelectionHighlight(selectedObject, false);
   if (window.maherBadgeSprite) window.maherBadgeSprite.visible = false;
   if (window.wifeBadgeSprite) window.wifeBadgeSprite.visible = false;
+  if (window.animalRoamRingGroup) window.animalRoamRingGroup.visible = false;
 
   const w = renderer.domElement.width;
   const h = renderer.domElement.height;
@@ -8670,6 +8799,7 @@ async function startPhotoshootRender() {
   if (selectedObject) setSelectionHighlight(selectedObject, true);
   if (window.maherBadgeSprite) window.maherBadgeSprite.visible = true;
   if (window.wifeBadgeSprite) window.wifeBadgeSprite.visible = true;
+  if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
   if (composer) composer.render();
   else renderer.render(scene, activeCamera);
 
@@ -8727,19 +8857,26 @@ function downloadPhotoshootImage() {
 }
 
 function buildCurrentLayoutPayload() {
-  return draggableObjects.map(o => ({
-    labelEn: o.userData.labelEn,
-    x: +o.position.x.toFixed(3),
-    y: +o.position.y.toFixed(3),
-    z: +o.position.z.toFixed(3),
-    ry: +o.rotation.y.toFixed(4),
-    s: +(o.userData.scaleFactor || 1.0).toFixed(3),
-    leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
-    rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
-    gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined,
-    endBx: o.userData.isDynamicLWalkway ? +o.userData.endBx.toFixed(3) : undefined,
-    walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined
-  }));
+  return draggableObjects.map(o => {
+    const isAnim = !!(o.userData && o.userData.isAnimal);
+    const animSt = isAnim ? o.userData.animalState : null;
+    return {
+      labelEn: o.userData.labelEn,
+      x: +(animSt ? animSt.homeX : o.position.x).toFixed(3),
+      y: +(animSt ? animSt.homeY : o.position.y).toFixed(3),
+      z: +(animSt ? animSt.homeZ : o.position.z).toFixed(3),
+      ry: +o.rotation.y.toFixed(4),
+      s: +(o.userData.scaleFactor || 1.0).toFixed(3),
+      isAnimal: isAnim ? true : undefined,
+      animalType: isAnim ? o.userData.animalType : undefined,
+      roamRadius: animSt ? +animSt.roamRadius.toFixed(2) : undefined,
+      leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
+      rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
+      gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined,
+      endBx: o.userData.isDynamicLWalkway ? +o.userData.endBx.toFixed(3) : undefined,
+      walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined
+    };
+  });
 }
 
 function saveDesign() {
@@ -11956,6 +12093,691 @@ function updateMaherNpcAndParticles(dt) {
 }
 
 // ============================================================================
+// INTERACTIVE 3D ANIMAL DEPLOYMENT, MOVE, RESIZE, DELETE & LOGICAL ROAM-RADIUS AI
+// Supports unlimited Chickens (animal_chicken.glb) & Cows (animal_cow.glb) anywhere!
+// ============================================================================
+const deployedAnimalsGroup = new THREE.Group();
+scene.add(deployedAnimalsGroup);
+const deployedAnimals = [];
+window.deployedAnimals = deployedAnimals;
+
+const animalTemplates = {
+  chicken: { loaded: false, scene: null, clips: {}, pending: [] },
+  cow: { loaded: false, scene: null, clips: {}, pending: [] }
+};
+let animalCounter = { chicken: 0, cow: 0 };
+
+// 3D Roam Area Boundary Ring shown on the ground whenever an animal is selected or dragged
+const animalRoamRingGroup = new THREE.Group();
+animalRoamRingGroup.visible = false;
+scene.add(animalRoamRingGroup);
+window.animalRoamRingGroup = animalRoamRingGroup;
+
+(function buildAnimalRoamRingVisual() {
+  // Unit-radius (r = 1.0) segmented dashed ring + subtle translucent inner disc + center anchor pin
+  const dashCount = 36;
+  const dashMat = new THREE.MeshBasicMaterial({
+    color: 0x34d399,
+    transparent: true,
+    opacity: 0.78,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const ringHolder = new THREE.Group();
+  ringHolder.name = 'RoamDashHolder';
+  for (let i = 0; i < dashCount; i++) {
+    const a0 = (i / dashCount) * Math.PI * 2;
+    const a1 = ((i + 0.58) / dashCount) * Math.PI * 2;
+    const rGeo = new THREE.RingGeometry(0.965, 1.000, 6, 1, a0, a1 - a0);
+    rGeo.rotateX(-Math.PI / 2);
+    const seg = new THREE.Mesh(rGeo, dashMat);
+    ringHolder.add(seg);
+  }
+  animalRoamRingGroup.add(ringHolder);
+
+  const fillGeo = new THREE.CircleGeometry(0.965, 48);
+  fillGeo.rotateX(-Math.PI / 2);
+  const fillMat = new THREE.MeshBasicMaterial({
+    color: 0x10b981,
+    transparent: true,
+    opacity: 0.08,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const fillMesh = new THREE.Mesh(fillGeo, fillMat);
+  fillMesh.name = 'RoamFillDisc';
+  animalRoamRingGroup.add(fillMesh);
+
+  const pinGeo = new THREE.RingGeometry(0.04, 0.11, 20);
+  pinGeo.rotateX(-Math.PI / 2);
+  const pinMat = new THREE.MeshBasicMaterial({
+    color: 0xfde68a,
+    transparent: true,
+    opacity: 0.85,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const pinMesh = new THREE.Mesh(pinGeo, pinMat);
+  pinMesh.position.y = 0.004;
+  animalRoamRingGroup.add(pinMesh);
+})();
+
+function updateAnimalRoamRing() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isAnimal || !selectedObject.userData.animalState) {
+    animalRoamRingGroup.visible = false;
+    return;
+  }
+  const st = selectedObject.userData.animalState;
+  const r = st.roamRadius || 2.0;
+  animalRoamRingGroup.visible = true;
+  animalRoamRingGroup.position.set(st.homeX, st.homeY + 0.018, st.homeZ);
+  const holder = animalRoamRingGroup.getObjectByName('RoamDashHolder');
+  const fill = animalRoamRingGroup.getObjectByName('RoamFillDisc');
+  if (holder) holder.scale.set(r, 1, r);
+  if (fill) fill.scale.set(r, 1, r);
+}
+
+function toggleAnimalDeployPanel(forceState) {
+  const panel = document.getElementById('animal-deploy-panel');
+  const btn = document.getElementById('btn-deploy-animals');
+  if (!panel) return;
+  const isNowOpen = (typeof forceState === 'boolean') ? forceState : (panel.style.display !== 'flex');
+  panel.style.display = isNowOpen ? 'flex' : 'none';
+  if (btn) btn.classList.toggle('active', isNowOpen);
+  updateAnimalCountBadge();
+}
+
+function updateAnimalCountBadge() {
+  const badge = document.getElementById('animal-count-badge');
+  if (!badge) return;
+  let chickens = 0, cows = 0;
+  for (let i = 0; i < deployedAnimals.length; i++) {
+    if (deployedAnimals[i].type === 'chicken') chickens++;
+    else if (deployedAnimals[i].type === 'cow') cows++;
+  }
+  badge.textContent = `🐔 ${chickens} | 🐄 ${cows}`;
+}
+
+function cloneSkinnedHierarchy(sourceRoot) {
+  sourceRoot.updateMatrixWorld(true);
+  const sourceLookup = new Map();
+  const cloneLookup = new Map();
+  const clonedRoot = sourceRoot.clone();
+  clonedRoot.updateMatrixWorld(true);
+
+  function parallelWalk(a, b) {
+    sourceLookup.set(b, a);
+    cloneLookup.set(a, b);
+    for (let i = 0; i < a.children.length; i++) {
+      parallelWalk(a.children[i], b.children[i]);
+    }
+  }
+  parallelWalk(sourceRoot, clonedRoot);
+
+  clonedRoot.traverse((node) => {
+    if (!node.isSkinnedMesh) return;
+    const clonedMesh = node;
+    const sourceMesh = sourceLookup.get(node);
+    const sourceBones = sourceMesh.skeleton.bones;
+    const orderedCloneBones = sourceBones.map((sb) => cloneLookup.get(sb));
+    const clonedBoneInverses = sourceMesh.skeleton.boneInverses.map((inv) => inv.clone());
+    clonedMesh.bind(
+      new THREE.Skeleton(orderedCloneBones, clonedBoneInverses),
+      sourceMesh.bindMatrix ? sourceMesh.bindMatrix.clone() : clonedMesh.matrixWorld
+    );
+    clonedMesh.frustumCulled = false;
+    clonedMesh.castShadow = true;
+    clonedMesh.receiveShadow = false;
+    clonedMesh.raycast = function() {};
+    if (clonedMesh.material) {
+      clonedMesh.material = clonedMesh.material.clone();
+      clonedMesh.material.skinning = true;
+    }
+  });
+  return clonedRoot;
+}
+
+function loadSingleAnimalTemplate(type, b64VarName, localUrl, ghUrl) {
+  const tpl = animalTemplates[type];
+  const onGltfReady = (gltf) => {
+    const root = gltf.scene;
+    const toRemove = [];
+    root.traverse((ch) => {
+      if (ch.isMesh && ch.name && ch.name.includes('Icosphere')) {
+        toRemove.push(ch);
+        return;
+      }
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = false;
+        ch.frustumCulled = false;
+        // Disable expensive 56k-triangle SkinnedMesh raycast; we attach a lightweight hit-box proxy on each animalRoot
+        ch.raycast = function() {};
+        const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+        mats.forEach((m) => {
+          if (!m) return;
+          m.skinning = true;
+          m.roughness = (type === 'cow') ? 0.72 : 0.76;
+          m.metalness = 0.0;
+          m.envMapIntensity = 0.46;
+          m.userData = { customEnvIntensity: 0.46 };
+          if (m.map) m.map.encoding = THREE.sRGBEncoding;
+          m.needsUpdate = true;
+        });
+      }
+    });
+    toRemove.forEach((n) => { if (n.parent) n.parent.remove(n); });
+
+    // Normalize ground alignment so bottom of hooves/feet sits at local y = 0
+    root.updateMatrixWorld(true);
+    (gltf.animations || []).forEach((clip) => {
+      const nm = clip.name.toLowerCase();
+      if (nm.includes('walk')) tpl.clips.walk = clip;
+      else if (nm.includes('peck') || nm.includes('attack')) tpl.clips.peck = clip;
+      else if (nm.includes('idle') || nm.includes('scene')) tpl.clips.idle = clip;
+    });
+    if (!tpl.clips.idle && gltf.animations && gltf.animations.length > 0) {
+      tpl.clips.idle = gltf.animations[0];
+    }
+    if (!tpl.clips.walk && tpl.clips.idle) {
+      tpl.clips.walk = tpl.clips.idle;
+    }
+
+    tpl.scene = root;
+    tpl.loaded = true;
+    while (tpl.pending.length > 0) {
+      const req = tpl.pending.shift();
+      deployAnimal(type, req);
+    }
+    requestShadowUpdate();
+  };
+
+  const loadFromUrl = () => {
+    const firstUrl = (window.location.protocol === 'file:') ? ghUrl : localUrl;
+    gltfLoader.load(firstUrl, onGltfReady, undefined, () => {
+      gltfLoader.load(ghUrl, onGltfReady, undefined, (err) => {
+        console.warn('Could not load animal GLB:', type, err);
+      });
+    });
+  };
+
+  const b64Str = window[b64VarName];
+  if (b64Str && typeof b64Str === 'string') {
+    try {
+      const binStr = window.atob(b64Str);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+      gltfLoader.parse(bytes.buffer, '', onGltfReady, () => loadFromUrl());
+      return;
+    } catch (e) {
+      console.warn('Animal Base64 decode fallback:', type, e);
+    }
+  }
+  loadFromUrl();
+}
+
+function loadAnimalTemplates() {
+  loadSingleAnimalTemplate(
+    'chicken',
+    'ANIMAL_CHICKEN_GLB_B64',
+    './animal_chicken.glb',
+    'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/animal_chicken.glb'
+  );
+  loadSingleAnimalTemplate(
+    'cow',
+    'ANIMAL_COW_GLB_B64',
+    './animal_cow.glb',
+    'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/animal_cow.glb'
+  );
+}
+
+// Compute logical surface elevation (Y) anywhere in the 3D scene
+function getAnimalSurfaceY(wx, wz, animalObj, lockRoofHint) {
+  const insideMainFootprint = (wx >= -6.00 && wx <= 6.00 && wz >= -5.00 && wz <= 5.05);
+  if (insideMainFootprint) {
+    if (typeof lockRoofHint === 'number') {
+      return lockRoofHint > 2.0 ? 3.78 : 0.00;
+    }
+    if (viewMode === 'top2') return 3.78;
+    if (viewMode === 'top1' || !state.roofVisible) return 0.00;
+    // When roof is closed in 3D Orbit View: if camera is above roof or animal was already on roof, place on 2nd-floor rooftop (3.78m)
+    if (animalObj && animalObj.position.y > 2.0) return 3.78;
+    if (activeCamera && activeCamera.position.y > 4.0 && controls && controls.target.y > 2.0) return 3.78;
+    return 0.00;
+  }
+  // Shortened Pool Water Basin is off-limits; Pool Border Deck is at +0.04m
+  if (wx >= -10.88 && wx <= -7.52 && wz >= -1.58 && wz <= 7.78) {
+    return 0.04;
+  }
+  // Right Arched Courtyard Terrace
+  if (wz > 5.05 && wz <= 9.25 && wx >= 1.40 && wx <= 6.00) {
+    return -0.25;
+  }
+  // Left Concrete Terrace
+  if (wz > 5.05 && wz <= 7.15 && wx >= -7.45 && wx < 1.40) {
+    return -0.25;
+  }
+  // Shifted East Guest Cabin & New Cabin Front Terrace
+  if (wz > 9.20 && wz <= 16.55 && wx >= 12.00 && wx <= 18.00) {
+    return -0.25;
+  }
+  // Front Olive Lawn Bed (+3.2cm above soil)
+  if (window.frontOliveGardenObj) {
+    const fg = window.frontOliveGardenObj;
+    const fgs = fg.userData.scaleFactor || 1.0;
+    if (Math.abs(wx - fg.position.x) <= 11.35 * fgs && Math.abs(wz - fg.position.z) <= 1.15 * fgs) {
+      return -0.468;
+    }
+  }
+  return -0.50;
+}
+
+// Validate whether (wx, wz) is a logical walkable spot for an animal
+function isValidAnimalPosition(animal, wx, wz, expectedY) {
+  if (wx < -23.5 || wx > 23.5 || wz < -17.5 || wz > 25.5) return false;
+  // Never walk into the Swimming Pool water basin
+  if (wx >= -10.42 && wx <= -7.98 && wz >= -1.12 && wz <= 5.12) return false;
+
+  if (animal) {
+    const distFromHome = Math.hypot(wx - animal.homeX, wz - animal.homeZ);
+    if (distFromHome > animal.roamRadius + 0.04) return false;
+  }
+
+  const refY = (typeof expectedY === 'number') ? expectedY : (animal ? animal.homeY : -0.50);
+  const surfY = getAnimalSurfaceY(wx, wz, animal ? animal.root : null, refY);
+  // Keep animal on the same terrace/floor/yard tier (soil -0.50 and lawn -0.468 are both yard tier)
+  if (Math.abs(surfY - refY) > 0.065) return false;
+
+  // Check wall collisions on ground/terrace/interior levels
+  if (refY < 2.0 && typeof resolveWalkCollisions === 'function') {
+    const res = resolveWalkCollisions(wx, wz);
+    if (Math.hypot(res.x - wx, res.z - wz) > 0.015) return false;
+  }
+
+  // Avoid walking inside the Bonfire Pit, Terrace BBQ Grill, or large Tree Trunks
+  const curX = animal ? animal.root.position.x : wx;
+  const curZ = animal ? animal.root.position.z : wz;
+  const propsToAvoid = [
+    { obj: window.tunisianBonfireObj, rad: 1.35 },
+    { obj: window.terraceGrillObj, rad: 1.05 },
+    { obj: window.ancientOliveObj, rad: 0.75 },
+    { obj: window.giantShadeTreeObj, rad: 1.10 },
+    { obj: window.orangeTreeObj, rad: 0.65 },
+    { obj: window.poolDeckTableObj, rad: 0.85 }
+  ];
+  for (let i = 0; i < propsToAvoid.length; i++) {
+    const item = propsToAvoid[i];
+    if (!item.obj) continue;
+    const sc = item.obj.userData.scaleFactor || 1.0;
+    const minR = item.rad * sc;
+    const dNew = Math.hypot(wx - item.obj.position.x, wz - item.obj.position.z);
+    const dCur = Math.hypot(curX - item.obj.position.x, curZ - item.obj.position.z);
+    if (dNew < minR && (!animal || dNew < dCur)) return false;
+  }
+
+  // Avoid walking into other deployed animals
+  for (let i = 0; i < deployedAnimals.length; i++) {
+    const other = deployedAnimals[i];
+    if (other === animal) continue;
+    const myR = (animal && animal.type === 'cow') ? 0.72 : 0.32;
+    const otherR = (other.type === 'cow') ? 0.72 : 0.32;
+    const minSep = myR + otherR;
+    const dNew = Math.hypot(wx - other.root.position.x, wz - other.root.position.z);
+    const dCur = Math.hypot(curX - other.root.position.x, curZ - other.root.position.z);
+    if (dNew < minSep && (!animal || dNew < dCur)) return false;
+  }
+
+  return true;
+}
+
+function pickLogicalAnimalRoamTarget(animal) {
+  const curX = animal.root.position.x;
+  const curZ = animal.root.position.z;
+  const maxR = animal.roamRadius;
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const r = (0.25 + 0.72 * Math.sqrt(Math.random())) * maxR;
+    const theta = Math.random() * Math.PI * 2;
+    const tx = animal.homeX + Math.cos(theta) * r;
+    const tz = animal.homeZ + Math.sin(theta) * r;
+    if (Math.hypot(tx - curX, tz - curZ) < 0.32) continue;
+
+    // Verify 5 intermediate points along the segment so the animal never cuts across walls or ledges
+    let pathClear = true;
+    for (let s = 1; s <= 5; s++) {
+      const f = s / 5;
+      const sx = curX + (tx - curX) * f;
+      const sz = curZ + (tz - curZ) * f;
+      if (!isValidAnimalPosition(animal, sx, sz, animal.homeY)) {
+        pathClear = false;
+        break;
+      }
+    }
+    if (pathClear) {
+      return { x: tx, z: tz };
+    }
+  }
+  return null;
+}
+
+function playAnimalClip(animal, clipKey, fadeSec = 0.25) {
+  if (!animal || !animal.actions) return;
+  const nextAct = animal.actions[clipKey] || animal.actions.idle;
+  if (!nextAct || animal.activeAction === nextAct) return;
+  nextAct.reset().play();
+  if (animal.activeAction) {
+    animal.activeAction.crossFadeTo(nextAct, fadeSec, false);
+  }
+  animal.activeAction = nextAct;
+}
+
+function findSmartAnimalSpawnPosition(type) {
+  let baseX = 3.2, baseZ = 11.4;
+  if (viewMode === 'walk') {
+    baseX = walkState.pos.x - Math.sin(walkState.yaw) * 2.3;
+    baseZ = walkState.pos.z - Math.cos(walkState.yaw) * 2.3;
+  } else if (controls && controls.target) {
+    const isDefaultExterior = (
+      viewMode === 'orbit' &&
+      state.roofVisible &&
+      activeCamera.position.z > 11.0 &&
+      Math.abs(controls.target.x - 2.2) < 2.5 &&
+      Math.abs(controls.target.z - 6.6) < 2.8
+    );
+    if (isDefaultExterior) {
+      baseX = 3.10;
+      baseZ = 11.35;
+    } else {
+      baseX = controls.target.x;
+      baseZ = controls.target.z;
+    }
+  }
+
+  // If camera target happens to be over the pool water, shift onto the front pool lounge deck
+  if (baseX >= -10.35 && baseX <= -8.05 && baseZ >= -1.05 && baseZ <= 5.05) {
+    baseX = -9.20;
+    baseZ = 6.25;
+  }
+
+  const baseY = getAnimalSurfaceY(baseX, baseZ, null);
+  const minSep = (type === 'cow') ? 1.25 : 0.65;
+
+  // Golden-angle spiral search from (baseX, baseZ) so unlimited clicks never stack animals on top of each other
+  for (let i = 0; i < 40; i++) {
+    const r = (i === 0) ? 0 : (0.55 + i * 0.26);
+    const ang = i * 2.3999632;
+    const cx = baseX + Math.cos(ang) * r;
+    const cz = baseZ + Math.sin(ang) * r;
+    const cy = getAnimalSurfaceY(cx, cz, null, baseY);
+    if (Math.abs(cy - baseY) > 0.08) continue;
+
+    let tooClose = false;
+    for (let j = 0; j < deployedAnimals.length; j++) {
+      const other = deployedAnimals[j];
+      if (Math.hypot(cx - other.root.position.x, cz - other.root.position.z) < minSep) {
+        tooClose = true;
+        break;
+      }
+    }
+    if (!tooClose && isValidAnimalPosition(null, cx, cz, cy)) {
+      return { x: cx, y: cy, z: cz };
+    }
+  }
+  return { x: baseX, y: baseY, z: baseZ };
+}
+
+function deployAnimal(type, customOpts) {
+  if (type !== 'chicken' && type !== 'cow') type = 'chicken';
+  const tpl = animalTemplates[type];
+  if (!tpl || !tpl.loaded || !tpl.scene) {
+    if (tpl) tpl.pending.push(customOpts || null);
+    return null;
+  }
+
+  animalCounter[type] = (animalCounter[type] || 0) + 1;
+  const idx = animalCounter[type];
+  const isCow = (type === 'cow');
+
+  const animalRoot = new THREE.Group();
+  animalRoot.userData.noAutoRecenter = true;
+  animalRoot.userData.isAnimal = true;
+  animalRoot.userData.animalType = type;
+
+  // Clone SkinnedMesh & Skeleton from master template
+  const clonedModel = cloneSkinnedHierarchy(tpl.scene);
+  animalRoot.add(clonedModel);
+
+  // Add soft contact-shadow AO decal under hooves/feet
+  if (typeof addContactShadow === 'function') {
+    if (isCow) addContactShadow(animalRoot, 0.92, 1.85, 0.006, 0.34);
+    else addContactShadow(animalRoot, 0.38, 0.42, 0.005, 0.30);
+  }
+
+  // Add lightweight invisible hit-box proxy so clicking/selecting/dragging the animal with the mouse is 100% instant
+  const hitW = isCow ? 0.85 : 0.42;
+  const hitH = isCow ? 1.42 : 0.48;
+  const hitD = isCow ? 2.25 : 0.48;
+  const hitGeo = new THREE.BoxGeometry(hitW, hitH, hitD);
+  const hitMat = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    colorWrite: false
+  });
+  const hitBox = new THREE.Mesh(hitGeo, hitMat);
+  hitBox.position.set(0, hitH * 0.5, isCow ? -0.18 : 0.0);
+  hitBox.userData.isAODecal = true;
+  animalRoot.add(hitBox);
+
+  const spawn = (customOpts && typeof customOpts.x === 'number')
+    ? { x: customOpts.x, y: (typeof customOpts.y === 'number' ? customOpts.y : getAnimalSurfaceY(customOpts.x, customOpts.z, null)), z: customOpts.z }
+    : findSmartAnimalSpawnPosition(type);
+
+  animalRoot.position.set(spawn.x, spawn.y, spawn.z);
+  animalRoot.rotation.y = (customOpts && typeof customOpts.ry === 'number')
+    ? customOpts.ry
+    : (Math.random() * Math.PI * 2);
+
+  const labelEn = isCow ? `Holstein Dairy Cow #${idx}` : `White Farm Chicken #${idx}`;
+  const labelAr = isCow ? `بقرة هولشتاين #${idx}` : `دجاجة بيضاء #${idx}`;
+  registerDraggable(animalRoot, labelEn, labelAr);
+
+  if (customOpts && typeof customOpts.s === 'number' && customOpts.s > 0.1) {
+    animalRoot.userData.scaleFactor = customOpts.s;
+    animalRoot.scale.setScalar(customOpts.s);
+  }
+
+  deployedAnimalsGroup.add(animalRoot);
+
+  // Set up independent AnimationMixer & actions for this animal instance
+  const mixer = new THREE.AnimationMixer(clonedModel);
+  const actions = {};
+  if (tpl.clips.idle) {
+    actions.idle = mixer.clipAction(tpl.clips.idle);
+    actions.idle.timeScale = isCow ? 0.95 : 1.0;
+  }
+  if (tpl.clips.walk) {
+    actions.walk = mixer.clipAction(tpl.clips.walk);
+    actions.walk.timeScale = isCow ? 1.05 : 1.18;
+  }
+  if (tpl.clips.peck) {
+    actions.peck = mixer.clipAction(tpl.clips.peck);
+    actions.peck.timeScale = 0.85;
+  }
+
+  const defaultRadius = isCow ? 2.80 : 2.00;
+  const roamRadius = (customOpts && typeof customOpts.roamRadius === 'number')
+    ? Math.max(0.60, Math.min(8.00, customOpts.roamRadius))
+    : defaultRadius;
+
+  const animalState = {
+    type,
+    root: animalRoot,
+    model: clonedModel,
+    mixer,
+    actions,
+    activeAction: null,
+    homeX: spawn.x,
+    homeY: spawn.y,
+    homeZ: spawn.z,
+    roamRadius,
+    state: 'IDLE',
+    stateTimer: 0.6 + Math.random() * 1.4,
+    targetX: spawn.x,
+    targetZ: spawn.z,
+    walkSpeed: isCow ? 0.52 : 0.62,
+    shadowTick: Math.floor(Math.random() * 5)
+  };
+  animalRoot.userData.animalState = animalState;
+  deployedAnimals.push(animalState);
+
+  playAnimalClip(animalState, 'idle', 0.05);
+  // Randomize initial animation phase so multiple animals never move in robotic lockstep
+  if (animalState.activeAction) {
+    animalState.activeAction.time = Math.random() * 2.5;
+    mixer.update(0.01);
+  }
+
+  updateAnimalCountBadge();
+  if (!customOpts || !customOpts.skipSelect) {
+    selectObject(animalRoot);
+  }
+  requestShadowUpdate();
+  return animalRoot;
+}
+
+function adjustSelectedAnimalRadius(deltaR) {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isAnimal || !selectedObject.userData.animalState) return;
+  const st = selectedObject.userData.animalState;
+  st.roamRadius = Math.max(0.60, Math.min(8.00, st.roamRadius + deltaR));
+  updateSelectedHudText();
+  updateAnimalRoamRing();
+}
+
+function deleteSelectedAnimal() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isAnimal) return;
+  const targetObj = selectedObject;
+  const st = targetObj.userData.animalState;
+  deselectObject();
+
+  if (st && st.mixer) {
+    st.mixer.stopAllAction();
+  }
+  const aIdx = deployedAnimals.indexOf(st);
+  if (aIdx !== -1) deployedAnimals.splice(aIdx, 1);
+
+  const dIdx = draggableObjects.indexOf(targetObj);
+  if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
+
+  if (targetObj.parent) targetObj.parent.remove(targetObj);
+  updateAnimalCountBadge();
+  updateAnimalRoamRing();
+  requestShadowUpdate();
+}
+
+function updateDeployedAnimals(dt) {
+  if (deployedAnimals.length === 0) return;
+  let needShadow = false;
+
+  for (let i = 0; i < deployedAnimals.length; i++) {
+    const animal = deployedAnimals[i];
+    const root = animal.root;
+    if (!root) continue;
+
+    // Hide rooftop animals when viewing 1st-floor cutaway top view or when roof is hidden
+    if (root.position.y > 2.2 && (viewMode === 'top1' || !state.roofVisible)) {
+      root.visible = false;
+      continue;
+    } else {
+      root.visible = true;
+    }
+
+    // If user is actively dragging this animal, pause walking and lock its roam center to the dragged spot
+    if (isDraggingObject && selectedObject === root) {
+      animal.homeX = root.position.x;
+      animal.homeZ = root.position.z;
+      animal.homeY = root.position.y;
+      animal.state = 'IDLE';
+      animal.stateTimer = 0.8;
+      playAnimalClip(animal, 'idle', 0.15);
+      animal.mixer.update(dt);
+      continue;
+    }
+
+    if (animal.state === 'WALK') {
+      const dx = animal.targetX - root.position.x;
+      const dz = animal.targetZ - root.position.z;
+      const dist = Math.hypot(dx, dz);
+      const sf = Math.max(0.55, Math.min(1.65, root.userData.scaleFactor || 1.0));
+      const step = animal.walkSpeed * Math.sqrt(sf) * dt;
+
+      if (dist <= step + 0.03) {
+        root.position.x = animal.targetX;
+        root.position.z = animal.targetZ;
+        root.position.y = animal.homeY;
+        if (animal.type === 'chicken' && animal.actions.peck && Math.random() < 0.45) {
+          animal.state = 'PECK';
+          animal.stateTimer = 1.1 + Math.random() * 0.9;
+          playAnimalClip(animal, 'peck', 0.20);
+        } else {
+          animal.state = 'IDLE';
+          animal.stateTimer = (animal.type === 'cow') ? (3.5 + Math.random() * 4.2) : (1.8 + Math.random() * 2.8);
+          playAnimalClip(animal, 'idle', 0.25);
+        }
+      } else {
+        const nx = root.position.x + (dx / dist) * step;
+        const nz = root.position.z + (dz / dist) * step;
+        if (isValidAnimalPosition(animal, nx, nz, animal.homeY)) {
+          root.position.x = nx;
+          root.position.z = nz;
+          root.position.y = animal.homeY;
+          const targetYaw = Math.atan2(dx, dz);
+          let diff = targetYaw - root.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          const turnRate = (animal.type === 'chicken') ? 9.5 : 5.2;
+          root.rotation.y += diff * Math.min(1.0, dt * turnRate);
+        } else {
+          // Path blocked inside radius: pause and pick a new logical spot next cycle
+          animal.state = 'IDLE';
+          animal.stateTimer = 1.2 + Math.random() * 1.5;
+          playAnimalClip(animal, 'idle', 0.22);
+        }
+      }
+    } else {
+      // IDLE or PECK state inside the roam radius
+      animal.stateTimer -= dt;
+      if (animal.stateTimer <= 0) {
+        if (animal.state === 'PECK') {
+          animal.state = 'IDLE';
+          animal.stateTimer = 1.2 + Math.random() * 1.8;
+          playAnimalClip(animal, 'idle', 0.22);
+        } else {
+          const nextTarget = pickLogicalAnimalRoamTarget(animal);
+          if (nextTarget) {
+            animal.targetX = nextTarget.x;
+            animal.targetZ = nextTarget.z;
+            animal.state = 'WALK';
+            playAnimalClip(animal, 'walk', 0.25);
+          } else {
+            animal.state = 'IDLE';
+            animal.stateTimer = 2.0 + Math.random() * 2.0;
+            playAnimalClip(animal, 'idle', 0.25);
+          }
+        }
+      }
+    }
+
+    animal.mixer.update(dt);
+    animal.shadowTick = (animal.shadowTick + 1) % 5;
+    if (animal.shadowTick === 0) needShadow = true;
+  }
+
+  if (needShadow) requestShadowUpdate();
+}
+
+// ============================================================================
 // BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (70 OBJECTS)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
@@ -12035,6 +12857,18 @@ function applyLayoutPositions(layoutList) {
   if (!layoutList || !Array.isArray(layoutList)) return;
   const usedObjs = new Set();
   layoutList.forEach((sp) => {
+    if (sp && sp.isAnimal && sp.animalType) {
+      deployAnimal(sp.animalType, {
+        x: sp.x,
+        y: sp.y,
+        z: sp.z,
+        ry: sp.ry,
+        s: sp.s,
+        roamRadius: sp.roamRadius,
+        skipSelect: true
+      });
+      return;
+    }
     let bestObj = null;
     let bestScore = Infinity;
     for (let i = 0; i < draggableObjects.length; i++) {
@@ -12103,9 +12937,10 @@ async function initApp() {
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
-  // Load Maître Maher & Mme Maher (Wife) 3D NPCs in the villa
+  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken & Cow 3D Animal Templates
   loadMaitreMaherNPC();
   loadMaherWifeNPC();
+  loadAnimalTemplates();
 
   await Promise.all([
     rebuildCategory('bed'),
@@ -12159,6 +12994,7 @@ function animate(now) {
   updateTunisiaNewsBroadcast(nowMs);
   updateWalkAndOpenings(dt);
   updateMaherNpcAndParticles(dt);
+  updateDeployedAnimals(dt);
   if (viewMode !== 'walk') controls.update();
   if (composer) {
     if (renderPass) renderPass.camera = activeCamera;
