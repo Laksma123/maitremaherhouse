@@ -2951,24 +2951,29 @@ function buildStaticArchitecture() {
 
   // ==========================================================================
   // 2. OUTDOOR BBQ GRILL STATION WITH DEDICATED SMALL ROOF CANOPY
-  //    Replaces old square/circle fountain at bx = 4.85, by = -7.95, bz = -0.25
-  //    Features glowing charcoal embers, cast-iron grates, 3D grilled fish & beef steaks, and a small pitched roof canopy!
+  //    ("1. meja grill d terrace utama, aku ingin kini panjang kiri kanannya sepanjang tembok pendek d depan rumah (kanan border lengkung).")
+  //    - Short Front Terrace Wall spans bx = 3.355m .. 6.00m (length = 2.65m, centered at bx = 4.68m)
+  //    - Terrace Grill now matches the full 2.65m left-to-right length of that wall!
   // ==========================================================================
   const terraceGrillGroup = new THREE.Group();
-  const gx = 4.85, gy = -7.55;
+  const gx = 4.68, gy = -7.55;
+  const grillFullW = 2.65; // Exact length of the short front terrace wall (right of the arched welcome border)
 
-  // Stone & Travertine Grill Island Plinth + Walnut Doors + Dark Steel Firebox
-  addBoxMesh(1.42, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
-  addBoxMesh(1.34, 0.76, 0.70, gx, gy, 0.21, wallMaterials.courtyard, terraceGrillGroup);
-  // Carved Walnut Storage Doors on front & back of grill island
-  addBoxMesh(0.54, 0.56, 0.72, gx - 0.30, gy, 0.20, matWalnut, terraceGrillGroup);
-  addBoxMesh(0.54, 0.56, 0.72, gx + 0.30, gy, 0.20, matWalnut, terraceGrillGroup);
-  addBoxMesh(0.03, 0.16, 0.74, gx - 0.08, gy, 0.24, matBrass, terraceGrillGroup);
-  addBoxMesh(0.03, 0.16, 0.74, gx + 0.08, gy, 0.24, matBrass, terraceGrillGroup);
+  // Stone & Travertine Grill Island Plinth (2.65m wide) + Plastered Masonry Body (2.58m wide)
+  addBoxMesh(grillFullW, 0.08, 0.78, gx, gy, -0.21, matArchTrim, terraceGrillGroup);
+  addBoxMesh(grillFullW - 0.07, 0.76, 0.70, gx, gy, 0.21, wallMaterials.courtyard, terraceGrillGroup);
+  // 4 Carved Walnut Storage Doors + 4 Brass Handles across the 2.58m grill island cabinet
+  [-0.92, -0.31, 0.31, 0.92].forEach((dxDoor) => {
+    addBoxMesh(0.54, 0.56, 0.72, gx + dxDoor, gy, 0.20, matWalnut, terraceGrillGroup);
+  });
+  [-0.68, -0.07, 0.07, 0.68].forEach((dxHnd) => {
+    addBoxMesh(0.03, 0.16, 0.74, gx + dxHnd, gy, 0.24, matBrass, terraceGrillGroup);
+  });
 
-  // Marble Side Prep Counter Wings & Brushed Cast-Iron BBQ Firebox Basin
-  addBoxMesh(1.48, 0.05, 0.78, gx, gy, 0.61, matMainFloor, terraceGrillGroup);
-  addBoxMesh(0.86, 0.18, 0.58, gx, gy, 0.66, matDarkSteel, terraceGrillGroup);
+  // Full-Width Marble Counter Top (2.65m wide, top at bz = +0.635m) & Wide Brushed Cast-Iron BBQ Firebox Basin (1.52m wide)
+  addBoxMesh(grillFullW, 0.05, 0.78, gx, gy, 0.61, matMainFloor, terraceGrillGroup);
+  const tFireboxW = 1.52;
+  addBoxMesh(tFireboxW, 0.18, 0.58, gx, gy, 0.66, matDarkSteel, terraceGrillGroup);
   // Glowing Hot Charcoal Ember Bed inside the Firebox
   const matCharcoalEmbers = new THREE.MeshStandardMaterial({
     color: 0x2b1108,
@@ -2978,25 +2983,25 @@ function buildStaticArchitecture() {
     roughness: 0.85,
     metalness: 0.05
   });
-  addBoxMesh(0.78, 0.04, 0.50, gx, gy, 0.72, matCharcoalEmbers, terraceGrillGroup);
+  addBoxMesh(tFireboxW - 0.08, 0.04, 0.50, gx, gy, 0.72, matCharcoalEmbers, terraceGrillGroup);
 
-  // Cast-Iron Grill Grate Bars (11 bars across the firebox)
-  for (let bi = -5; bi <= 5; bi++) {
-    addBoxMesh(0.016, 0.014, 0.52, gx + bi * 0.068, gy, 0.755, matDarkSteel, terraceGrillGroup);
+  // Cast-Iron Grill Grate Bars (19 bars across the 1.52m firebox)
+  for (let bi = -9; bi <= 9; bi++) {
+    addBoxMesh(0.016, 0.014, 0.52, gx + bi * 0.074, gy, 0.755, matDarkSteel, terraceGrillGroup);
   }
   // Low wind-guard rim around back & sides of the grill grate
-  addBoxMesh(0.86, 0.14, 0.025, gx, gy + 0.28, 0.82, matDarkSteel, terraceGrillGroup);
-  addBoxMesh(0.025, 0.14, 0.56, gx - 0.42, gy, 0.82, matDarkSteel, terraceGrillGroup);
-  addBoxMesh(0.025, 0.14, 0.56, gx + 0.42, gy, 0.82, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(tFireboxW, 0.14, 0.025, gx, gy + 0.28, 0.82, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.025, 0.14, 0.56, gx - tFireboxW * 0.5 + 0.012, gy, 0.82, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.025, 0.14, 0.56, gx + tFireboxW * 0.5 - 0.012, gy, 0.82, matDarkSteel, terraceGrillGroup);
 
-  // 3D GRILLED MEDITERRANEAN FISH (2 whole Dorade / Sea Bream with tail fins, sear marks & lemon slices)
+  // 3D GRILLED MEDITERRANEAN FISH (3 whole Dorade / Sea Bream with tail fins, sear marks & lemon slices)
   const matGrilledFish = new THREE.MeshStandardMaterial({ color: 0x8c7b6b, roughness: 0.42, metalness: 0.18 });
   const matSearMark = new THREE.MeshStandardMaterial({ color: 0x24160e, roughness: 0.75 });
   const matLemon = new THREE.MeshStandardMaterial({ color: 0xf4d03f, roughness: 0.38 });
-  [-0.22, -0.05].forEach((fxOff, fi) => {
+  [-0.52, -0.28, -0.05].forEach((fxOff, fi) => {
     const fishGrp = new THREE.Group();
-    fishGrp.position.copy(bPos(gx + fxOff, gy + (fi === 0 ? -0.04 : 0.05), 0.772));
-    fishGrp.rotation.y = fi === 0 ? 0.18 : -0.12;
+    fishGrp.position.copy(bPos(gx + fxOff, gy + (fi % 2 === 0 ? -0.04 : 0.05), 0.772));
+    fishGrp.rotation.y = fi % 2 === 0 ? 0.18 : -0.12;
     const fBody = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), matGrilledFish);
     fBody.scale.set(0.42, 0.22, 1.35);
     fBody.castShadow = true;
@@ -3020,13 +3025,13 @@ function buildStaticArchitecture() {
     terraceGrillGroup.add(fishGrp);
   });
 
-  // 3D GRILLED BEEF RIBEYE STEAKS (2 thick marbled steaks with sear lines & herb butter)
+  // 3D GRILLED BEEF RIBEYE STEAKS (3 thick marbled steaks with sear lines & herb butter)
   const matGrilledSteak = new THREE.MeshStandardMaterial({ color: 0x5c2616, roughness: 0.46, metalness: 0.06 });
   const matHerbButter = new THREE.MeshStandardMaterial({ color: 0xe6c855, roughness: 0.30 });
-  [0.14, 0.30].forEach((sxOff, si) => {
+  [0.16, 0.36, 0.56].forEach((sxOff, si) => {
     const steakGrp = new THREE.Group();
-    steakGrp.position.copy(bPos(gx + sxOff, gy + (si === 0 ? 0.04 : -0.05), 0.774));
-    steakGrp.rotation.y = si === 0 ? -0.25 : 0.32;
+    steakGrp.position.copy(bPos(gx + sxOff, gy + (si % 2 === 0 ? 0.04 : -0.05), 0.774));
+    steakGrp.rotation.y = si % 2 === 0 ? -0.25 : 0.32;
     const sBody = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.076, 0.032, 14), matGrilledSteak);
     sBody.scale.set(0.88, 1.0, 1.28);
     sBody.castShadow = true;
@@ -3043,11 +3048,11 @@ function buildStaticArchitecture() {
     terraceGrillGroup.add(steakGrp);
   });
 
-  // DEDICATED SMALL ROOF CANOPY SPECIFICALLY FOR THE GRILL ("grill yg punya roof kecil khusus grill")
+  // DEDICATED SMALL ROOF CANOPY SPECIFICALLY FOR THE FULL-WIDTH 2.65M GRILL
   // 4 Corner Posts rising from the grill island corners to support the pitched Tunisian mini-roof
   const postOffsets = [
-    [-0.68, -0.34], [0.68, -0.34],
-    [-0.68,  0.34], [0.68,  0.34]
+    [-1.22, -0.34], [1.22, -0.34],
+    [-1.22,  0.34], [1.22,  0.34]
   ];
   postOffsets.forEach(([pxOff, pyOff]) => {
     // Lower brass collar + dark steel & walnut column up to canopy eaves (bz = 0.62 .. 1.98)
@@ -3057,11 +3062,11 @@ function buildStaticArchitecture() {
     addBoxMesh(0.14, 0.045, 0.14, gx + pxOff, gy + pyOff, 1.95, matBrass, terraceGrillGroup);
   });
 
-  // Canopy Eave Frame Beams & Ornate Scalloped Valance Trim
-  addBoxMesh(1.62, 0.07, 0.92, gx, gy, 2.00, matWalnut, terraceGrillGroup);
-  addBoxMesh(1.68, 0.028, 0.98, gx, gy, 2.04, matBrass, terraceGrillGroup);
+  // Canopy Eave Frame Beams & Ornate Scalloped Valance Trim spanning the 2.65m width
+  addBoxMesh(grillFullW + 0.04, 0.07, 0.92, gx, gy, 2.00, matWalnut, terraceGrillGroup);
+  addBoxMesh(grillFullW + 0.10, 0.028, 0.98, gx, gy, 2.04, matBrass, terraceGrillGroup);
 
-  // Pitched Hipped Small Roof Canopy over the Grill (warm terracotta-copper tiles + chimney vent + finial)
+  // Pitched Hipped Small Roof Canopy over the 2.65m Grill (warm terracotta-copper tiles + chimney vent + finial)
   const matGrillRoofTile = new THREE.MeshStandardMaterial({
     color: 0x8f3d27,
     map: plasterDiffTex,
@@ -3075,20 +3080,20 @@ function buildStaticArchitecture() {
   const grillRoofCone = new THREE.Mesh(new THREE.ConeGeometry(1.12, 0.38, 4), matGrillRoofTile);
   grillRoofCone.position.copy(bPos(gx, gy, 2.24));
   grillRoofCone.rotation.y = Math.PI / 4;
-  grillRoofCone.scale.set(1.12, 1.0, 0.68);
+  grillRoofCone.scale.set(1.78, 1.0, 0.68);
   grillRoofCone.castShadow = true;
   grillRoofCone.receiveShadow = true;
   terraceGrillGroup.add(grillRoofCone);
 
   // Mini Smoke Extraction Chimney Hood & Brass Crescent Finial on top of the Grill Roof
-  addBoxMesh(0.24, 0.22, 0.24, gx, gy, 2.42, matDarkSteel, terraceGrillGroup);
-  addBoxMesh(0.30, 0.03, 0.30, gx, gy, 2.54, matBrass, terraceGrillGroup);
+  addBoxMesh(0.28, 0.22, 0.24, gx, gy, 2.42, matDarkSteel, terraceGrillGroup);
+  addBoxMesh(0.34, 0.03, 0.30, gx, gy, 2.54, matBrass, terraceGrillGroup);
   const finialSphere = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 12), matBrass);
   finialSphere.position.copy(bPos(gx, gy, 2.60));
   terraceGrillGroup.add(finialSphere);
 
   // Warm Under-Canopy LED Strip illuminating the sizzling fish & steak on the grill
-  addBoxMesh(1.20, 0.018, 0.04, gx, gy, 1.96, matLedBorderOpening, terraceGrillGroup);
+  addBoxMesh(2.15, 0.018, 0.04, gx, gy, 1.96, matLedBorderOpening, terraceGrillGroup);
 
   archRoot.add(terraceGrillGroup);
   attachNpcTargetWorld(
@@ -3127,6 +3132,549 @@ function buildStaticArchitecture() {
   addBoxMesh(6.00, 4.28, 0.24, 9.00, -9.20, 1.64, wallMaterials.courtyard, archRoot, true);
   addBoxMesh(6.08, 0.06, 0.30, 9.00, -9.20, -0.47, matArchTrim, archRoot, true);
   addBoxMesh(6.16, 0.06, 0.30, 9.00, -9.20, 3.81, matArchTrim, archRoot, true);
+
+  // ==========================================================================
+  // 5) TWO-LEVEL ARCHITECTURAL GREY CONCRETE CACTUS PLANTER & BBQ GRILL COUNTER
+  //    ("d mulai dari pojok kanan belakang tembok kabin ternak, hingga 3/4 ke arah pojok kirinya,
+  //     beton grey yg tinggi di bagian kiri kira2 1/3 dari 3/4 total panjang setinggi 2x tinggi meja grill terrace,
+  //     lalu sisa dari 3/4 panjang tadi adalah tembok beton setinggi meja grill yg merupakan meja grill juga,
+  //     beri grill, bara api, asap juga. d atas beton yg tinggi, beri banyak sekali tanaman cactus2 sedang kecil
+  //     campur tertata memenuhi beton tinggi itu, dengan rumput2 kecil untuk menutupi gap2 antar cactus")
+  // ==========================================================================
+  const concreteCactusGrillGroup = new THREE.Group();
+  const cOriginX = 8.22, cOriginY = -9.72, cOriginZ = -0.50;
+  concreteCactusGrillGroup.position.copy(bPos(cOriginX, cOriginY, cOriginZ));
+  const addCBox = (w, h, d, bx, by, bz, mat, cast = true) =>
+    addBoxMesh(w, h, d, bx - cOriginX, by - cOriginY, bz - cOriginZ, mat, concreteCactusGrillGroup, cast);
+
+  // 1024x1024 Architectural Cast Grey Concrete Texture (board-formed grain, mineral pores & aggregate speckles)
+  const makeArchGreyConcreteTex = () => {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#737980';
+    ctx.fillRect(0, 0, 512, 512);
+    // Subtle horizontal formwork board bands & mineral clouding
+    for (let y = 0; y < 512; y += 64) {
+      ctx.fillStyle = (y / 64) % 2 === 0 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.04)';
+      ctx.fillRect(0, y, 512, 62);
+      ctx.fillStyle = 'rgba(35,38,42,0.28)';
+      ctx.fillRect(0, y + 62, 512, 2);
+    }
+    for (let p = 0; p < 160; p++) {
+      const px = ((p * 0.6180339) % 1) * 512;
+      const py = ((p * 0.3819660 + Math.abs(Math.sin(p * 19.1))) % 1) * 512;
+      const pr = 18 + (p % 6) * 9;
+      const g = ctx.createRadialGradient(px, py, 2, px, py, pr);
+      g.addColorStop(0, (p % 2 === 0) ? 'rgba(92,98,105,0.22)' : 'rgba(56,60,66,0.22)');
+      g.addColorStop(1, 'rgba(115,121,128,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fill();
+    }
+    // Fine sand/aggregate speckles & concrete air pores
+    for (let i = 0; i < 4500; i++) {
+      const x = ((i * 0.7548776) % 1) * 512;
+      const y = ((i * 0.5698402 + Math.abs(Math.cos(i * 43.7))) % 1) * 512;
+      ctx.fillStyle = (i % 3 === 0) ? 'rgba(38,42,46,0.34)' : 'rgba(156,162,170,0.24)';
+      ctx.fillRect(x, y, (i % 4 === 0) ? 2 : 1.3, (i % 4 === 0) ? 2 : 1.3);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    tex.anisotropy = maxAniso;
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  };
+  const texArchGreyConcrete = makeArchGreyConcreteTex();
+
+  const matGreyConcrete = new THREE.MeshStandardMaterial({
+    color: 0x80868e,
+    map: texArchGreyConcrete,
+    bumpMap: texArchGreyConcrete,
+    bumpScale: 0.015,
+    roughness: 0.86,
+    metalness: 0.04,
+    envMapIntensity: 0.22,
+    userData: { customEnvIntensity: 0.22 }
+  });
+
+  const matGreyConcreteDark = new THREE.MeshStandardMaterial({
+    color: 0x585d64,
+    map: texArchGreyConcrete,
+    bumpMap: texArchGreyConcrete,
+    bumpScale: 0.012,
+    roughness: 0.76,
+    metalness: 0.06,
+    envMapIntensity: 0.26,
+    userData: { customEnvIntensity: 0.26 }
+  });
+
+  const matGreyConcreteSeam = new THREE.MeshStandardMaterial({
+    color: 0x35393e,
+    roughness: 0.90,
+    metalness: 0.04,
+    envMapIntensity: 0.15,
+    userData: { customEnvIntensity: 0.15 }
+  });
+
+  // Total 3/4 span along the 6.00m wall (bx = 6.00m .. 10.44m, total length = 4.44m, depth = 0.80m at by = -9.32m .. -10.12m)
+  // A) LEFT SECTION (bx = 6.00m .. 7.52m, width = 1.52m ≈ 1/3 of 4.44m, center bx = 6.76m):
+  //    Tall Grey Concrete Block — 2x the height of the Terrace Grill Counter (rises from bz = -0.50m to bz = +1.55m, 1.80m = 2x0.90m above -0.25m)
+  const tallMinX = 6.00, tallMaxX = 7.52, tallW = tallMaxX - tallMinX, tallCx = (tallMinX + tallMaxX) * 0.5;
+  const blockDepth = 0.80, blockCy = -9.72;
+  const tallTopZ = 1.55, tallH = tallTopZ - (-0.50); // 2.05m total height from -0.50m ground
+  // Base plinth & tall concrete monolith body
+  addCBox(tallW + 0.05, 0.08, blockDepth + 0.05, tallCx, blockCy, -0.46, matGreyConcreteDark);
+  addCBox(tallW, tallH - 0.04, blockDepth, tallCx, blockCy, -0.50 + (tallH - 0.04) * 0.5, matGreyConcrete);
+  // Board-formed architectural concrete horizontal reveal grooves on the tall block
+  [-0.02, 0.48, 0.98].forEach((gz) => {
+    addCBox(tallW + 0.012, 0.016, blockDepth + 0.012, tallCx, blockCy, gz, matGreyConcreteSeam, false);
+  });
+  // Recessed top planter lip / coping walls around the top of the tall concrete block (bz = 1.51m .. 1.59m)
+  const rimT = 0.065, rimH = 0.08, rimZ = tallTopZ + 0.01;
+  addCBox(tallW + 0.04, rimH, rimT, tallCx, blockCy - (blockDepth * 0.5 - rimT * 0.5), rimZ, matGreyConcreteDark);
+  addCBox(tallW + 0.04, rimH, rimT, tallCx, blockCy + (blockDepth * 0.5 - rimT * 0.5), rimZ, matGreyConcreteDark);
+  addCBox(rimT, rimH, blockDepth - rimT * 2, tallMinX + rimT * 0.5, blockCy, rimZ, matGreyConcreteDark);
+  addCBox(rimT, rimH, blockDepth - rimT * 2, tallMaxX - rimT * 0.5, blockCy, rimZ, matGreyConcreteDark);
+  // Planter topsoil & green moss/turf base inside the top basin of the tall grey concrete block (bz = +1.535m)
+  const bedW = tallW - rimT * 2, bedD = blockDepth - rimT * 2, bedTopZ = 1.542;
+  const matPlanterTurf = new THREE.MeshStandardMaterial({
+    color: 0x3b5c28,
+    map: texManicuredLawn,
+    normalMap: soilNorTex,
+    normalScale: new THREE.Vector2(0.85, 0.85),
+    roughness: 0.88,
+    envMapIntensity: 0.25
+  });
+  addCBox(bedW, 0.04, bedD, tallCx, blockCy, bedTopZ - 0.02, matPlanterTurf, false);
+
+  // Dense Mixed Medium & Small 3D Cacti + Gap-Filling Small Grass Tufts on top of the Tall Grey Concrete Block!
+  const cactusMatDark = new THREE.MeshStandardMaterial({
+    color: 0x23471c,
+    emissive: 0x0b1707,
+    emissiveIntensity: 0.25,
+    normalMap: barkNorTex,
+    normalScale: new THREE.Vector2(0.55, 0.55),
+    roughness: 0.80,
+    metalness: 0.01,
+    envMapIntensity: 0.16,
+    userData: { customEnvIntensity: 0.16 }
+  });
+  const cactusMatMid = new THREE.MeshStandardMaterial({
+    color: 0x2e5924,
+    emissive: 0x0e1c09,
+    emissiveIntensity: 0.25,
+    normalMap: barkNorTex,
+    normalScale: new THREE.Vector2(0.50, 0.50),
+    roughness: 0.78,
+    metalness: 0.01,
+    envMapIntensity: 0.16,
+    userData: { customEnvIntensity: 0.16 }
+  });
+  const cactusMatSage = new THREE.MeshStandardMaterial({
+    color: 0x3b692f,
+    emissive: 0x11200b,
+    emissiveIntensity: 0.25,
+    normalMap: barkNorTex,
+    normalScale: new THREE.Vector2(0.45, 0.45),
+    roughness: 0.78,
+    metalness: 0.01,
+    envMapIntensity: 0.16,
+    userData: { customEnvIntensity: 0.16 }
+  });
+  const cactusRibShadowMat = new THREE.MeshStandardMaterial({
+    color: 0x173311,
+    roughness: 0.86,
+    metalness: 0.01,
+    envMapIntensity: 0.12,
+    userData: { customEnvIntensity: 0.12 }
+  });
+  const cactusSpineMat = new THREE.MeshStandardMaterial({
+    color: 0xc8ba8e,
+    roughness: 0.72,
+    metalness: 0.02,
+    envMapIntensity: 0.20,
+    userData: { customEnvIntensity: 0.20 }
+  });
+  const cactusFlowerOrangeMat = new THREE.MeshStandardMaterial({
+    color: 0xe85214,
+    emissive: 0x3a1002,
+    emissiveIntensity: 0.28,
+    roughness: 0.52,
+    envMapIntensity: 0.24,
+    userData: { customEnvIntensity: 0.24 }
+  });
+  const cactusFlowerGoldMat = new THREE.MeshStandardMaterial({
+    color: 0xebad1c,
+    emissive: 0x382402,
+    emissiveIntensity: 0.25,
+    roughness: 0.50,
+    envMapIntensity: 0.24,
+    userData: { customEnvIntensity: 0.24 }
+  });
+  const gapGrassMats = [
+    new THREE.MeshStandardMaterial({ color: 0x3a5e22, roughness: 0.82, envMapIntensity: 0.16, side: THREE.DoubleSide }),
+    new THREE.MeshStandardMaterial({ color: 0x48702b, roughness: 0.78, envMapIntensity: 0.16, side: THREE.DoubleSide }),
+    new THREE.MeshStandardMaterial({ color: 0x2c4b18, roughness: 0.85, envMapIntensity: 0.16, side: THREE.DoubleSide })
+  ];
+  gapGrassMats.forEach(m => { m.userData = { customEnvIntensity: 0.16 }; });
+
+  // Helper 1: Ribbed Columnar Cactus (Medium or Small, with natural green fluted ribs, dark shadow furrows & optional side arms)
+  const buildColumnarCactus = (wx, wy, h, rad, hasArms, matChoice, seed) => {
+    const g = new THREE.Group();
+    g.position.copy(bPos(wx - cOriginX, wy - cOriginY, bedTopZ - cOriginZ));
+    g.rotation.y = seed * 1.7;
+    // Main trunk cylinder + rounded dome apex
+    const stemGeo = new THREE.CylinderGeometry(rad * 0.90, rad * 1.00, h, 12, 1);
+    stemGeo.translate(0, h * 0.5, 0);
+    const stem = new THREE.Mesh(stemGeo, matChoice);
+    stem.castShadow = true; stem.receiveShadow = true;
+    g.add(stem);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(rad * 0.90, 12, 8), matChoice);
+    cap.position.y = h;
+    cap.scale.set(1, 0.85, 1);
+    cap.castShadow = true;
+    g.add(cap);
+    // 8 natural fluted green cactus ribs + recessed dark green furrows
+    for (let r = 0; r < 8; r++) {
+      const ang = (r / 8) * Math.PI * 2;
+      const rib = new THREE.Mesh(new THREE.CylinderGeometry(rad * 0.20, rad * 0.22, h * 0.96, 6), matChoice);
+      rib.position.set(Math.cos(ang) * rad * 0.82, h * 0.49, Math.sin(ang) * rad * 0.82);
+      g.add(rib);
+      const furrowAng = ang + Math.PI / 8;
+      const furrow = new THREE.Mesh(new THREE.BoxGeometry(0.006, h * 0.92, 0.010), cactusRibShadowMat);
+      furrow.position.set(Math.cos(furrowAng) * (rad * 0.88), h * 0.49, Math.sin(furrowAng) * (rad * 0.88));
+      furrow.rotation.y = -furrowAng;
+      g.add(furrow);
+    }
+    // Optional crown flower bud
+    if (seed % 3 === 0) {
+      const bud = new THREE.Mesh(new THREE.SphereGeometry(rad * 0.36, 7, 6), (seed % 2 === 0) ? cactusFlowerGoldMat : cactusFlowerOrangeMat);
+      bud.position.set(0, h + rad * 0.65, 0);
+      bud.scale.set(1.0, 1.25, 1.0);
+      g.add(bud);
+    }
+    // Side arms for medium columnar cacti
+    if (hasArms) {
+      const armCount = (h > 0.46) ? 2 : 1;
+      for (let a = 0; a < armCount; a++) {
+        const armAng = a * Math.PI + 0.45;
+        const armY = h * (0.36 + a * 0.18);
+        const armR = rad * 0.68;
+        const armH = h * (0.42 - a * 0.06);
+        const armOut = rad * 1.65;
+        const elbow = new THREE.Mesh(new THREE.SphereGeometry(armR, 8, 6), matChoice);
+        elbow.position.set(Math.cos(armAng) * armOut, armY, Math.sin(armAng) * armOut);
+        g.add(elbow);
+        const bridge = new THREE.Mesh(new THREE.CylinderGeometry(armR * 0.88, armR * 0.92, armOut, 7), matChoice);
+        bridge.position.set(Math.cos(armAng) * (armOut * 0.5), armY, Math.sin(armAng) * (armOut * 0.5));
+        bridge.rotation.z = Math.PI * 0.5;
+        bridge.rotation.y = -armAng;
+        g.add(bridge);
+        const vArm = new THREE.Mesh(new THREE.CylinderGeometry(armR * 0.88, armR, armH, 8), matChoice);
+        vArm.position.set(Math.cos(armAng) * armOut, armY + armH * 0.5, Math.sin(armAng) * armOut);
+        vArm.castShadow = true;
+        g.add(vArm);
+        const vCap = new THREE.Mesh(new THREE.SphereGeometry(armR * 0.88, 8, 6), matChoice);
+        vCap.position.set(Math.cos(armAng) * armOut, armY + armH, Math.sin(armAng) * armOut);
+        g.add(vCap);
+      }
+    }
+    concreteCactusGrillGroup.add(g);
+  };
+
+  // Helper 2: Tunisian Prickly Pear Paddle Cactus (Opuntia ficus-indica / Hindi) with flat oval cladodes & fruit buds
+  const buildPricklyPearCactus = (wx, wy, scale, matChoice, seed) => {
+    const g = new THREE.Group();
+    g.position.copy(bPos(wx - cOriginX, wy - cOriginY, bedTopZ - cOriginZ));
+    g.rotation.y = seed * 2.15;
+    const padGeo = new THREE.SphereGeometry(0.11 * scale, 10, 8);
+    padGeo.scale(1.0, 1.48, 0.30);
+    // Base pad
+    const basePad = new THREE.Mesh(padGeo, matChoice);
+    basePad.position.y = 0.13 * scale;
+    basePad.rotation.z = (seed % 2 === 0 ? 0.08 : -0.08);
+    basePad.castShadow = true; basePad.receiveShadow = true;
+    g.add(basePad);
+    // 2 or 3 branching upper pads
+    const subPads = [
+      { ox: -0.085 * scale, oy: 0.28 * scale, oz: 0.015 * scale, rz: 0.42, ry: 0.28, s: 0.82 },
+      { ox: 0.090 * scale, oy: 0.27 * scale, oz: -0.015 * scale, rz: -0.38, ry: -0.24, s: 0.86 },
+      { ox: 0.015 * scale, oy: 0.41 * scale, oz: 0.02 * scale, rz: 0.12, ry: 0.52, s: 0.68 }
+    ];
+    subPads.forEach((sp, idx) => {
+      if (idx === 2 && scale < 0.85) return;
+      const p = new THREE.Mesh(padGeo, idx % 2 === 0 ? cactusMatMid : cactusMatSage);
+      p.position.set(sp.ox, sp.oy, sp.oz);
+      p.rotation.set(0, sp.ry, sp.rz);
+      p.scale.setScalar(sp.s);
+      p.castShadow = true;
+      g.add(p);
+      // Prickly pear fruit buds on top edge of pad
+      const fruit = new THREE.Mesh(
+        new THREE.SphereGeometry(0.022 * scale, 7, 6),
+        (idx + seed) % 2 === 0 ? cactusFlowerOrangeMat : cactusFlowerGoldMat
+      );
+      fruit.position.set(sp.ox + (idx === 0 ? -0.03 : 0.03) * scale, sp.oy + 0.11 * scale * sp.s, sp.oz);
+      fruit.scale.set(0.85, 1.35, 0.85);
+      g.add(fruit);
+    });
+    concreteCactusGrillGroup.add(g);
+  };
+
+  // Helper 3: Golden Barrel / Echinocactus Globe Cactus (Medium or Small ribbed sphere with golden crown)
+  const buildBarrelCactus = (wx, wy, rad, hScale, matChoice, seed) => {
+    const g = new THREE.Group();
+    g.position.copy(bPos(wx - cOriginX, wy - cOriginY, bedTopZ - cOriginZ));
+    const body = new THREE.Mesh(new THREE.SphereGeometry(rad, 12, 10), matChoice);
+    body.position.y = rad * hScale * 0.82;
+    body.scale.set(1.0, hScale, 1.0);
+    body.castShadow = true; body.receiveShadow = true;
+    g.add(body);
+    // Ribbed spine meridians
+    for (let r = 0; r < 8; r++) {
+      const ang = (r / 8) * Math.PI * 2;
+      const rib = new THREE.Mesh(new THREE.CylinderGeometry(rad * 0.08, rad * 0.08, rad * hScale * 1.35, 5), cactusSpineMat);
+      rib.position.set(Math.cos(ang) * rad * 0.90, rad * hScale * 0.82, Math.sin(ang) * rad * 0.90);
+      rib.rotation.z = Math.cos(ang) * 0.18;
+      rib.rotation.x = Math.sin(ang) * 0.18;
+      g.add(rib);
+    }
+    // Golden wool/flower crown on top
+    const crown = new THREE.Mesh(
+      new THREE.CylinderGeometry(rad * 0.38, rad * 0.44, 0.025, 10),
+      (seed % 3 === 0) ? cactusFlowerOrangeMat : cactusSpineMat
+    );
+    crown.position.y = rad * hScale * 1.62;
+    g.add(crown);
+    concreteCactusGrillGroup.add(g);
+  };
+
+  // Helper 4: Small Spiky Grass Tuft to fill every gap between the cacti ("dengan rumput2 kecil untuk menutupi gap2 antar cactus")
+  const bladeGeoSmall = new THREE.ConeGeometry(0.015, 0.125, 3);
+  bladeGeoSmall.translate(0, 0.0625, 0);
+  const addCactusGapGrassTuft = (wx, wy, scale = 1.0, seed = 0) => {
+    const tuft = new THREE.Group();
+    tuft.position.copy(bPos(wx - cOriginX, wy - cOriginY, bedTopZ - cOriginZ));
+    const bladeCount = 11;
+    for (let b = 0; b < bladeCount; b++) {
+      const blade = new THREE.Mesh(bladeGeoSmall, gapGrassMats[(b + seed) % gapGrassMats.length]);
+      const angle = (b / bladeCount) * Math.PI * 2 + (b % 3) * 0.21 + seed * 0.5;
+      const tilt = 0.16 + (b % 4) * 0.13;
+      const rOff = (b % 3) * 0.014 * scale;
+      blade.position.set(Math.cos(angle) * rOff, 0, Math.sin(angle) * rOff);
+      blade.rotation.y = -angle;
+      blade.rotation.z = tilt;
+      blade.scale.set(
+        scale * (0.85 + (b % 3) * 0.16),
+        scale * (0.72 + ((b * 7) % 5) * 0.16),
+        scale * (0.85 + (b % 2) * 0.16)
+      );
+      tuft.add(blade);
+    }
+    concreteCactusGrillGroup.add(tuft);
+  };
+
+  // Populate 34 Mixed Medium & Small Cacti across the entire top of the Tall Grey Concrete Block (bx = 6.11 .. 7.41, by = -9.43 .. -10.01)
+  const cactusLayout = [
+    // Back Row (by ≈ -9.47m) — taller medium columnar & prickly pear cacti + small barrel/cluster cacti
+    { type: 'col', x: 6.15, y: -9.47, h: 0.58, r: 0.068, arms: true, mat: cactusMatDark },
+    { type: 'bar', x: 6.30, y: -9.45, r: 0.082, hs: 0.92, mat: cactusMatSage },
+    { type: 'pad', x: 6.46, y: -9.48, s: 1.15, mat: cactusMatMid },
+    { type: 'col', x: 6.64, y: -9.46, h: 0.64, r: 0.072, arms: true, mat: cactusMatMid },
+    { type: 'col', x: 6.79, y: -9.45, h: 0.34, r: 0.052, arms: false, mat: cactusMatSage },
+    { type: 'pad', x: 6.95, y: -9.48, s: 1.08, mat: cactusMatDark },
+    { type: 'col', x: 7.14, y: -9.46, h: 0.54, r: 0.065, arms: true, mat: cactusMatDark },
+    { type: 'bar', x: 7.28, y: -9.46, r: 0.088, hs: 1.05, mat: cactusMatMid },
+    { type: 'col', x: 7.40, y: -9.48, h: 0.42, r: 0.056, arms: false, mat: cactusMatSage },
+
+    // Middle-Back Row (by ≈ -9.63m) — dense mix of medium & small cacti
+    { type: 'pad', x: 6.14, y: -9.64, s: 0.96, mat: cactusMatSage },
+    { type: 'col', x: 6.28, y: -9.62, h: 0.38, r: 0.054, arms: false, mat: cactusMatMid },
+    { type: 'bar', x: 6.42, y: -9.64, r: 0.102, hs: 0.95, mat: cactusMatDark },
+    { type: 'col', x: 6.57, y: -9.61, h: 0.48, r: 0.060, arms: true, mat: cactusMatSage },
+    { type: 'pad', x: 6.74, y: -9.64, s: 1.12, mat: cactusMatMid },
+    { type: 'bar', x: 6.89, y: -9.62, r: 0.095, hs: 0.90, mat: cactusMatSage },
+    { type: 'col', x: 7.04, y: -9.63, h: 0.50, r: 0.062, arms: true, mat: cactusMatMid },
+    { type: 'pad', x: 7.21, y: -9.64, s: 0.94, mat: cactusMatDark },
+    { type: 'bar', x: 7.37, y: -9.63, r: 0.084, hs: 0.96, mat: cactusMatSage },
+
+    // Middle-Front Row (by ≈ -9.80m) — medium-small barrels, pads, and short columns
+    { type: 'bar', x: 6.15, y: -9.81, r: 0.090, hs: 0.94, mat: cactusMatMid },
+    { type: 'col', x: 6.31, y: -9.79, h: 0.44, r: 0.058, arms: true, mat: cactusMatDark },
+    { type: 'pad', x: 6.48, y: -9.81, s: 0.92, mat: cactusMatSage },
+    { type: 'bar', x: 6.63, y: -9.80, r: 0.086, hs: 1.02, mat: cactusMatMid },
+    { type: 'col', x: 6.78, y: -9.79, h: 0.36, r: 0.052, arms: false, mat: cactusMatDark },
+    { type: 'pad', x: 6.94, y: -9.81, s: 0.98, mat: cactusMatSage },
+    { type: 'bar', x: 7.11, y: -9.80, r: 0.096, hs: 0.92, mat: cactusMatDark },
+    { type: 'col', x: 7.26, y: -9.79, h: 0.39, r: 0.055, arms: false, mat: cactusMatMid },
+    { type: 'pad', x: 7.39, y: -9.81, s: 0.88, mat: cactusMatMid },
+
+    // Front Row (by ≈ -9.96m) — smaller barrels, short finger columns & low pads along front lip
+    { type: 'col', x: 6.14, y: -9.96, h: 0.25, r: 0.045, arms: false, mat: cactusMatSage },
+    { type: 'bar', x: 6.26, y: -9.96, r: 0.076, hs: 0.88, mat: cactusMatDark },
+    { type: 'col', x: 6.39, y: -9.95, h: 0.28, r: 0.048, arms: false, mat: cactusMatMid },
+    { type: 'bar', x: 6.54, y: -9.96, r: 0.082, hs: 0.90, mat: cactusMatSage },
+    { type: 'pad', x: 6.69, y: -9.96, s: 0.78, mat: cactusMatDark },
+    { type: 'bar', x: 6.84, y: -9.96, r: 0.078, hs: 0.92, mat: cactusMatMid },
+    { type: 'col', x: 6.99, y: -9.95, h: 0.27, r: 0.046, arms: false, mat: cactusMatSage },
+    { type: 'bar', x: 7.14, y: -9.96, r: 0.080, hs: 0.88, mat: cactusMatDark },
+    { type: 'col', x: 7.27, y: -9.95, h: 0.24, r: 0.044, arms: false, mat: cactusMatMid },
+    { type: 'bar', x: 7.39, y: -9.96, r: 0.074, hs: 0.90, mat: cactusMatSage }
+  ];
+  cactusLayout.forEach((c, idx) => {
+    if (c.type === 'col') buildColumnarCactus(c.x, c.y, c.h, c.r, c.arms, c.mat, idx + 1);
+    else if (c.type === 'pad') buildPricklyPearCactus(c.x, c.y, c.s, c.mat, idx + 1);
+    else buildBarrelCactus(c.x, c.y, c.r, c.hs, c.mat, idx + 1);
+  });
+
+  // Fill all gaps between the cacti with 65 small 3D spiky grass tufts ("dengan rumput2 kecil untuk menutupi gap2 antar cactus")
+  let grassIdx = 0;
+  for (let gxStep = 6.10; gxStep <= 7.43; gxStep += 0.11) {
+    for (let gyStep = -9.43; gyStep >= -10.01; gyStep -= 0.115) {
+      const jx = gxStep + Math.sin(grassIdx * 2.3) * 0.028;
+      const jy = gyStep + Math.cos(grassIdx * 3.1) * 0.025;
+      const sc = 0.72 + (grassIdx % 4) * 0.14;
+      addCactusGapGrassTuft(jx, jy, sc, grassIdx);
+      grassIdx++;
+    }
+  }
+
+  // B) RIGHT SECTION (bx = 7.52m .. 10.44m, width = 2.92m, center bx = 8.98m):
+  //    Low Grey Concrete BBQ Grill Counter — exact height of Terrace Grill Counter (bz = -0.50m .. +0.635m, total height 1.135m)
+  const lowMinX = 7.52, lowMaxX = 10.44, lowW = lowMaxX - lowMinX, lowCx = (lowMinX + lowMaxX) * 0.5;
+  const lowTopZ = 0.635, lowH = lowTopZ - (-0.50); // 1.135m total height from -0.50m ground
+  // Base plinth, main grey concrete body & overhanging polished dark-grey concrete countertop slab
+  addCBox(lowW + 0.05, 0.08, blockDepth + 0.05, lowCx, blockCy, -0.46, matGreyConcreteDark);
+  addCBox(lowW, lowH - 0.045, blockDepth, lowCx, blockCy, -0.50 + (lowH - 0.045) * 0.5, matGreyConcrete);
+  addCBox(lowW + 0.06, 0.048, blockDepth + 0.06, lowCx, blockCy, lowTopZ - 0.024, matGreyConcreteDark);
+  // Board-formed concrete seam groove on low counter + dark steel under-counter BBQ storage doors & vents
+  addCBox(lowW + 0.012, 0.015, blockDepth + 0.012, lowCx, blockCy, 0.06, matGreyConcreteSeam, false);
+  [-0.96, -0.32, 0.32, 0.96].forEach((dx, dIdx) => {
+    addCBox(0.56, 0.68, 0.022, lowCx + dx, blockCy - blockDepth * 0.5 - 0.008, 0.06, matDarkSteel);
+    const hOffset = (dIdx % 2 === 0) ? 0.21 : -0.21;
+    addCBox(0.018, 0.18, 0.032, lowCx + dx + hOffset, blockCy - blockDepth * 0.5 - 0.024, 0.10, matBrass);
+  });
+
+  // Heavy Cast-Iron BBQ Grill Firebox, Glowing Red-Hot Charcoal Embers ("bara api") & Sizzling Meats/Fish ("beri grill, bara api, asap juga")
+  const cGrillBoxW = 1.76, cGrillBoxD = 0.56;
+  // Lower firebox basin (top at lowTopZ + 0.125) so the glowing charcoal ember bed at lowTopZ + 0.145 sits proudly inside the open basin!
+  addCBox(cGrillBoxW, 0.125, cGrillBoxD, lowCx, blockCy, lowTopZ + 0.0625, matDarkSteel);
+  // 4-sided firebox rim & 3-sided wind-guard surround walls
+  addCBox(cGrillBoxW, 0.06, 0.03, lowCx, blockCy - cGrillBoxD * 0.5 + 0.015, lowTopZ + 0.155, matDarkSteel);
+  addCBox(cGrillBoxW, 0.15, 0.03, lowCx, blockCy + cGrillBoxD * 0.5 - 0.015, lowTopZ + 0.20, matDarkSteel);
+  addCBox(0.03, 0.15, cGrillBoxD, lowCx - cGrillBoxW * 0.5 + 0.015, blockCy, lowTopZ + 0.20, matDarkSteel);
+  addCBox(0.03, 0.15, cGrillBoxD, lowCx + cGrillBoxW * 0.5 - 0.015, blockCy, lowTopZ + 0.20, matDarkSteel);
+  // Brass side handles & front temperature control knobs
+  [-0.58, -0.29, 0.0, 0.29, 0.58].forEach((kx) => {
+    addCBox(0.036, 0.036, 0.028, lowCx + kx, blockCy - cGrillBoxD * 0.5 - 0.014, lowTopZ + 0.08, matBrass);
+  });
+
+  // Glowing Red-Hot Charcoal Ember Bed ("bara api") + 28 3D Glowing Coal Chunks + Warm Firelight Glow
+  const makeCharcoalEmberBedTex = () => {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1f0b06';
+    ctx.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 65; i++) {
+      const x = ((i * 0.6180339) % 1) * 256;
+      const y = ((i * 0.3819660 + Math.abs(Math.sin(i * 17.3))) % 1) * 256;
+      const r = 14 + (i % 5) * 7;
+      const g = ctx.createRadialGradient(x, y, 2, x, y, r);
+      g.addColorStop(0.0, '#ffaa18');
+      g.addColorStop(0.45, '#ff3300');
+      g.addColorStop(0.82, '#6e0d00');
+      g.addColorStop(1.0, 'rgba(31,11,6,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3, 1);
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  };
+  const texCharcoalEmberBed = makeCharcoalEmberBedTex();
+
+  const matConcreteGrillEmber = new THREE.MeshStandardMaterial({
+    color: 0xff4508,
+    map: texCharcoalEmberBed,
+    emissive: 0xff3300,
+    emissiveMap: texCharcoalEmberBed,
+    emissiveIntensity: 2.6,
+    roughness: 0.78,
+    userData: { customEnvIntensity: 0.10 }
+  });
+  if (!window.bonfireEmberMaterials) window.bonfireEmberMaterials = [];
+  window.bonfireEmberMaterials.push(matConcreteGrillEmber);
+  addCBox(cGrillBoxW - 0.07, 0.036, cGrillBoxD - 0.07, lowCx, blockCy, lowTopZ + 0.142, matConcreteGrillEmber, false);
+
+  const coalChunkGeo = new THREE.DodecahedronGeometry(0.038, 0);
+  const matHotCoalChunk = new THREE.MeshStandardMaterial({
+    color: 0x260d06,
+    emissive: 0xd92600,
+    emissiveIntensity: 1.55,
+    roughness: 0.85,
+    userData: { customEnvIntensity: 0.10 }
+  });
+  window.bonfireEmberMaterials.push(matHotCoalChunk);
+  for (let c = 0; c < 28; c++) {
+    const cxOff = -0.76 + (c % 7) * 0.25 + ((c % 3) - 1) * 0.035;
+    const cyOff = -0.17 + Math.floor(c / 7) * 0.11 + ((c % 2) - 0.5) * 0.028;
+    const coal = new THREE.Mesh(coalChunkGeo, (c % 2 === 0) ? matConcreteGrillEmber : matHotCoalChunk);
+    coal.position.copy(bPos(lowCx + cxOff - cOriginX, blockCy + cyOff - cOriginY, lowTopZ + 0.168 - cOriginZ));
+    coal.rotation.set(c * 0.7, c * 1.1, c * 0.5);
+    coal.scale.set(1.22, 0.68, 1.05 + (c % 3) * 0.15);
+    concreteCactusGrillGroup.add(coal);
+  }
+  const cEmberLight = new THREE.PointLight(0xff4800, 1.35, 2.8, 2.0);
+  cEmberLight.position.copy(bPos(lowCx - cOriginX, blockCy - cOriginY, lowTopZ + 0.34 - cOriginZ));
+  concreteCactusGrillGroup.add(cEmberLight);
+
+  // 21 Stainless/Chrome Grill Grate Bars across the 1.76m firebox
+  for (let i = -10; i <= 10; i++) {
+    addCBox(0.012, 0.012, cGrillBoxD - 0.06, lowCx + i * 0.08, blockCy, lowTopZ + 0.188, matChrome, false);
+  }
+
+  // Sizzling Grilled Sea Bream Fish, Ribeye Steaks & Tunisian Brochette Skewers on the Grate
+  [-0.56, -0.18, 0.20].forEach((fx) => {
+    const fishBody = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), matGrilledFish);
+    fishBody.scale.set(0.65, 0.26, 1.55);
+    fishBody.position.copy(bPos(lowCx + fx - cOriginX, blockCy - 0.02 - cOriginY, lowTopZ + 0.204 - cOriginZ));
+    fishBody.castShadow = true;
+    concreteCactusGrillGroup.add(fishBody);
+    for (let s = -1; s <= 1; s++) {
+      addCBox(0.085, 0.006, 0.010, lowCx + fx, blockCy - 0.02 + s * 0.05, lowTopZ + 0.228, matDarkSteel, false);
+    }
+  });
+  [0.48, 0.68].forEach((sx, sIdx) => {
+    const sy = sIdx === 0 ? -0.07 : 0.06;
+    addCBox(0.16, 0.026, 0.12, lowCx + sx, blockCy + sy, lowTopZ + 0.202, matGrilledSteak, true);
+    addCBox(0.045, 0.028, 0.122, lowCx + sx - 0.05, blockCy + sy, lowTopZ + 0.203, matHerbButter, false);
+  });
+
+  // Side wooden cutting board & brass tongs on the concrete counter right edge
+  addCBox(0.38, 0.022, 0.44, lowMaxX - 0.28, blockCy, lowTopZ + 0.011, matWalnut, true);
+  addCBox(0.04, 0.014, 0.28, lowMaxX - 0.26, blockCy - 0.04, lowTopZ + 0.028, matBrass, false);
+
+  if (typeof addContactShadow === 'function') {
+    addContactShadow(concreteCactusGrillGroup, 4.54, 0.92, 0.005, 0.44);
+  }
+  archRoot.add(concreteCactusGrillGroup);
+  attachNpcTargetWorld(
+    concreteCactusGrillGroup,
+    bPos(lowCx - cOriginX, blockCy - 0.72 - cOriginY, -0.50 - cOriginZ),
+    bPos(lowCx - cOriginX, blockCy - cOriginY, lowTopZ - cOriginZ),
+    bPos(lowCx - cOriginX, blockCy - cOriginY, lowTopZ + 0.24 - cOriginZ)
+  );
+  window.concreteCactusGrillObj = concreteCactusGrillGroup;
+  registerDraggable(
+    concreteCactusGrillGroup,
+    'Grey Concrete Cactus Planter & BBQ Grill Counter',
+    'حوض صبار خرساني رمادي ومشواة خارجية'
+  );
+
 
   // ==========================================================================
   // EAST GUEST CABIN SHIFTED RIGHT BY ITS OWN LENGTH ("KABIN D DEPAN RUMAH, DAN TERRACENYA, GESER KE KANAN SEPANJANG KABIN ITU SENDIRI")
@@ -14416,6 +14964,17 @@ function updateMaherNpcAndParticles(dt) {
       spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, isGrillingTerrace ? 0.62 : 0.40, isGrillingTerrace ? 0.48 : 0.34);
     }
 
+    // Grey Concrete BBQ Grill Counter smoke ("beri grill, bara api, asap juga" — dynamically follows moved/rotated counter!)
+    if (window.concreteCactusGrillObj && window.concreteCactusGrillObj.userData && window.concreteCactusGrillObj.userData.npcSmokeNode) {
+      window.concreteCactusGrillObj.updateMatrixWorld(true);
+      window.concreteCactusGrillObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, 0.56, 0.44);
+      // Second offset smoke plume across the 1.76m-wide concrete grill firebox
+      const rx = Math.cos(window.concreteCactusGrillObj.rotation.y) * 0.42;
+      const rz = -Math.sin(window.concreteCactusGrillObj.rotation.y) * 0.42;
+      spawnSmokePuff(_tmpSmokeWorld.x + rx, _tmpSmokeWorld.y, _tmpSmokeWorld.z + rz, 0.50, 0.38);
+    }
+
     // Rooftop BBQ smoke when active (dynamically follows moved/rotated rooftop firepit!)
     if (isGrillingRoof && roofGroup.visible && window.roofBbqObj && window.roofBbqObj.userData && window.roofBbqObj.userData.npcSmokeNode) {
       window.roofBbqObj.updateMatrixWorld(true);
@@ -15753,7 +16312,7 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"King Bedroom Kairouan Rug","x":-4.2,"y":0.011,"z":-2.5,"ry":0,"s":1},
   {"labelEn":"Grand Majlis Berber Carpet","x":3.509,"y":0.011,"z":0.218,"ry":0,"s":1},
   {"labelEn":"Tunisian Majlis Floor Sofa (Jalsa)","x":4.65,"y":-0.25,"z":5.82,"ry":0,"s":1},
-  {"labelEn":"Covered Outdoor BBQ Grill (Fish & Steak)","x":4.593,"y":-0.25,"z":9.427,"ry":3.1416,"s":1},
+  {"labelEn":"Covered Outdoor BBQ Grill (Fish & Steak)","x":4.68,"y":-0.25,"z":9.427,"ry":3.1416,"s":1},
   {"labelEn":"Cabin Guest Daybed & Walnut Console","x":15.885,"y":-0.25,"z":11.05,"ry":0,"s":1},
   {"labelEn":"Cabin Terrace Tunisian Floor Sofa","x":15,"y":-0.25,"z":14.742,"ry":0,"s":1},
   {"labelEn":"Hammam Walk-In Rain Shower","x":-4.968,"y":-0.025,"z":4,"ry":0,"s":1},
@@ -15898,7 +16457,9 @@ function applyLayoutPositions(layoutList) {
       }
       let targetX = sp.x;
       let targetZ = sp.z;
-      if (normLabel === 'Livestock Hay Manger & Water Trough' && Math.abs(targetX - 10.971) < 0.15 && Math.abs(targetZ - 1.105) < 0.25) {
+      if (normLabel === 'Covered Outdoor BBQ Grill (Fish & Steak)' && Math.abs(targetX - 4.593) < 0.12) {
+        targetX = 4.68;
+      } else if (normLabel === 'Livestock Hay Manger & Water Trough' && Math.abs(targetX - 10.971) < 0.15 && Math.abs(targetZ - 1.105) < 0.25) {
         targetZ = 6.905;
       } else if (normLabel === 'Golden Barn Hay & Straw Bales' && Math.abs(targetX - 10.855) < 0.15 && Math.abs(targetZ - 6.2) < 0.25) {
         targetX = 7.255;
