@@ -9502,27 +9502,68 @@ function pickRandomPoolBorderLoungeSpot(isWife = false, preferredSide = null) {
   };
 }
 
+const _tmpBasisEuler = new THREE.Euler();
+const _tmpBasisQuat = new THREE.Quaternion();
+function setBoneBasisEuler(bone, rx, ry, rz) {
+  if (!bone) return;
+  if (bone.userData && bone.userData.restQuat) {
+    _tmpBasisEuler.set(rx, ry, rz, 'XYZ');
+    _tmpBasisQuat.setFromEuler(_tmpBasisEuler);
+    bone.quaternion.copy(bone.userData.restQuat).multiply(_tmpBasisQuat);
+  } else {
+    bone.rotation.set(rx, ry, rz);
+  }
+}
+
 function resetNpcSwimBones(npcState) {
   const sb = npcState && npcState.swimBones;
   if (!sb) return;
-  if (sb.hips && npcState.hipsRestPos) {
-    sb.hips.position.copy(npcState.hipsRestPos);
-    sb.hips.rotation.set(0, 0, 0);
+  if (sb.boneRoot) {
+    if (sb.boneRoot.userData && sb.boneRoot.userData.restPos) sb.boneRoot.position.copy(sb.boneRoot.userData.restPos);
+    if (sb.boneRoot.userData && sb.boneRoot.userData.restQuat) sb.boneRoot.quaternion.copy(sb.boneRoot.userData.restQuat);
   }
-  if (sb.spine) sb.spine.rotation.set(0, 0, 0);
-  if (sb.chest) sb.chest.rotation.set(0, 0, 0);
-  if (sb.neck) sb.neck.rotation.set(0, 0, 0);
+  for (const k of ['hips', 'spine', 'chest', 'neck', 'upperArmL', 'foreArmL', 'handL', 'upperArmR', 'foreArmR', 'handR', 'upLegL', 'lowLegL', 'upLegR', 'lowLegR']) {
+    const b = sb[k];
+    if (!b) continue;
+    if (k === 'hips' && npcState.hipsRestPos) b.position.copy(npcState.hipsRestPos);
+    if (b.userData && b.userData.restQuat) {
+      b.quaternion.copy(b.userData.restQuat);
+    } else {
+      b.rotation.set(0, 0, 0);
+    }
+  }
 }
 
 // Procedural treading-water / floating arm & hand animation ("menggerakkan tangan seperti berusaha mengambang")
 function applyNpcSwimTreadPose(npcState, tSec, isWife = false) {
   const sb = npcState.swimBones;
   if (!sb) return;
+  const ph = tSec * 3.45 + (isWife ? 1.85 : 0.0);
+  if (!isWife) {
+    if (sb.boneRoot && sb.boneRoot.userData && sb.boneRoot.userData.restPos) {
+      sb.boneRoot.position.copy(sb.boneRoot.userData.restPos);
+      sb.boneRoot.quaternion.copy(sb.boneRoot.userData.restQuat);
+    }
+    if (sb.hips && npcState.hipsRestPos) {
+      sb.hips.position.copy(npcState.hipsRestPos);
+      setBoneBasisEuler(sb.hips, 0.08 * Math.sin(tSec * 2.2), 0, 0);
+    }
+    setBoneBasisEuler(sb.upperArmL, 0.45 + Math.sin(ph) * 0.22, 0.15 * Math.cos(ph), -0.25 + Math.sin(ph * 0.85) * 0.16);
+    setBoneBasisEuler(sb.foreArmL, 0.78 + Math.cos(ph) * 0.25, 0.18 * Math.sin(ph), -0.12);
+    setBoneBasisEuler(sb.handL, 0.25 * Math.sin(ph * 1.4), 0.14 * Math.cos(ph), 0.18 * Math.cos(ph * 1.4));
+    setBoneBasisEuler(sb.upperArmR, 0.45 + Math.sin(ph + Math.PI) * 0.22, -0.15 * Math.cos(ph + Math.PI), 0.25 - Math.sin(ph * 0.85 + Math.PI) * 0.16);
+    setBoneBasisEuler(sb.foreArmR, 0.78 + Math.cos(ph + Math.PI) * 0.25, -0.18 * Math.sin(ph + Math.PI), 0.12);
+    setBoneBasisEuler(sb.handR, 0.25 * Math.sin(ph * 1.4 + Math.PI), -0.14 * Math.cos(ph + Math.PI), -0.18 * Math.cos(ph * 1.4 + Math.PI));
+    setBoneBasisEuler(sb.upLegL, 0.26 + Math.sin(ph * 1.1) * 0.24, 0, 0.05);
+    setBoneBasisEuler(sb.lowLegL, -0.42 - Math.max(0, Math.cos(ph * 1.1)) * 0.32, 0, 0);
+    setBoneBasisEuler(sb.upLegR, 0.26 + Math.sin(ph * 1.1 + Math.PI) * 0.24, 0, -0.05);
+    setBoneBasisEuler(sb.lowLegR, -0.42 - Math.max(0, Math.cos(ph * 1.1 + Math.PI)) * 0.32, 0, 0);
+    return;
+  }
   if (sb.hips && npcState.hipsRestPos) {
     sb.hips.position.copy(npcState.hipsRestPos);
     sb.hips.rotation.set(0.08 * Math.sin(tSec * 2.2), 0, 0);
   }
-  const ph = tSec * 3.45 + (isWife ? 1.85 : 0.0);
   // Raise both upper arms & forearms near the water surface and sweep outward/inward in a floating sculling motion
   if (sb.upperArmL) {
     sb.upperArmL.rotation.set(
@@ -9576,10 +9617,29 @@ function applyNpcSwimTreadPose(npcState, tSec, isWife = false) {
 function applyNpcPoolDiveJumpPose(npcState, jumpProg, isWife = false) {
   const sb = npcState.swimBones;
   if (!sb) return;
+  const pitch = (jumpProg < 0.65) ? Math.sin((jumpProg / 0.65) * Math.PI) * 0.42 : 0.0;
+  const tuck = Math.sin(Math.min(1.0, jumpProg * 1.3) * Math.PI);
+  if (!isWife) {
+    if (sb.boneRoot && sb.boneRoot.userData && sb.boneRoot.userData.restPos) {
+      sb.boneRoot.position.copy(sb.boneRoot.userData.restPos);
+      sb.boneRoot.quaternion.copy(sb.boneRoot.userData.restQuat);
+    }
+    if (sb.hips && npcState.hipsRestPos) {
+      sb.hips.position.copy(npcState.hipsRestPos);
+      setBoneBasisEuler(sb.hips, pitch, 0, 0);
+    }
+    setBoneBasisEuler(sb.upperArmL, 0.55, 0.15, 0.92);
+    setBoneBasisEuler(sb.foreArmL, 0.35, 0, 0);
+    setBoneBasisEuler(sb.upperArmR, 0.55, -0.15, -0.92);
+    setBoneBasisEuler(sb.foreArmR, 0.35, 0, 0);
+    setBoneBasisEuler(sb.upLegL, 0.55 * tuck, 0, 0.05);
+    setBoneBasisEuler(sb.lowLegL, -0.85 * tuck, 0, 0);
+    setBoneBasisEuler(sb.upLegR, 0.45 * tuck, 0, -0.05);
+    setBoneBasisEuler(sb.lowLegR, -0.75 * tuck, 0, 0);
+    return;
+  }
   if (sb.hips && npcState.hipsRestPos) {
     sb.hips.position.copy(npcState.hipsRestPos);
-    // Forward airborne lean during the jump arc, straightening as they enter the water
-    const pitch = (jumpProg < 0.65) ? Math.sin((jumpProg / 0.65) * Math.PI) * 0.42 : 0.0;
     sb.hips.rotation.set(pitch, 0, 0);
   }
   // Both arms raised high in an exuberant cannonball/dive leap into the pool
@@ -9588,7 +9648,6 @@ function applyNpcPoolDiveJumpPose(npcState, jumpProg, isWife = false) {
   if (sb.upperArmR) sb.upperArmR.rotation.set(-2.15, -0.15, -0.28);
   if (sb.foreArmR) sb.foreArmR.rotation.set(-0.35, 0, 0);
   // Knees tucked slightly in mid-air
-  const tuck = Math.sin(Math.min(1.0, jumpProg * 1.3) * Math.PI);
   if (sb.upLegL) sb.upLegL.rotation.set(-0.55 * tuck, 0, 0.05);
   if (sb.lowLegL) sb.lowLegL.rotation.set(0.85 * tuck, 0, 0);
   if (sb.upLegR) sb.upLegR.rotation.set(-0.45 * tuck, 0, -0.05);
@@ -9599,6 +9658,32 @@ function applyNpcPoolDiveJumpPose(npcState, jumpProg, isWife = false) {
 function applyNpcPoolBorderLoungePose(npcState, tSec, isWife = false) {
   const sb = npcState.swimBones;
   if (!sb) return;
+  const sipWave = Math.sin(tSec * 1.85 + (isWife ? 1.6 : 0.0));
+  const eatWave = Math.cos(tSec * 1.85 + (isWife ? 1.6 : 0.0));
+  if (!isWife) {
+    if (sb.boneRoot && sb.boneRoot.userData && sb.boneRoot.userData.restPos) {
+      sb.boneRoot.position.copy(sb.boneRoot.userData.restPos);
+      sb.boneRoot.quaternion.copy(sb.boneRoot.userData.restQuat);
+    }
+    if (sb.hips) {
+      sb.hips.position.set(0, 0.06, 0.145);
+      setBoneBasisEuler(sb.hips, -1.34, 0, 0);
+    }
+    setBoneBasisEuler(sb.spine, 0.22, 0, 0);
+    setBoneBasisEuler(sb.chest, 0.26, 0, 0);
+    setBoneBasisEuler(sb.neck, 0.26, Math.sin(tSec * 0.9) * 0.14, 0);
+    setBoneBasisEuler(sb.upLegL, 0.20, 0.0, 0.06);
+    setBoneBasisEuler(sb.lowLegL, -0.34, 0, 0);
+    setBoneBasisEuler(sb.upLegR, 0.24, 0.0, -0.06);
+    setBoneBasisEuler(sb.lowLegR, -0.42, 0, 0);
+    setBoneBasisEuler(sb.upperArmR, 0.42 + Math.max(0, eatWave) * 0.28, -0.10, 0.45);
+    setBoneBasisEuler(sb.foreArmR, 0.48 + Math.max(0, eatWave) * 0.35, -0.12, -0.18);
+    setBoneBasisEuler(sb.handR, 0.16 * eatWave, -0.25, -0.10);
+    setBoneBasisEuler(sb.upperArmL, 0.38 + Math.max(0, sipWave) * 0.22, 0.10, -0.45);
+    setBoneBasisEuler(sb.foreArmL, 0.48 + Math.max(0, sipWave) * 0.28, 0.12, 0.18);
+    setBoneBasisEuler(sb.handL, 0.14 * sipWave, 0.25, 0.10);
+    return;
+  }
   // Lower Hips right onto the woven poolside lounge mat (y = 0.14m above the bz = +0.04m marble border) and recline torso backward (-1.34 rad = -77 deg)!
   if (sb.hips) {
     sb.hips.position.set(0, 0.145, -0.06);
@@ -9616,8 +9701,6 @@ function applyNpcPoolBorderLoungePose(npcState, tSec, isWife = false) {
   if (sb.lowLegR) sb.lowLegR.rotation.set(0.42, 0, 0);
 
   // Animated arms: right hand reaches to the Ceramic Food Plate ("piring makanan") & brings a snack toward mouth; left hand reaches to the Beverage Bottle ("botol minuman")!
-  const sipWave = Math.sin(tSec * 1.85 + (isWife ? 1.6 : 0.0));
-  const eatWave = Math.cos(tSec * 1.85 + (isWife ? 1.6 : 0.0));
   if (sb.upperArmR) {
     sb.upperArmR.rotation.set(-0.55 - Math.max(0, eatWave) * 0.35, -0.18, -0.32);
   }
@@ -9672,44 +9755,44 @@ function initNpcSwimCycle(npcState, isWife = false, startFromWalkedBorder = fals
 
 function buildMaherHandheldProps(handBone) {
   // 1. Stainless Steel & Walnut BBQ/Kitchen Spatula
-  //    In Hand.R local space when the arm is raised (~-86° around X), rotating +1.62 rad (+93°) around X makes +Z point horizontally forward & slightly downward onto the grill/pan!
+  //    Aligned to pronated CC_Base_R_Hand (palm & fingers facing straight DOWN) so the walnut handle sits inside the downward-curled fist and the blade extends forward!
   const spatulaGrp = new THREE.Group();
-  spatulaGrp.position.set(0, -0.045, 0.015);
-  spatulaGrp.rotation.x = 1.36;
+  spatulaGrp.position.set(-0.032, 0.068, 0.032);
+  spatulaGrp.rotation.set(-1.525, 0.010, -1.696);
   const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.16, 10), matWalnut);
   handle.rotation.x = Math.PI / 2;
-  handle.position.set(0, 0, 0.06);
+  handle.position.set(0, 0, 0.04);
   spatulaGrp.add(handle);
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.15, 8), matChrome);
   stem.rotation.x = Math.PI / 2;
-  stem.position.set(0, 0, 0.21);
+  stem.position.set(0, 0, 0.19);
   spatulaGrp.add(stem);
   const blade = new THREE.Mesh(new THREE.BoxGeometry(0.082, 0.005, 0.12), matChrome);
-  blade.position.set(0, 0.0, 0.32);
+  blade.position.set(0, 0.0, 0.30);
   spatulaGrp.add(blade);
   spatulaGrp.visible = false;
   handBone.add(spatulaGrp);
   maherNpcState.propSpatula = spatulaGrp;
 
   // 2. Traditional Copper & Brass Garden Watering Can
-  //    Rotated +1.32 rad (+76°) around local X so when the arm reaches forward in Water_Plants, the watering can hangs naturally below the handle and tilts its spout forward & downward toward the pots!
+  //    Aligned to pronated CC_Base_R_Hand (palm & fingers facing straight DOWN) so the top brass handle arch sits inside the curled fingers and the copper body hangs below!
   const canGrp = new THREE.Group();
-  canGrp.position.set(0, -0.075, -0.02);
-  canGrp.rotation.x = 1.32;
+  canGrp.position.set(-0.035, 0.072, 0.034);
+  canGrp.rotation.set(-1.523, 0.030, -1.696);
   const body = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.19, 16), matCopper);
-  body.position.set(0, -0.10, 0.06);
+  body.position.set(0, -0.155, 0.04);
   canGrp.add(body);
   const topHandle = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.010, 8, 16, Math.PI * 1.25), matBrass);
   topHandle.rotation.y = Math.PI / 2;
-  topHandle.position.set(0, 0.0, 0.04);
+  topHandle.position.set(0, -0.060, 0.02);
   canGrp.add(topHandle);
   const spout = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.022, 0.24, 10), matCopper);
   spout.rotation.x = Math.PI * 0.36;
-  spout.position.set(0, -0.06, 0.20);
+  spout.position.set(0, -0.115, 0.18);
   canGrp.add(spout);
   const rose = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.028, 12), matBrass);
   rose.rotation.x = -Math.PI * 0.64;
-  rose.position.set(0, -0.01, 0.31);
+  rose.position.set(0, -0.065, 0.29);
   rose.name = 'WateringSpoutTip';
   canGrp.add(rose);
   canGrp.visible = false;
@@ -10584,7 +10667,7 @@ window.setNpcSwimPhase = function(isWife, phaseName, preferredSide = null) {
 };
 
 function fixNpcClothingAndBackGlitches(armRoot, isWife) {
-  if (!armRoot) return;
+  if (!armRoot || !isWife) return;
 
   // Definitive Fix for NPC Back Flickering ("glitch kelap kelip di punggung kedua NPC"):
   // 1) All NPC SkinnedMeshes have receiveShadow = false (set in loadMaherWifeNPC / loadMaitreMaherNPC) so the 15 Hz shadow-map update tick
@@ -11128,193 +11211,70 @@ function buildMaherDuckSwimRingGroup() {
 
 function buildMaherSwimCostumeAndDuckRing(armRoot) {
   if (!armRoot) return;
-  let upperArmLIdx = -1, upperArmRIdx = -1, foreArmLIdx = -1, foreArmRIdx = -1;
-  let upLegLIdx = -1, upLegRIdx = -1, lowLegLIdx = -1, lowLegRIdx = -1;
-  armRoot.traverse((ch) => {
-    if (ch.isSkinnedMesh && ch.skeleton && ch.skeleton.bones) {
-      ch.skeleton.bones.forEach((b, idx) => {
-        const bn = b.name;
-        if (bn === 'UpperArm.L' || bn === 'UpperArmL') upperArmLIdx = idx;
-        else if (bn === 'UpperArm.R' || bn === 'UpperArmR') upperArmRIdx = idx;
-        else if (bn === 'ForeArm.L' || bn === 'ForeArmL') foreArmLIdx = idx;
-        else if (bn === 'ForeArm.R' || bn === 'ForeArmR') foreArmRIdx = idx;
-        else if (bn === 'UpLeg.L' || bn === 'UpLegL') upLegLIdx = idx;
-        else if (bn === 'UpLeg.R' || bn === 'UpLegR') upLegRIdx = idx;
-        else if (bn === 'LowLeg.L' || bn === 'LowLegL') lowLegLIdx = idx;
-        else if (bn === 'LowLeg.R' || bn === 'LowLegR') lowLegRIdx = idx;
-      });
-    }
-  });
+  maherNpcState.shortsMeshes = [];
+  maherNpcState.meshSkinBody = null;
 
   armRoot.traverse((ch) => {
     if (!ch.isMesh || !ch.geometry || !ch.material) return;
     const matName = Array.isArray(ch.material) ? (ch.material[0] && ch.material[0].name) : ch.material.name;
+    const objName = ch.name || '';
     if (!matName) return;
 
-    if (matName.includes('Mat_Skin_Maher')) {
-      maherNpcState.meshSkin = ch;
-      // Create a companion SkinnedMesh for the native MakeHuman anatomical bicep (y = 1.285..1.40) and knee (y = 0.52..0.56) bridge triangles
-      // using matMaherBareSkin (so they render in 100% clean Mediterranean skin tone with full anatomical thickness and 100% native bone weights!)
-      if (ch.userData.maherBridgeIndices && ch.userData.maherBridgeIndices.length > 0 && ch.skeleton) {
-        const bridgeGeo = (ch.userData.preFixGeo || ch.geometry).clone();
-        if (bridgeGeo.attributes.color) bridgeGeo.deleteAttribute('color');
-        // Compute smooth vertex normals on the full un-culled mesh first so boundary vertices share smooth normals with forearm/calf,
-        // and then set the index buffer to maherBridgeIndices!
-        bridgeGeo.computeVertexNormals();
-        bridgeGeo.setIndex(ch.userData.maherBridgeIndices);
-        const bridgeMesh = new THREE.SkinnedMesh(bridgeGeo, matMaherBareSkin);
-        bridgeMesh.castShadow = true;
-        bridgeMesh.receiveShadow = false;
-        bridgeMesh.frustumCulled = false;
-        bridgeMesh.bind(ch.skeleton, ch.bindMatrix);
-        bridgeMesh.visible = false;
-        if (ch.parent) ch.parent.add(bridgeMesh);
-        maherNpcState.meshSkinBridge = bridgeMesh;
-      }
-    } else if (matName.includes('Mat_Top_Maher')) {
-      maherNpcState.meshTop = ch;
-      ch.userData.origClothMat = ch.material;
-      ch.userData.origClothGeo = ch.geometry;
-
-      // Build Watertight, Full-Thickness Bare Torso & Muscular Upper-Arm Geometry ("tanpa kaos"):
-      // Start from preFixGeo (preserving 100% native UpperArm & Clavicle bone weights) with the culled index buffer of ch.geometry.
-      // Taper the loose short-sleeve cuff gently (shrink = 0.84, NOT 0.56!) around the sloped humerus axis (x = ±0.168 at shoulder -> ±0.204 at elbow)
-      // so the deltoid and bicep keep their full, natural athletic thickness matching the forearm!
-      const bareTorsoGeo = (ch.userData.preFixGeo || ch.geometry).clone();
-      if (ch.geometry.index) {
-        bareTorsoGeo.setIndex(ch.geometry.index.clone());
-      }
-      const pos = bareTorsoGeo.attributes.position;
-      const norm = bareTorsoGeo.attributes.normal;
-      const sIdx = bareTorsoGeo.attributes.skinIndex;
-      const sWgt = bareTorsoGeo.attributes.skinWeight;
-      if (pos) {
-        for (let i = 0; i < pos.count; i++) {
-          let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          const ax = Math.abs(x);
-          const signX = x >= 0 ? 1 : -1;
-          let origArmW = 0;
-          if (sIdx && sWgt) {
-            const j0 = sIdx.getX(i), j1 = sIdx.getY(i), j2 = sIdx.getZ(i), j3 = sIdx.getW(i);
-            if (j0 === upperArmLIdx || j0 === upperArmRIdx) origArmW += sWgt.getX(i);
-            if (j1 === upperArmLIdx || j1 === upperArmRIdx) origArmW += sWgt.getY(i);
-            if (j2 === upperArmLIdx || j2 === upperArmRIdx) origArmW += sWgt.getZ(i);
-            if (j3 === upperArmLIdx || j3 === upperArmRIdx) origArmW += sWgt.getW(i);
-          }
-          if (origArmW > 0.40 && ax > 0.145 && y >= 1.255 && y < 1.425) {
-            // Sloped anatomical humerus centerline from shoulder (y = 1.42, x = ±0.168) down to elbow/bicep (y = 1.26, x = ±0.204)
-            const tArmY = Math.max(0.0, Math.min(1.0, (1.42 - y) / 0.16));
-            const armCx = signX * (0.168 + 0.036 * tArmY);
-            const armCz = 0.008 + 0.006 * tArmY;
-            // Gentle 15% cuff taper (shrink = 0.85) so the upper arm & bicep stay muscular and proportional to the forearm!
-            const shrink = 1.0 - 0.15 * tArmY;
-            x = armCx + (x - armCx) * shrink;
-            z = armCz + (z - armCz) * shrink;
-            if (y < 1.315) {
-              const tDown = Math.min(1.0, (1.315 - y) / 0.055);
-              y -= 0.022 * tDown;
-              x += signX * 0.005 * tDown;
-            }
-          } else {
-            const nx = norm ? norm.getX(i) : 0;
-            const ny = norm ? norm.getY(i) : 0;
-            const nz = norm ? norm.getZ(i) : 0;
-            const inset = (y > 1.42) ? 0.007 : 0.004;
-            x -= nx * inset;
-            y -= ny * inset * 0.3;
-            z -= nz * inset;
-          }
-          pos.setXYZ(i, x, y, z);
-        }
-        pos.needsUpdate = true;
-        bareTorsoGeo.computeVertexNormals();
-      }
-      ch.userData.bareSkinGeo = bareTorsoGeo;
-    } else if (matName.includes('Mat_Shorts_Maher')) {
+    // 1. Collect all sub-meshes of Maher_Shorts_Mesh (Pants, Trim, Waistband) so they can be hidden when swimming bare-skinned ("telanjang")
+    //    and slightly expand the front hip-crease region so sitting at 90° (Seated_Idle) never lets underlying pelvis skin poke through
+    if (
+      objName.includes('Maher_Shorts_Mesh') ||
+      objName.includes('EssentialShorts') ||
+      matName === 'Pants' ||
+      matName === 'Trim' ||
+      matName === 'Waistband' ||
+      matName.includes('Mat_Shorts_Maher')
+    ) {
+      maherNpcState.shortsMeshes.push(ch);
       maherNpcState.meshShorts = ch;
-      ch.userData.origClothMat = ch.material;
-      ch.userData.origClothGeo = ch.geometry;
-
-      // Build Watertight Bare Thighs & Knee Bridge Geometry ("tanpa celana"):
-      // Keep natural athletic thigh & knee thickness (shrink = 0.88 at thigh -> 0.78 at knee) and blend the lower knee cuff weights
-      // with LowLeg.L / LowLeg.R so the knee joint bends smoothly!
-      const bareThighsGeo = ch.geometry.clone();
-      const pos = bareThighsGeo.attributes.position;
-      const sIdx = bareThighsGeo.attributes.skinIndex;
-      const sWgt = bareThighsGeo.attributes.skinWeight;
-      if (pos) {
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          const signX = x >= 0 ? 1 : -1;
-          const legCx = signX * 0.118;
-          const legCz = 0.020;
-          const dx = x - legCx;
-          const dz = z - legCz;
-          const tKnee = Math.max(0.0, Math.min(1.0, (0.75 - y) / 0.25));
-          const shrink = 0.88 - 0.10 * tKnee;
-          let ny = y;
-          if (y < 0.555) {
-            const tBridge = Math.min(1.0, (0.555 - y) / 0.052);
-            ny = y - 0.042 * tBridge;
-            if (sIdx && sWgt) {
-              const uLegIdx = (x >= 0) ? upLegLIdx : upLegRIdx;
-              const lLegIdx = (x >= 0) ? lowLegLIdx : lowLegRIdx;
-              if (uLegIdx >= 0 && lLegIdx >= 0) {
-                const wLow = 0.75 * tBridge;
-                const wUp = 1.0 - wLow;
-                sIdx.setXYZW(i, uLegIdx, lLegIdx, 0, 0);
-                sWgt.setXYZW(i, wUp, wLow, 0, 0);
-              }
-            }
-          }
-          pos.setXYZ(i, legCx + dx * shrink, ny, legCz + dz * shrink);
+      if (ch.geometry && ch.geometry.attributes.position && ch.geometry.attributes.normal && !ch.geometry.userData.hipCreaseExpanded) {
+        ch.geometry.userData.hipCreaseExpanded = true;
+        const sPos = ch.geometry.attributes.position;
+        const sNor = ch.geometry.attributes.normal;
+        for (let i = 0; i < sPos.count; i++) {
+          const x = sPos.getX(i), y = sPos.getY(i), z = sPos.getZ(i);
+          const nx = sNor.getX(i), ny = sNor.getY(i), nz = sNor.getZ(i);
+          const push = (y >= 0.74 && y <= 0.93) ? 0.014 : 0.004;
+          const extraFrontZ = (y >= 0.75 && y <= 0.92 && z > 0.0) ? 0.015 : 0.0;
+          sPos.setXYZ(i, x + nx * push, y + ny * push * 0.5, z + nz * push + extraFrontZ);
         }
-        pos.needsUpdate = true;
-        if (sIdx) sIdx.needsUpdate = true;
-        if (sWgt) sWgt.needsUpdate = true;
-        bareThighsGeo.computeVertexNormals();
+        sPos.needsUpdate = true;
       }
-      ch.userData.bareSkinGeo = bareThighsGeo;
-    } else if (matName.includes('Mat_Shoe_Maher')) {
-      maherNpcState.meshShoes = ch;
-      ch.userData.origClothMat = ch.material;
-      ch.userData.origClothGeo = ch.geometry;
+    }
 
-      // Build Bare Feet Geometry ("tanpa sepatu"):
-      // Slim the shoe collar & sole inward to match the bare ankle radius (0.039m at x = ±0.116, z = 0.018) and sculpt a subtle 5-toe front contour!
-      const bareFeetGeo = ch.geometry.clone();
-      const pos = bareFeetGeo.attributes.position;
-      if (pos) {
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-          const signX = x >= 0 ? 1 : -1;
-          const ankleCx = signX * 0.116;
-          const ankleCz = 0.018;
-          const dx = x - ankleCx;
-          const dz = z - ankleCz;
-          // Slim ankle collar (y > 0.045) by 36% so it meets the bare ankle cleanly; slim foot body by 18%
-          const xyScale = (y > 0.045) ? 0.64 : 0.82;
-          let nx = ankleCx + dx * xyScale;
-          let ny = (y < 0.005) ? (y + 0.006) : (y * 0.86);
-          let nz = (z > ankleCz) ? (ankleCz + dz * 0.90) : (ankleCz + dz * 0.76);
-          // Subtle 5-toe ridges at the front of the bare foot (z > 0.115)
-          if (z > 0.115) {
-            const localFootX = (nx - ankleCx) * signX; // [-0.04 .. +0.04]
-            const toeWave = Math.cos(localFootX * 135.0) * 0.0035;
-            nz += toeWave;
-            ny = Math.min(ny, 0.032 + toeWave * 0.5);
-          }
-          pos.setXYZ(i, nx, ny, nz);
+    // 2. Precompute full bare-skin index buffer vs clothed index buffer on Std_Skin_Body
+    //    When clothed (!isSwimming), hide back-glute skin triangles strictly inside the shorts (0.82 <= cy <= 0.91 && cz < 0) so sitting/walking never clips;
+    //    when swimming (isSwimming === true), restore 100% of the seamless CC_Base_Body bare skin mesh!
+    if (matName.includes('Std_Skin_Body') && ch.geometry.index && ch.geometry.attributes.position) {
+      maherNpcState.meshSkinBody = ch;
+      const pos = ch.geometry.attributes.position;
+      const origIndex = ch.geometry.index.clone();
+      const srcArr = Array.from(origIndex.array);
+      const clothedArr = [];
+      const numTris = Math.floor(srcArr.length / 3);
+      for (let t = 0; t < numTris; t++) {
+        const i0 = srcArr[t * 3], i1 = srcArr[t * 3 + 1], i2 = srcArr[t * 3 + 2];
+        const cy = (pos.getY(i0) + pos.getY(i1) + pos.getY(i2)) / 3;
+        const cz = (pos.getZ(i0) + pos.getZ(i1) + pos.getZ(i2)) / 3;
+        if (!(cy >= 0.82 && cy <= 0.91 && cz < -0.01)) {
+          clothedArr.push(i0, i1, i2);
         }
-        pos.needsUpdate = true;
-        bareFeetGeo.computeVertexNormals();
       }
-      ch.userData.bareSkinGeo = bareFeetGeo;
+      ch.userData.fullBareIndex = origIndex;
+      ch.geometry.setIndex(clothedArr);
+      ch.userData.clothedIndex = ch.geometry.index.clone();
     }
   });
 
   if (maherNpcState.swimBones && maherNpcState.swimBones.hips) {
     const duckRing = buildMaherDuckSwimRingGroup();
+    duckRing.position.set(0, -0.065, 0.015);
+    duckRing.scale.set(1.08, 1.05, 1.12);
     maherNpcState.swimBones.hips.add(duckRing);
     maherNpcState.duckRingGroup = duckRing;
     window.maherDuckRingGroup = duckRing;
@@ -11329,19 +11289,19 @@ function setMaherSwimCostume(isSwimming) {
   if (maherNpcState.duckRingGroup) {
     maherNpcState.duckRingGroup.visible = swimMode;
   }
-  if (maherNpcState.meshSkinBridge) {
-    maherNpcState.meshSkinBridge.visible = swimMode;
-  }
 
-  // 2. Switch Shirt ("tanpa kaos"), Shorts ("tanpa celana"), and Shoes ("tanpa sepatu") between Bare Skin and Normal Clothes
-  for (const m of [maherNpcState.meshTop, maherNpcState.meshShorts, maherNpcState.meshShoes]) {
-    if (!m || !m.userData) continue;
-    if (swimMode) {
-      if (m.userData.bareSkinGeo) m.geometry = m.userData.bareSkinGeo;
-      m.material = matMaherBareSkin;
-    } else {
-      if (m.userData.origClothGeo) m.geometry = m.userData.origClothGeo;
-      if (m.userData.origClothMat) m.material = m.userData.origClothMat;
+  // 2. Toggle Shorts visibility ("telanjang saat berenang") and restore 100% bare skin on CC_Base_Body
+  if (maherNpcState.shortsMeshes && maherNpcState.shortsMeshes.length > 0) {
+    for (const sm of maherNpcState.shortsMeshes) {
+      if (sm) sm.visible = !swimMode;
+    }
+  }
+  if (maherNpcState.meshSkinBody && maherNpcState.meshSkinBody.userData) {
+    const ud = maherNpcState.meshSkinBody.userData;
+    if (swimMode && ud.fullBareIndex) {
+      maherNpcState.meshSkinBody.geometry.setIndex(ud.fullBareIndex);
+    } else if (!swimMode && ud.clothedIndex) {
+      maherNpcState.meshSkinBody.geometry.setIndex(ud.clothedIndex);
     }
   }
 }
@@ -11372,36 +11332,40 @@ function loadMaitreMaherNPC() {
         }
       }
       if (ch.isBone) {
+        ch.userData.restQuat = ch.quaternion.clone();
+        ch.userData.restPos = ch.position.clone();
         const bn = ch.name;
-        if (bn === 'Hips') {
+        if (bn === 'CC_Base_BoneRoot') {
+          maherNpcState.swimBones.boneRoot = ch;
+        } else if (bn === 'Hips' || bn === 'CC_Base_Hip') {
           maherNpcState.swimBones.hips = ch;
           maherNpcState.hipsRestPos = ch.position.clone();
-        } else if (bn === 'Spine') {
+        } else if (bn === 'Spine' || bn === 'CC_Base_Spine01') {
           maherNpcState.swimBones.spine = ch;
-        } else if (bn === 'Chest') {
+        } else if (bn === 'Chest' || bn === 'CC_Base_Spine02') {
           maherNpcState.swimBones.chest = ch;
-        } else if (bn === 'Neck') {
+        } else if (bn === 'Neck' || bn === 'CC_Base_NeckTwist01') {
           maherNpcState.swimBones.neck = ch;
-        } else if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R') {
+        } else if (bn === 'Hand.R' || bn === 'HandR' || bn === 'Hand_R' || bn === 'CC_Base_R_Hand') {
           maherNpcState.handBoneR = ch;
           maherNpcState.swimBones.handR = ch;
-        } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L') {
+        } else if (bn === 'Hand.L' || bn === 'HandL' || bn === 'Hand_L' || bn === 'CC_Base_L_Hand') {
           maherNpcState.swimBones.handL = ch;
-        } else if (bn === 'UpperArm.L' || bn === 'UpperArmL') {
+        } else if (bn === 'UpperArm.L' || bn === 'UpperArmL' || bn === 'CC_Base_L_Upperarm') {
           maherNpcState.swimBones.upperArmL = ch;
-        } else if (bn === 'ForeArm.L' || bn === 'ForeArmL') {
+        } else if (bn === 'ForeArm.L' || bn === 'ForeArmL' || bn === 'CC_Base_L_Forearm') {
           maherNpcState.swimBones.foreArmL = ch;
-        } else if (bn === 'UpperArm.R' || bn === 'UpperArmR') {
+        } else if (bn === 'UpperArm.R' || bn === 'UpperArmR' || bn === 'CC_Base_R_Upperarm') {
           maherNpcState.swimBones.upperArmR = ch;
-        } else if (bn === 'ForeArm.R' || bn === 'ForeArmR') {
+        } else if (bn === 'ForeArm.R' || bn === 'ForeArmR' || bn === 'CC_Base_R_Forearm') {
           maherNpcState.swimBones.foreArmR = ch;
-        } else if (bn === 'UpLeg.L' || bn === 'UpLegL') {
+        } else if (bn === 'UpLeg.L' || bn === 'UpLegL' || bn === 'CC_Base_L_Thigh') {
           maherNpcState.swimBones.upLegL = ch;
-        } else if (bn === 'LowLeg.L' || bn === 'LowLegL') {
+        } else if (bn === 'LowLeg.L' || bn === 'LowLegL' || bn === 'CC_Base_L_Calf') {
           maherNpcState.swimBones.lowLegL = ch;
-        } else if (bn === 'UpLeg.R' || bn === 'UpLegR') {
+        } else if (bn === 'UpLeg.R' || bn === 'UpLegR' || bn === 'CC_Base_R_Thigh') {
           maherNpcState.swimBones.upLegR = ch;
-        } else if (bn === 'LowLeg.R' || bn === 'LowLegR') {
+        } else if (bn === 'LowLeg.R' || bn === 'LowLegR' || bn === 'CC_Base_R_Calf') {
           maherNpcState.swimBones.lowLegR = ch;
         }
       }
@@ -11419,10 +11383,10 @@ function loadMaitreMaherNPC() {
 
     (gltf.animations || []).forEach((clip) => {
       const cleanClip = clip.clone();
-      // Keep only Hips vertical/forward local seat offset tracks; strip any armature-level root translation
+      // Keep Hips / CC_Base_Hip / CC_Base_BoneRoot local offset tracks; strip any armature-level root translation
       cleanClip.tracks = cleanClip.tracks.filter(trk => {
         if (!trk.name.endsWith('.position')) return true;
-        return trk.name.includes('Hips');
+        return trk.name.includes('Hips') || trk.name.includes('CC_Base_Hip') || trk.name.includes('CC_Base_BoneRoot');
       });
       // Recognise clip name regardless of NLA track prefix
       for (const baseName of ['Walk_Cycle', 'Stand_Idle', 'Cook_Action', 'Water_Plants', 'Seated_Idle']) {
