@@ -4635,6 +4635,19 @@ function loadPHModel(assetId) {
   const alphaTex = getBotanicalAlphaTex(assetId);
 
   modelPromiseCache[assetId] = new Promise((resolve) => {
+    let settled = false;
+    const finish = (val) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timerId);
+      loadingActive = Math.max(0, loadingActive - 1);
+      updateLoadingUI();
+      if (val) requestShadowUpdate();
+      resolve(val);
+    };
+    const timerId = setTimeout(() => {
+      finish(null);
+    }, 3500);
     try {
       gltfLoader.parse(JSON.stringify(gltfJson), '', (gltf) => {
         const root = gltf.scene;
@@ -4658,20 +4671,13 @@ function loadPHModel(assetId) {
           }
         });
         modelCache[assetId] = root;
-        loadingActive--;
-        updateLoadingUI();
-        requestShadowUpdate();
-        resolve(root);
+        finish(root);
       }, (err) => {
         console.warn('GLTF parse warning for', assetId, err);
-        loadingActive--;
-        updateLoadingUI();
-        resolve(null);
+        finish(null);
       });
     } catch (e) {
-      loadingActive--;
-      updateLoadingUI();
-      resolve(null);
+      finish(null);
     }
   });
 
@@ -6616,6 +6622,15 @@ async function buildStaticPolyHavenDecor() {
       } else if (clayPotProto) {
         const potW = fitAndPlaceModel(clayPotProto.clone(true), [0.68, 0.68, 0.50], null, seedIdx * 0.8);
         smallOliveGroup.add(potW);
+      } else {
+        const fallbackPot = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.34, 0.24, 0.48, 20),
+          new THREE.MeshStandardMaterial({ color: 0xb5633c, roughness: 0.78, metalness: 0.04 })
+        );
+        fallbackPot.position.y = 0.24;
+        fallbackPot.castShadow = true;
+        fallbackPot.receiveShadow = true;
+        smallOliveGroup.add(fallbackPot);
       }
 
       // Dark potting soil mound + small spiky grass sprouts inside the planter
@@ -10064,6 +10079,9 @@ function setSelectionHighlight(obj, active) {
   if (!obj) return;
   if (obj.userData && obj.userData.isAnimal) return;
   const isCar = !!(obj.userData && obj.userData.labelEn === 'Peugeot 308 Orange Hatchback');
+  const highlightHex = isCar ? 0x3a1000 : 0xd4a853;
+  const highlightInt = isCar ? 0.06 : 0.22;
+  if (obj.userData) obj.userData._isSelectionHighlightedRoot = !!active;
   obj.traverse(ch => {
     if (ch.isMesh && ch.material && ch.material.emissive && !ch.userData.isLed) {
       if (isCar && ch.material.name && !ch.material.name.includes('Peugeot_Orange')) return;
@@ -10072,13 +10090,30 @@ function setSelectionHighlight(obj, active) {
           ch.material = ch.material.clone();
           ch.userData._origMatCloned = true;
         }
-        ch.userData._prevEmissiveHex = ch.material.emissive.getHex();
-        ch.userData._prevEmissiveInt = ch.material.emissiveIntensity || 0;
-        ch.material.emissive.setHex(isCar ? 0x3a1000 : 0xd4a853);
-        ch.material.emissiveIntensity = isCar ? 0.06 : 0.22;
-      } else if (ch.userData._origMatCloned) {
-        ch.material.emissive.setHex(ch.userData._prevEmissiveHex || 0x000000);
-        ch.material.emissiveIntensity = ch.userData._prevEmissiveInt || 0;
+        if (!ch.userData._isSelectionHighlighted) {
+          const curHex = ch.material.emissive.getHex();
+          const curInt = ch.material.emissiveIntensity || 0;
+          // Never overwrite _prevEmissiveHex with the selection highlight color if called repeatedly
+          if (curHex === highlightHex && Math.abs(curInt - highlightInt) < 0.03) {
+            ch.userData._prevEmissiveHex = 0x000000;
+            ch.userData._prevEmissiveInt = 0;
+          } else {
+            ch.userData._prevEmissiveHex = curHex;
+            ch.userData._prevEmissiveInt = curInt;
+          }
+        }
+        ch.userData._isSelectionHighlighted = true;
+        ch.material.emissive.setHex(highlightHex);
+        ch.material.emissiveIntensity = highlightInt;
+      } else {
+        if (ch.userData._origMatCloned) {
+          ch.material.emissive.setHex(ch.userData._prevEmissiveHex || 0x000000);
+          ch.material.emissiveIntensity = ch.userData._prevEmissiveInt || 0;
+        } else if (ch.material.emissive.getHex() === highlightHex) {
+          ch.material.emissive.setHex(0x000000);
+          ch.material.emissiveIntensity = 0;
+        }
+        ch.userData._isSelectionHighlighted = false;
       }
     }
   });
@@ -10095,31 +10130,32 @@ function clearMultiSelectedOlives(keepObj) {
     }
   }
   multiSelectedOlives.length = 0;
-  if (keepObj && keepObj.userData && keepObj.userData.isIndividualSmallOlive) {
+  if (keepObj && keepObj.userData && keepObj.userData.draggable && !keepObj.userData.isDynamicLWalkway) {
     multiSelectedOlives.push(keepObj);
   }
 }
 
-function toggleOliveMultiSelection(oliveObj) {
-  if (!oliveObj || !oliveObj.userData || !oliveObj.userData.isIndividualSmallOlive) return;
-  if (selectedObject && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive && !multiSelectedOlives.includes(selectedObject)) {
+function toggleOliveMultiSelection(targetObj) {
+  if (!targetObj || !targetObj.userData || !targetObj.userData.draggable) return;
+  if (selectedObject && selectedObject.userData && selectedObject.userData.draggable && !multiSelectedOlives.includes(selectedObject)) {
     multiSelectedOlives.push(selectedObject);
-  } else if (selectedObject && (!selectedObject.userData || !selectedObject.userData.isIndividualSmallOlive)) {
-    setSelectionHighlight(selectedObject, false);
-    selectedObject = null;
   }
 
-  const idx = multiSelectedOlives.indexOf(oliveObj);
+  const idx = multiSelectedOlives.indexOf(targetObj);
   if (idx !== -1) {
     if (multiSelectedOlives.length > 1) {
       multiSelectedOlives.splice(idx, 1);
-      setSelectionHighlight(oliveObj, false);
+      setSelectionHighlight(targetObj, false);
       selectedObject = multiSelectedOlives[multiSelectedOlives.length - 1];
+    } else {
+      multiSelectedOlives.splice(idx, 1);
+      setSelectionHighlight(targetObj, false);
+      selectedObject = null;
     }
   } else {
-    multiSelectedOlives.push(oliveObj);
-    setSelectionHighlight(oliveObj, true);
-    selectedObject = oliveObj;
+    multiSelectedOlives.push(targetObj);
+    setSelectionHighlight(targetObj, true);
+    selectedObject = targetObj;
   }
 
   multiSelectedOlives.forEach(ol => setSelectionHighlight(ol, true));
@@ -10358,11 +10394,18 @@ function selectObject(obj) {
 function deselectObject() {
   clearMultiSelectedOlives(null);
   selectObject(null);
+  for (let i = 0; i < draggableObjects.length; i++) {
+    const obj = draggableObjects[i];
+    if (obj && obj.userData && obj.userData._isSelectionHighlightedRoot) {
+      setSelectionHighlight(obj, false);
+    }
+  }
 }
 
 let copiedObjectBlueprint = null;
 let _copyFlashActive = false;
 let _copyFlashTimer = null;
+let multiDragOffsets = [];
 
 function updateSelectedHudText() {
   const el = document.getElementById('sel-name');
@@ -10424,16 +10467,22 @@ function updateSelectedHudText() {
     if (rotRBtn) rotRBtn.style.display = 'inline-block';
     if (rot90Btn) rot90Btn.style.display = 'inline-block';
   } else {
-    const isSingleOlive = !!(selectedObject.userData && selectedObject.userData.isIndividualSmallOlive);
+    const oliveItems = multiSelectedOlives.filter(o => o && o.userData && o.userData.isIndividualSmallOlive);
+    const isSingleOlive = !!(selectedObject.userData && selectedObject.userData.isIndividualSmallOlive) || oliveItems.length > 0;
     const isGravelRoad = !!(selectedObject.userData && selectedObject.userData.isGravelRoad);
-    const oliveSelCount = isSingleOlive ? Math.max(1, multiSelectedOlives.length) : 0;
+    const oliveSelCount = isSingleOlive ? Math.max(1, oliveItems.length) : 0;
+    const multiCount = multiSelectedOlives.length;
     const lbl = (oliveSelCount > 1)
       ? (state.lang === 'ar'
           ? `${oliveSelCount} أشجار زيتون صغيرة محددة (Shift+Click)`
           : `${oliveSelCount} Small Olive Trees Selected (Shift+Click)`)
-      : (state.lang === 'ar'
-          ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
-          : selectedObject.userData.labelEn);
+      : ((multiCount > 1)
+          ? (state.lang === 'ar'
+              ? `${multiCount} عناصر محددة (Shift+Click)`
+              : `${multiCount} Objects Selected (Shift+Click)`)
+          : (state.lang === 'ar'
+              ? (selectedObject.userData.labelAr || selectedObject.userData.labelEn)
+              : selectedObject.userData.labelEn));
     const isWalkway = !!(selectedObject.userData && selectedObject.userData.isDynamicLWalkway);
     const sf = selectedObject.userData.scaleFactor || 1.0;
     const scaleTag = (!isWalkway && !isGravelRoad && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
@@ -10583,8 +10632,8 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   }
 
   // SELECT-FIRST RULE (or immediate select-and-drag for autonomous roaming animals!):
-  // When Shift is held on an individual small olive, do not start dragging so pointerup toggles multi-selection cleanly!
-  if (e.shiftKey && downHitRoot && downHitRoot.userData && downHitRoot.userData.isIndividualSmallOlive) {
+  // When Shift is held on a draggable object, do not start dragging so pointerup toggles multi-selection cleanly!
+  if (e.shiftKey && downHitRoot && downHitRoot.userData && downHitRoot.userData.draggable && !downHitRoot.userData.isDynamicLWalkway) {
     isDraggingObject = false;
     isDraggingFenceGate = false;
     return;
@@ -10592,7 +10641,8 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isAnimal && selectedObject !== downHitRoot) {
     selectObject(downHitRoot);
   }
-  if (downHitRoot && downHitRoot === selectedObject) {
+  if (downHitRoot && (downHitRoot === selectedObject || multiSelectedOlives.includes(downHitRoot))) {
+    selectedObject = downHitRoot;
     if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) {
       dragPlane.constant = 0.50;
       if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
@@ -10606,11 +10656,19 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
       if (raycaster.ray.intersectPlane(dragPlane, planeIntersect)) {
         dragOffset.copy(selectedObject.position).sub(planeIntersect);
       }
+      multiDragOffsets = (multiSelectedOlives.length > 1 && multiSelectedOlives.includes(selectedObject))
+        ? multiSelectedOlives.map(o => ({
+            obj: o,
+            dx: o.position.x - selectedObject.position.x,
+            dz: o.position.z - selectedObject.position.z
+          }))
+        : [];
     }
     isDraggingObject = true;
     isDraggingFenceGate = false;
     controls.enabled = false;
   } else {
+    multiDragOffsets = [];
     isDraggingObject = false;
     isDraggingFenceGate = false;
   }
@@ -10671,8 +10729,18 @@ window.addEventListener('pointermove', (e) => {
       requestShadowUpdate();
       return;
     }
-    selectedObject.position.x = planeIntersect.x + dragOffset.x;
-    selectedObject.position.z = planeIntersect.z + dragOffset.z;
+    const nextX = planeIntersect.x + dragOffset.x;
+    const nextZ = planeIntersect.z + dragOffset.z;
+    if (multiDragOffsets.length > 1) {
+      multiDragOffsets.forEach(item => {
+        if (!item.obj) return;
+        item.obj.position.x = nextX + item.dx;
+        item.obj.position.z = nextZ + item.dz;
+      });
+    } else {
+      selectedObject.position.x = nextX;
+      selectedObject.position.z = nextZ;
+    }
     if (selectedObject.userData && selectedObject.userData.isAnimal) {
       const surfY = (typeof getAnimalSurfaceY === 'function')
         ? getAnimalSurfaceY(selectedObject.position.x, selectedObject.position.z, selectedObject)
@@ -10725,21 +10793,25 @@ window.addEventListener('pointerup', (e) => {
 
   if (isDraggingObject) {
     isDraggingObject = false;
+    multiDragOffsets = [];
     controls.enabled = true;
+    if (dist < 6 && downHitRoot && !e.shiftKey) {
+      selectObject(downHitRoot);
+    }
     requestShadowUpdate();
     downOpeningRoot = null;
     downHitRoot = null;
     return;
   }
 
-  // Single click (< 6px): toggle door/window if clicked on opening, else select object (or Shift+Click multi-select on individual small olive trees!)
+  // Single click (< 6px): toggle door/window if clicked on opening, else select object (or Shift+Click multi-select!)
   if (dist < 6) {
     if (downOpeningRoot) {
       downOpeningRoot.userData.isOpenPermanent = !downOpeningRoot.userData.isOpenPermanent;
       downOpeningRoot.userData.openSign = 1;
       requestShadowUpdate();
     } else if (downHitRoot) {
-      if (e.shiftKey && downHitRoot.userData && downHitRoot.userData.isIndividualSmallOlive) {
+      if (e.shiftKey && downHitRoot.userData && downHitRoot.userData.draggable && !downHitRoot.userData.isDynamicLWalkway) {
         toggleOliveMultiSelection(downHitRoot);
       } else {
         selectObject(downHitRoot);
@@ -10755,27 +10827,38 @@ window.addEventListener('pointerup', (e) => {
 function rotateSelected(deltaRad) {
   if (!selectedObject) return;
   if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) return;
-  selectedObject.rotation.y += deltaRad;
-  if (selectedObject.userData && selectedObject.userData.isAnimal && selectedObject.userData.animalState) {
-    const st = selectedObject.userData.animalState;
-    st.state = 'IDLE';
-    st.stateTimer = Math.max(st.stateTimer || 0, 3.0);
-    if (typeof playAnimalClip === 'function') playAnimalClip(st, 'idle', 0.20);
-  }
-  selectedObject.updateMatrixWorld(true);
+  const targets = (multiSelectedOlives.length > 1 && multiSelectedOlives.includes(selectedObject))
+    ? multiSelectedOlives
+    : [selectedObject];
+  targets.forEach((obj) => {
+    if (!obj || (obj.userData && obj.userData.isDynamicLWalkway)) return;
+    obj.rotation.y += deltaRad;
+    if (obj.userData && obj.userData.isAnimal && obj.userData.animalState) {
+      const st = obj.userData.animalState;
+      st.state = 'IDLE';
+      st.stateTimer = Math.max(st.stateTimer || 0, 3.0);
+      if (typeof playAnimalClip === 'function') playAnimalClip(st, 'idle', 0.20);
+    }
+    obj.updateMatrixWorld(true);
+  });
   requestShadowUpdate();
 }
 
 function scaleSelected(factor) {
   if (!selectedObject) return;
   if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) return;
-  const curFactor = selectedObject.userData.scaleFactor || 1.0;
-  const nextFactor = Math.max(0.25, Math.min(4.00, curFactor * factor));
-  selectedObject.userData.scaleFactor = nextFactor;
-  const bs = selectedObject.userData.baseScale || new THREE.Vector3(1, 1, 1);
-  // Uniform proportional scaling from the object's grounded base pivot (zero distortion, zero floating/sinking)
-  selectedObject.scale.set(bs.x * nextFactor, bs.y * nextFactor, bs.z * nextFactor);
-  selectedObject.updateMatrixWorld(true);
+  const targets = (multiSelectedOlives.length > 1 && multiSelectedOlives.includes(selectedObject))
+    ? multiSelectedOlives
+    : [selectedObject];
+  targets.forEach((obj) => {
+    if (!obj || (obj.userData && obj.userData.isDynamicLWalkway)) return;
+    const curFactor = obj.userData.scaleFactor || 1.0;
+    const nextFactor = Math.max(0.25, Math.min(4.00, curFactor * factor));
+    obj.userData.scaleFactor = nextFactor;
+    const bs = obj.userData.baseScale || new THREE.Vector3(1, 1, 1);
+    obj.scale.set(bs.x * nextFactor, bs.y * nextFactor, bs.z * nextFactor);
+    obj.updateMatrixWorld(true);
+  });
   requestShadowUpdate();
   updateSelectedHudText();
 }
@@ -10904,21 +10987,6 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   }
 
   const cloned = entry.template.clone(true);
-  cloned.traverse((ch) => {
-    if (ch.isMesh && ch.material) {
-      if (Array.isArray(ch.material)) {
-        ch.material = ch.material.map(m => m ? m.clone() : m);
-      } else {
-        ch.material = ch.material.clone();
-      }
-      ch.userData._origMatCloned = false;
-    }
-    if (ch.name === 'npcStandNode') cloned.userData.npcStandNode = ch;
-    if (ch.name === 'npcLookNode') cloned.userData.npcLookNode = ch;
-    if (ch.name === 'npcSmokeNode') cloned.userData.npcSmokeNode = ch;
-    if (ch.name === 'bonfireSmokeNode') cloned.userData.bonfireSmokeNode = ch;
-  });
-
   cloned.userData.draggable = true;
   cloned.userData.labelEn = entry.labelEn;
   cloned.userData.labelAr = entry.labelAr;
@@ -10927,12 +10995,41 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   cloned.userData.npcActivityId = entry.npcActivityId || null;
   cloned.userData.isIndividualSmallOlive = !!entry.isIndividualSmallOlive;
   cloned.userData.hasPot = (customOpts && typeof customOpts.hasPot === 'boolean') ? customOpts.hasPot : !!entry.hasPot;
+  cloned.userData._isSelectionHighlightedRoot = false;
   if (cloned.userData.isIndividualSmallOlive && typeof window.populateSmallOliveTreeGeometry === 'function') {
     const seed = Math.round(Math.random() * 100);
     window.populateSmallOliveTreeGeometry(cloned, cloned.userData.hasPot, seed);
     if (window.smallOliveTrees && !window.smallOliveTrees.includes(cloned)) {
       window.smallOliveTrees.push(cloned);
     }
+  }
+
+  cloned.traverse((ch) => {
+    if (ch.isMesh && ch.material) {
+      if (Array.isArray(ch.material)) {
+        ch.material = ch.material.map(m => m ? m.clone() : m);
+      } else {
+        ch.material = ch.material.clone();
+      }
+      ch.userData._origMatCloned = false;
+      ch.userData._isSelectionHighlighted = false;
+      if (ch.material && ch.material.emissive && !ch.userData.isLed && ch.material.emissive.getHex() === 0xd4a853) {
+        ch.material.emissive.setHex(0x000000);
+        ch.material.emissiveIntensity = 0;
+      }
+    }
+    if (ch.name === 'npcStandNode') cloned.userData.npcStandNode = ch;
+    if (ch.name === 'npcLookNode') cloned.userData.npcLookNode = ch;
+    if (ch.name === 'npcSmokeNode') cloned.userData.npcSmokeNode = ch;
+    if (ch.name === 'bonfireSmokeNode') cloned.userData.bonfireSmokeNode = ch;
+  });
+
+  if (entry.labelEn === 'Front Olive Lawn Bed & 5 Potted Olive Trees' && window.smallOliveTrees) {
+    cloned.children.forEach((ch) => {
+      if (ch.userData && ch.userData.npcActivityId === 'WATER_OLIVE_GARDEN' && !window.smallOliveTrees.includes(ch)) {
+        window.smallOliveTrees.push(ch);
+      }
+    });
   }
 
   // If the original anchored L-walkway is already in the scene, make any extra spawned/pasted L-walkway freely movable/rotatable/resizable!
@@ -11008,43 +11105,89 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
 
 function copySelectedObject() {
   if (!selectedObject) return;
-  const ud = selectedObject.userData || {};
-  if (ud.isAnimal) {
-    const st = ud.animalState;
+  if (multiSelectedOlives.length > 1) {
+    let sumX = 0, sumY = 0, sumZ = 0;
+    multiSelectedOlives.forEach(o => {
+      sumX += o.position.x;
+      sumY += o.position.y;
+      sumZ += o.position.z;
+    });
+    const cx = sumX / multiSelectedOlives.length;
+    const cy = sumY / multiSelectedOlives.length;
+    const cz = sumZ / multiSelectedOlives.length;
     copiedObjectBlueprint = {
-      isAnimal: true,
-      animalType: ud.animalType || 'chicken',
-      labelEn: ud.labelEn,
-      labelAr: ud.labelAr,
-      s: ud.scaleFactor || 1.0,
-      ry: selectedObject.rotation.y,
-      roamRadius: st ? st.roamRadius : 2.4,
-      srcX: selectedObject.position.x,
-      srcY: selectedObject.position.y,
-      srcZ: selectedObject.position.z,
-      pasteCount: 0
+      isMulti: true,
+      srcX: cx,
+      srcY: cy,
+      srcZ: cz,
+      pasteCount: 0,
+      items: multiSelectedOlives.map((o) => {
+        const oud = o.userData || {};
+        const st = oud.animalState;
+        return {
+          isAnimal: !!oud.isAnimal,
+          animalType: oud.animalType || 'chicken',
+          key: oud.labelEn,
+          labelEn: oud.labelEn,
+          labelAr: oud.labelAr,
+          s: oud.scaleFactor || 1.0,
+          ry: o.rotation.y,
+          roamRadius: st ? st.roamRadius : 2.4,
+          leftPanels: oud.leftPanels,
+          rightPanels: oud.rightPanels,
+          gateOffsetX: oud.gateOffsetX,
+          hasPot: oud.hasPot,
+          isGravelRoad: !!oud.isGravelRoad,
+          roadWidth: oud.roadWidth,
+          roadSegments: oud.roadSegments ? JSON.parse(JSON.stringify(oud.roadSegments)) : undefined,
+          activeEnd: oud.activeEnd,
+          dx: o.position.x - cx,
+          dy: o.position.y - cy,
+          dz: o.position.z - cz
+        };
+      })
     };
   } else {
-    copiedObjectBlueprint = {
-      isAnimal: false,
-      key: ud.labelEn,
-      labelEn: ud.labelEn,
-      labelAr: ud.labelAr,
-      s: ud.scaleFactor || 1.0,
-      ry: selectedObject.rotation.y,
-      leftPanels: ud.leftPanels,
-      rightPanels: ud.rightPanels,
-      gateOffsetX: ud.gateOffsetX,
-      hasPot: ud.hasPot,
-      isGravelRoad: !!ud.isGravelRoad,
-      roadWidth: ud.roadWidth,
-      roadSegments: ud.roadSegments ? JSON.parse(JSON.stringify(ud.roadSegments)) : undefined,
-      activeEnd: ud.activeEnd,
-      srcX: selectedObject.position.x,
-      srcY: selectedObject.position.y,
-      srcZ: selectedObject.position.z,
-      pasteCount: 0
-    };
+    const ud = selectedObject.userData || {};
+    if (ud.isAnimal) {
+      const st = ud.animalState;
+      copiedObjectBlueprint = {
+        isMulti: false,
+        isAnimal: true,
+        animalType: ud.animalType || 'chicken',
+        labelEn: ud.labelEn,
+        labelAr: ud.labelAr,
+        s: ud.scaleFactor || 1.0,
+        ry: selectedObject.rotation.y,
+        roamRadius: st ? st.roamRadius : 2.4,
+        srcX: selectedObject.position.x,
+        srcY: selectedObject.position.y,
+        srcZ: selectedObject.position.z,
+        pasteCount: 0
+      };
+    } else {
+      copiedObjectBlueprint = {
+        isMulti: false,
+        isAnimal: false,
+        key: ud.labelEn,
+        labelEn: ud.labelEn,
+        labelAr: ud.labelAr,
+        s: ud.scaleFactor || 1.0,
+        ry: selectedObject.rotation.y,
+        leftPanels: ud.leftPanels,
+        rightPanels: ud.rightPanels,
+        gateOffsetX: ud.gateOffsetX,
+        hasPot: ud.hasPot,
+        isGravelRoad: !!ud.isGravelRoad,
+        roadWidth: ud.roadWidth,
+        roadSegments: ud.roadSegments ? JSON.parse(JSON.stringify(ud.roadSegments)) : undefined,
+        activeEnd: ud.activeEnd,
+        srcX: selectedObject.position.x,
+        srcY: selectedObject.position.y,
+        srcZ: selectedObject.position.z,
+        pasteCount: 0
+      };
+    }
   }
   _copyFlashActive = true;
   if (_copyFlashTimer) clearTimeout(_copyFlashTimer);
@@ -11059,6 +11202,67 @@ function pasteCopiedObject() {
   if (!copiedObjectBlueprint) return null;
   copiedObjectBlueprint.pasteCount = (copiedObjectBlueprint.pasteCount || 0) + 1;
   const stepIdx = copiedObjectBlueprint.pasteCount;
+
+  if (copiedObjectBlueprint.isMulti && Array.isArray(copiedObjectBlueprint.items)) {
+    // Always clear previous selection highlights before spawning the multi-selection paste!
+    deselectObject();
+    const shiftZ = 1.65 * stepIdx;
+    const shiftX = 0.85 * stepIdx;
+    const spawnedList = [];
+    copiedObjectBlueprint.items.forEach((it) => {
+      const tx = Math.max(-31.2, Math.min(31.2, copiedObjectBlueprint.srcX + it.dx + shiftX));
+      const tz = Math.max(-26.8, Math.min(35.8, copiedObjectBlueprint.srcZ + it.dz + shiftZ));
+      const ty = copiedObjectBlueprint.srcY + (it.dy || 0);
+      if (it.isAnimal) {
+        const surfY = (typeof getAnimalSurfaceY === 'function')
+          ? getAnimalSurfaceY(tx, tz, null, ty)
+          : ty;
+        const an = deployAnimal(it.animalType, {
+          x: tx,
+          y: surfY,
+          z: tz,
+          ry: it.ry,
+          s: it.s,
+          roamRadius: it.roamRadius,
+          skipSelect: true
+        });
+        if (an) spawnedList.push(an);
+      } else {
+        const entry = OBJECT_CATALOG_REGISTRY.get(it.key);
+        if (!entry) return;
+        const sp = spawnCatalogInstanceFromEntry(entry, {
+          x: tx,
+          y: ty,
+          z: tz,
+          ry: it.ry,
+          s: it.s,
+          leftPanels: it.leftPanels,
+          rightPanels: it.rightPanels,
+          gateOffsetX: it.gateOffsetX,
+          hasPot: it.hasPot,
+          roadWidth: it.roadWidth,
+          roadSegments: it.roadSegments ? JSON.parse(JSON.stringify(it.roadSegments)) : undefined,
+          activeEnd: it.activeEnd,
+          skipSelect: true
+        });
+        if (sp) spawnedList.push(sp);
+      }
+    });
+    if (spawnedList.length > 0) {
+      multiSelectedOlives.length = 0;
+      spawnedList.forEach((spObj) => {
+        multiSelectedOlives.push(spObj);
+        setSelectionHighlight(spObj, true);
+      });
+      selectedObject = spawnedList[spawnedList.length - 1];
+      updateSelectedHudText();
+      if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+      requestShadowUpdate();
+      return selectedObject;
+    }
+    return null;
+  }
+
   const offsetDist = 0.85 + (stepIdx - 1) * 0.65;
   const offsetAng = stepIdx * 0.785398; // 45° increments around source or camera target
 
@@ -11073,6 +11277,9 @@ function pasteCopiedObject() {
     refX += Math.cos(offsetAng) * offsetDist;
     refZ += Math.sin(offsetAng) * offsetDist;
   }
+
+  // Always clear any existing multi-selection or single-selection highlight before selecting the pasted clone!
+  deselectObject();
 
   if (copiedObjectBlueprint.isAnimal) {
     const surfY = (typeof getAnimalSurfaceY === 'function')
@@ -11109,11 +11316,11 @@ function pasteCopiedObject() {
 
 function deleteSelectedObject() {
   if (!selectedObject) return;
-  if (selectedObject.userData && selectedObject.userData.isAnimal) {
+  if (selectedObject.userData && selectedObject.userData.isAnimal && multiSelectedOlives.length <= 1) {
     deleteSelectedAnimal();
     return;
   }
-  const targetsToDelete = (multiSelectedOlives.length > 1 && selectedObject.userData && selectedObject.userData.isIndividualSmallOlive)
+  const targetsToDelete = (multiSelectedOlives.length > 1)
     ? multiSelectedOlives.slice()
     : [selectedObject];
   deselectObject();
@@ -12028,7 +12235,7 @@ function saveDesign() {
     timeOfDay: state.timeOfDay,
     customPositions
   });
-  localStorage.setItem('tunisia_modern_arabic_villa_v9', payloadStr);
+  localStorage.setItem('tunisia_modern_arabic_villa_v10', payloadStr);
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(JSON.stringify(customPositions)).catch(() => {});
   }
@@ -12038,7 +12245,7 @@ function saveDesign() {
 function exportLayoutToClipboard() {
   const customPositions = buildCurrentLayoutPayload();
   const jsonStr = JSON.stringify(customPositions);
-  localStorage.setItem('tunisia_modern_arabic_villa_v9', JSON.stringify({
+  localStorage.setItem('tunisia_modern_arabic_villa_v10', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     customPositions
@@ -12055,6 +12262,7 @@ function exportLayoutToClipboard() {
 }
 
 function resetDesign() {
+  localStorage.removeItem('tunisia_modern_arabic_villa_v10');
   localStorage.removeItem('tunisia_modern_arabic_villa_v9');
   localStorage.removeItem('tunisia_modern_arabic_villa_v8');
   localStorage.removeItem('tunisia_modern_arabic_villa_v7');
@@ -16341,122 +16549,133 @@ function toggleSelectedRoadActiveEnd() {
 window.toggleSelectedRoadActiveEnd = toggleSelectedRoadActiveEnd;
 
 function loadPeugeot308Car() {
-  const onCarLoaded = (gltf) => {
-    const carRoot = new THREE.Group();
-    const model = gltf.scene;
-    model.traverse((ch) => {
-      if (ch.isMesh) {
-        ch.castShadow = true;
-        ch.receiveShadow = true;
-        if (ch.material) {
-          const m = ch.material;
-          const mName = m.name || '';
-          if (mName.includes('Peugeot_Orange')) {
-            // Deep, vibrant Metallic Copper-Amber Sunset Orange matching Gemini_Generated_Image_7pt9x17pt9x17pt9.jpg (converted from sRGB to Linear!)
-            m.color.setHex(0xd94800).convertSRGBToLinear();
-            m.metalness = 0.36;
-            m.roughness = 0.18;
-            m.envMapIntensity = 0.65;
-            m.userData = { customEnvIntensity: 0.65 };
-          } else if (mName.includes('Windshield_Glass')) {
-            m.color.setHex(0x10161e);
-            m.transparent = true;
-            m.opacity = 0.68;
-            m.metalness = 0.35;
-            m.roughness = 0.04;
-            m.envMapIntensity = 0.85;
-            m.userData = { customEnvIntensity: 0.85 };
-          } else if (mName.includes('Headlight_Lens')) {
-            // Smoked crystal lens so the dark projector housings & LED rings inside are crisp and visible
-            m.color.setHex(0x181c22);
-            m.transparent = true;
-            m.opacity = 0.44;
-            m.metalness = 0.30;
-            m.roughness = 0.04;
-            m.envMapIntensity = 0.80;
-            m.userData = { customEnvIntensity: 0.80 };
-          } else if (mName.includes('Pano_Glass') || mName.includes('Black_Gloss')) {
-            m.color.setHex(0x0c0e12);
-            m.metalness = 0.35;
-            m.roughness = 0.08;
-            m.envMapIntensity = 0.60;
-            m.userData = { customEnvIntensity: 0.60 };
-          } else if (mName.includes('Black_Matte') || mName.includes('Tire_Rubber') || mName.includes('Seat_Dark')) {
-            m.color.setHex(0x121316);
-            m.metalness = 0.04;
-            m.roughness = 0.82;
-            m.envMapIntensity = 0.25;
-            m.userData = { customEnvIntensity: 0.25 };
-          } else if (mName.includes('Alloy_Silver') || mName.includes('Chrome')) {
-            m.color.setHex(0xd8dee6);
-            m.metalness = 0.82;
-            m.roughness = 0.16;
-            m.envMapIntensity = 0.85;
-            m.userData = { customEnvIntensity: 0.85 };
-          } else if (mName.includes('Taillight')) {
-            m.color.setHex(0xc80810);
-            m.emissive.setHex(0x4a0204);
-            m.emissiveIntensity = 0.45;
-            m.roughness = 0.08;
-            m.envMapIntensity = 0.65;
-            m.userData = { customEnvIntensity: 0.65 };
-          } else {
-            m.envMapIntensity = 0.55;
-            m.userData = { customEnvIntensity: 0.55 };
+  return new Promise((resolve) => {
+    const onCarLoaded = (gltf) => {
+      const carRoot = new THREE.Group();
+      const model = gltf.scene;
+      model.traverse((ch) => {
+        if (ch.isMesh) {
+          ch.castShadow = true;
+          ch.receiveShadow = true;
+          if (ch.material) {
+            const m = ch.material;
+            const mName = m.name || '';
+            if (mName.includes('Peugeot_Orange')) {
+              // Deep, vibrant Metallic Copper-Amber Sunset Orange matching Gemini_Generated_Image_7pt9x17pt9x17pt9.jpg (converted from sRGB to Linear!)
+              m.color.setHex(0xd94800).convertSRGBToLinear();
+              m.metalness = 0.36;
+              m.roughness = 0.18;
+              m.envMapIntensity = 0.65;
+              m.userData = { customEnvIntensity: 0.65 };
+            } else if (mName.includes('Windshield_Glass')) {
+              m.color.setHex(0x10161e);
+              m.transparent = true;
+              m.opacity = 0.68;
+              m.metalness = 0.35;
+              m.roughness = 0.04;
+              m.envMapIntensity = 0.85;
+              m.userData = { customEnvIntensity: 0.85 };
+            } else if (mName.includes('Headlight_Lens')) {
+              // Smoked crystal lens so the dark projector housings & LED rings inside are crisp and visible
+              m.color.setHex(0x181c22);
+              m.transparent = true;
+              m.opacity = 0.44;
+              m.metalness = 0.30;
+              m.roughness = 0.04;
+              m.envMapIntensity = 0.80;
+              m.userData = { customEnvIntensity: 0.80 };
+            } else if (mName.includes('Pano_Glass') || mName.includes('Black_Gloss')) {
+              m.color.setHex(0x0c0e12);
+              m.metalness = 0.35;
+              m.roughness = 0.08;
+              m.envMapIntensity = 0.60;
+              m.userData = { customEnvIntensity: 0.60 };
+            } else if (mName.includes('Black_Matte') || mName.includes('Tire_Rubber') || mName.includes('Seat_Dark')) {
+              m.color.setHex(0x121316);
+              m.metalness = 0.04;
+              m.roughness = 0.82;
+              m.envMapIntensity = 0.25;
+              m.userData = { customEnvIntensity: 0.25 };
+            } else if (mName.includes('Alloy_Silver') || mName.includes('Chrome')) {
+              m.color.setHex(0xd8dee6);
+              m.metalness = 0.82;
+              m.roughness = 0.16;
+              m.envMapIntensity = 0.85;
+              m.userData = { customEnvIntensity: 0.85 };
+            } else if (mName.includes('Taillight')) {
+              m.color.setHex(0xc80810);
+              m.emissive.setHex(0x4a0204);
+              m.emissiveIntensity = 0.45;
+              m.roughness = 0.08;
+              m.envMapIntensity = 0.65;
+              m.userData = { customEnvIntensity: 0.65 };
+            } else {
+              m.envMapIntensity = 0.55;
+              m.userData = { customEnvIntensity: 0.55 };
+            }
+            m.needsUpdate = true;
           }
-          m.needsUpdate = true;
         }
-      }
-    });
-    carRoot.add(model);
-    if (typeof addContactShadow === 'function') {
-      addContactShadow(carRoot, 1.96, 4.45, 0.008, 0.48);
-    }
-    carRoot.position.set(-7.50, -0.47, 23.20);
-    carRoot.rotation.y = Math.PI / 2; // Facing East along the Country Gravel Road in front of the villa!
-    furnGroups.staticDecor.add(carRoot);
-    window.peugeot308CarObj = carRoot;
-    registerDraggable(carRoot, 'Peugeot 308 Orange Hatchback', 'سيارة بيجو 308 برتقالية');
-    requestShadowUpdate();
-  };
-
-  if (window.PEUGEOT_308_GLB_B64 && typeof window.PEUGEOT_308_GLB_B64 === 'string') {
-    try {
-      const binStr = window.atob(window.PEUGEOT_308_GLB_B64);
-      const len = binStr.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
-      gltfLoader.parse(bytes.buffer, '', onCarLoaded, (err) => {
-        console.warn('Peugeot 308 Base64 parse fallback:', err);
       });
-      return;
-    } catch (e) {
-      console.warn('Peugeot 308 decode error:', e);
+      carRoot.add(model);
+      if (typeof addContactShadow === 'function') {
+        addContactShadow(carRoot, 1.96, 4.45, 0.008, 0.48);
+      }
+      carRoot.position.set(-8.011, -0.47, 17.193);
+      carRoot.rotation.y = 3.1416;
+      furnGroups.staticDecor.add(carRoot);
+      window.peugeot308CarObj = carRoot;
+      registerDraggable(carRoot, 'Peugeot 308 Orange Hatchback', 'سيارة بيجو 308 برتقالية');
+      requestShadowUpdate();
+      resolve();
+    };
+
+    if (window.PEUGEOT_308_GLB_B64 && typeof window.PEUGEOT_308_GLB_B64 === 'string') {
+      try {
+        const binStr = window.atob(window.PEUGEOT_308_GLB_B64);
+        const len = binStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+        gltfLoader.parse(bytes.buffer, '', onCarLoaded, (err) => {
+          console.warn('Peugeot 308 Base64 parse fallback:', err);
+          resolve();
+        });
+        return;
+      } catch (e) {
+        console.warn('Peugeot 308 decode error:', e);
+      }
     }
-  }
-  gltfLoader.load('./car_peugeot_308.glb', onCarLoaded);
+    gltfLoader.load('./car_peugeot_308.glb', onCarLoaded, undefined, () => resolve());
+  });
 }
 
 // ============================================================================
-// BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (70 OBJECTS)
+// BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (106 OBJECTS)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Tunisian Post-Swim Floor Lounge","x":-2.45,"y":-0.25,"z":5.92,"ry":0,"s":1},
   {"labelEn":"King Bedroom Kairouan Rug","x":-4.2,"y":0.011,"z":-2.5,"ry":0,"s":1},
   {"labelEn":"Grand Majlis Berber Carpet","x":3.509,"y":0.011,"z":0.218,"ry":0,"s":1},
   {"labelEn":"Tunisian Majlis Floor Sofa (Jalsa)","x":4.65,"y":-0.25,"z":5.82,"ry":0,"s":1},
-  {"labelEn":"Covered Outdoor BBQ Grill (Fish & Steak)","x":4.68,"y":-0.25,"z":9.427,"ry":3.1416,"s":1},
+  {"labelEn":"Covered Outdoor BBQ Grill (Fish & Steak)","x":4.623,"y":-0.25,"z":9.804,"ry":3.1416,"s":1},
+  {"labelEn":"Grey Concrete Cactus Planter & BBQ Grill Counter","x":8.205,"y":-0.5,"z":9.725,"ry":0,"s":1},
   {"labelEn":"Cabin Guest Daybed & Walnut Console","x":15.885,"y":-0.25,"z":11.05,"ry":0,"s":1},
+  {"labelEn":"Livestock Hay Manger & Water Trough","x":10.971,"y":-0.25,"z":6.905,"ry":0,"s":1},
+  {"labelEn":"Golden Barn Hay & Straw Bales","x":7.255,"y":-0.25,"z":7.85,"ry":0,"s":1},
   {"labelEn":"Cabin Terrace Tunisian Floor Sofa","x":15,"y":-0.25,"z":14.742,"ry":0,"s":1},
+  {"labelEn":"Cabin Terrace Walnut Canopy & Grape Vines","x":14.995,"y":-0.53,"z":14.96,"ry":0,"s":1},
   {"labelEn":"Hammam Walk-In Rain Shower","x":-4.968,"y":-0.025,"z":4,"ry":0,"s":1},
   {"labelEn":"Luxury Porcelain Toilet","x":-5.46,"y":0,"z":1.85,"ry":0,"s":1},
   {"labelEn":"Walnut Vanity & Brass Sink","x":-3.15,"y":0,"z":4.56,"ry":0,"s":1},
   {"labelEn":"Rooftop Walnut Pergola","x":2.85,"y":3.745,"z":-1.4,"ry":0,"s":1},
   {"labelEn":"Rooftop Tunisian Floor Sofa & Low Table","x":2.85,"y":3.778,"z":-1.4,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Bar & Counter","x":-4.65,"y":3.76,"z":-2.2,"ry":0,"s":1},
+  {"labelEn":"Country Gravel Road","x":-14.095,"y":-0.495,"z":39.802,"ry":1.5708,"s":1,"isGravelRoad":true,"roadWidth":3.6,"roadSegments":[{"turn":"straight","length":60}],"activeEnd":"front"},
   {"labelEn":"French-Door Smart Refrigerator","x":-1.55,"y":0,"z":4.512,"ry":0,"s":1},
   {"labelEn":"Luxury Espresso & Arabic Coffee Machine","x":-0.75,"y":0.91,"z":4.501,"ry":0,"s":1},
   {"labelEn":"Chef's L-Shaped Kitchen Counter & Sink","x":0.105,"y":0,"z":3.53,"ry":0,"s":1},
+  {"labelEn":"L-Shaped Green & White Entrance Walkway (Anchored at Terrace)","x":0,"y":0,"z":0,"ry":0,"s":1,"endBx":-5.318,"walkBy":-13.48},
+  {"labelEn":"Peugeot 308 Orange Hatchback","x":-8.011,"y":-0.47,"z":17.193,"ry":3.1416,"s":1},
   {"labelEn":"Ornate Gilded Hammam Mirror","x":-3.15,"y":1.02,"z":4.82,"ry":0,"s":1},
   {"labelEn":"Carved Mahogany Heritage King Bed","x":-4.55,"y":0.02,"z":-2.5,"ry":0,"s":1},
   {"labelEn":"Royal Carved Salon L-Sofa (South)","x":3.711,"y":0.02,"z":2.152,"ry":0,"s":1},
@@ -16486,13 +16705,20 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Mediterranean Potted Plant","x":3.2,"y":3.79,"z":4.25,"ry":0,"s":1},
   {"labelEn":"Artisan Ceramic Kitchen Jar","x":0.42,"y":0.91,"z":4.55,"ry":0,"s":1},
   {"labelEn":"Nabeul Ceramic Table Vase","x":3.51,"y":0.5,"z":0.292,"ry":0,"s":1},
-  {"labelEn":"Chef Kitchen Pendant","x":-0.25,"y":2.55,"z":3.5,"ry":0,"s":1},
   {"labelEn":"Engraved Brass Center Vase","x":4.742,"y":0.52,"z":-3.828,"ry":0,"s":1},
   {"labelEn":"Tunisian Brass Olive Oil Pitcher","x":0.94,"y":0.91,"z":3.35,"ry":0,"s":1},
+  {"labelEn":"Chef Kitchen Pendant","x":-0.25,"y":2.55,"z":3.5,"ry":0,"s":1},
   {"labelEn":"Leather Ottoman Pouf","x":5.445,"y":0.02,"z":2.107,"ry":0,"s":1},
   {"labelEn":"Hammam Bathroom Chandelier","x":-3.85,"y":2.58,"z":2.85,"ry":0,"s":1},
   {"labelEn":"Kitchen Breakfast Barstool","x":0.18,"y":0.02,"z":3.3,"ry":0,"s":1},
   {"labelEn":"Kitchen Breakfast Barstool","x":0.18,"y":0.02,"z":4.05,"ry":0,"s":1},
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-0.016,"y":-0.564,"z":8.039,"ry":0,"s":1},
+  {"labelEn":"Giant Mediterranean Shade Tree (6.8m)","x":-9.355,"y":-0.596,"z":9.081,"ry":0,"s":1},
+  {"labelEn":"Detailed Mediterranean Orange Tree (4.4m)","x":11.197,"y":-0.5,"z":9.382,"ry":0,"s":0.797},
+  {"labelEn":"Tunisian Stone & Brick Bonfire Pit","x":15.144,"y":-0.5,"z":18.638,"ry":0,"s":1},
+  {"labelEn":"Poolside Low Floor Table with Bottles & Glasses","x":-9.2,"y":0.04,"z":6.38,"ry":0,"s":1},
+  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":-5.752,"y":-0.5,"z":14.896,"ry":4.7124,"s":1.254,"leftPanels":3,"rightPanels":2,"gateOffsetX":-1.092962452202313},
+  {"labelEn":"Livestock Wrap-Around Wooden Fence & 2-Leaf Gate","x":9,"y":-0.5,"z":0,"ry":0,"s":1,"leftPanels":6,"rightPanels":4,"gateOffsetX":12.111169053750112},
   {"labelEn":"Moroccan Brass Wall Lantern","x":-0.98,"y":2.05,"z":-4.78,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":2.07,"y":2.05,"z":-4.78,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":5.78,"y":2.05,"z":-1.85,"ry":0,"s":1},
@@ -16500,20 +16726,39 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Moroccan Brass Wall Lantern","x":1.82,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":3.38,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":5.52,"y":2.05,"z":5.18,"ry":0,"s":1},
-  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-0.016,"y":-0.564,"z":8.039,"ry":0,"s":1},
-  {"labelEn":"Front Olive Lawn Bed & 5 Potted Olive Trees","x":5.965,"y":-0.5,"z":19.8,"ry":0,"s":1},
-  {"labelEn":"Giant Mediterranean Shade Tree (6.8m)","x":-9.355,"y":-0.596,"z":9.081,"ry":0,"s":1},
-  {"labelEn":"Detailed Mediterranean Orange Tree (4.4m)","x":11.197,"y":-0.5,"z":9.382,"ry":0,"s":0.797},
-  {"labelEn":"Tunisian Stone & Brick Bonfire Pit","x":14.793,"y":-0.5,"z":17.841,"ry":0,"s":1},
-  {"labelEn":"Poolside Low Floor Table with Bottles & Glasses","x":-9.2,"y":0.04,"z":6.38,"ry":0,"s":1},
-  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":-5.752,"y":-0.5,"z":14.896,"ry":4.7124,"s":1.254,"leftPanels":3,"rightPanels":2,"gateOffsetX":-1.092962452202313},
   {"labelEn":"Stone BBQ Grill & Fire Pit","x":-4.65,"y":4.72,"z":-2.65,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-0.95,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-1.95,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-2.95,"ry":0,"s":1},
-  {"labelEn":"Livestock Hay Manger & Water Trough","x":10.971,"y":-0.25,"z":6.905,"ry":0,"s":1},
-  {"labelEn":"Golden Barn Hay & Straw Bales","x":7.255,"y":-0.25,"z":7.85,"ry":0,"s":1},
-  {"labelEn":"Livestock Wrap-Around Wooden Fence & 2-Leaf Gate","x":9,"y":-0.5,"z":0,"ry":0,"s":1,"leftPanels":6,"rightPanels":4,"gateOffsetX":4.8}
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-1.856,"y":-0.468,"z":32.308,"ry":0,"s":1.254},
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":15.964,"y":-0.5,"z":32.218,"ry":0,"s":1.12},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.333,"y":-0.25,"z":21.589,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":16.926,"y":-0.5,"z":2.948,"ry":0,"s":1.254},
+  {"labelEn":"Tunisian Farm Goat #1","x":8.575,"y":-0.5,"z":0.676,"ry":83.4682,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
+  {"labelEn":"Farm Rabbit #1","x":8.571,"y":-0.5,"z":1.849,"ry":-34.0234,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"Farm Rabbit #2","x":8.529,"y":-0.5,"z":1.573,"ry":42.6475,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"White Farm Chicken #1","x":8.554,"y":-0.5,"z":-1.621,"ry":134.6879,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"White Farm Chicken #2","x":9.448,"y":-0.5,"z":-1.561,"ry":43.467,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"White Farm Chicken #3","x":8.597,"y":-0.5,"z":2.327,"ry":66.795,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"Farm Rabbit #3","x":8.519,"y":-0.5,"z":-2.184,"ry":-40.4116,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"Tunisian Farm Goat #2","x":9.097,"y":-0.5,"z":-0.935,"ry":166.8936,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.914,"y":-0.5,"z":12.22,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.734,"y":-0.5,"z":-8.306,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.793,"y":-0.5,"z":-9.345,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.852,"y":-0.5,"z":5.609,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":28.102,"y":-0.5,"z":-0.662,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":22.312,"y":-0.5,"z":-1.59,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.734,"y":-0.5,"z":20.738,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.99,"y":-0.5,"z":20.622,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.238,"y":-0.5,"z":20.657,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":1.805,"y":-0.5,"z":20.787,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-4.941,"y":-0.5,"z":20.565,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-5.072,"y":-0.5,"z":25.139,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":2.104,"y":-0.5,"z":25.29,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.715,"y":-0.5,"z":25.344,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.772,"y":-0.5,"z":25.749,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.097,"y":-0.5,"z":25.899,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.237,"y":-0.5,"z":26.083,"ry":0,"s":1.12,"hasPot":false}
 ];
 
 function applyLayoutPositions(layoutList) {
@@ -16588,17 +16833,7 @@ function applyLayoutPositions(layoutList) {
         bestObj.updateMatrixWorld(true);
         return;
       }
-      let targetX = sp.x;
-      let targetZ = sp.z;
-      if (normLabel === 'Covered Outdoor BBQ Grill (Fish & Steak)' && Math.abs(targetX - 4.593) < 0.12) {
-        targetX = 4.68;
-      } else if (normLabel === 'Livestock Hay Manger & Water Trough' && Math.abs(targetX - 10.971) < 0.15 && Math.abs(targetZ - 1.105) < 0.25) {
-        targetZ = 6.905;
-      } else if (normLabel === 'Golden Barn Hay & Straw Bales' && Math.abs(targetX - 10.855) < 0.15 && Math.abs(targetZ - 6.2) < 0.25) {
-        targetX = 7.255;
-        targetZ = 7.85;
-      }
-      bestObj.position.set(targetX, sp.y, targetZ);
+      bestObj.position.set(sp.x, sp.y, sp.z);
       bestObj.rotation.y = sp.ry;
       if (typeof sp.s === 'number' && sp.s > 0.1) {
         bestObj.userData.scaleFactor = sp.s;
@@ -16613,7 +16848,7 @@ function applyLayoutPositions(layoutList) {
       }
       bestObj.updateMatrixWorld(true);
     } else if (OBJECT_CATALOG_REGISTRY && OBJECT_CATALOG_REGISTRY.has(normLabel)) {
-      // Spawn extra user-created objects (from Object Catalog or Copy/Paste) saved in localStorage
+      // Spawn extra user-created objects (from Object Catalog or Copy/Paste) saved in layout
       const entry = OBJECT_CATALOG_REGISTRY.get(normLabel);
       const spawned = spawnCatalogInstanceFromEntry(entry, {
         x: sp.x,
@@ -16624,15 +16859,36 @@ function applyLayoutPositions(layoutList) {
         leftPanels: sp.leftPanels,
         rightPanels: sp.rightPanels,
         gateOffsetX: sp.gateOffsetX,
+        hasPot: sp.hasPot,
         skipSelect: true
       });
       if (spawned) usedObjs.add(spawned);
     }
   });
+
+  // If the layout replaced the Front Olive Lawn Bed with individual unpotted small olive trees,
+  // remove the unused default lawn bed instance from the active scene while keeping its catalog blueprint intact!
+  if (window.frontOliveGardenObj && !usedObjs.has(window.frontOliveGardenObj)) {
+    const fIdx = draggableObjects.indexOf(window.frontOliveGardenObj);
+    if (fIdx !== -1) draggableObjects.splice(fIdx, 1);
+    if (window.frontOliveGardenObj.parent) {
+      window.frontOliveGardenObj.parent.remove(window.frontOliveGardenObj);
+    }
+  }
+  if (window.smallOliveTrees) {
+    window.smallOliveTrees = window.smallOliveTrees
+      .filter(ol => ol && ol.parent && (ol.parent === scene || ol.parent.parent === scene))
+      .sort((a, b) => {
+        const aFront = (a.position.z >= 18.0 && a.position.z <= 22.0) ? 0 : 1;
+        const bFront = (b.position.z >= 18.0 && b.position.z <= 22.0) ? 0 : 1;
+        if (aFront !== bFront) return aFront - bFront;
+        return a.position.x - b.position.x;
+      });
+  }
 }
 
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v9');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v10');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -16663,17 +16919,18 @@ async function initApp() {
 
   // Spawn default Country Gravel Road in front of the villa & load the Realistic Orange Peugeot 308 car
   spawnGravelRoad({
-    x: -14.0,
+    x: -14.095,
     y: -0.495,
-    z: 23.2,
-    ry: 0,
+    z: 39.802,
+    ry: 1.5708,
     roadWidth: 3.6,
-    roadSegments: [{ turn: 'straight', length: 28.0 }],
+    roadSegments: [{ turn: 'straight', length: 60.0 }],
+    activeEnd: 'front',
     skipSelect: true
   });
-  loadPeugeot308Car();
 
   await Promise.all([
+    loadPeugeot308Car(),
     rebuildCategory('bed'),
     rebuildCategory('middle'),
     rebuildCategory('majlis'),
@@ -16685,11 +16942,8 @@ async function initApp() {
 
   setTimeOfDay(state.timeOfDay || 'sunset');
 
-  // Always apply the locked 70-item custom default layout first, then any user v9 overrides on top
-  applyLayoutPositions(DEFAULT_CUSTOM_POSITIONS);
-  if (savedPositions && Array.isArray(savedPositions)) {
-    applyLayoutPositions(savedPositions);
-  }
+  // Apply the user's saved v10 layout if present, otherwise apply the locked 106-item custom default layout
+  applyLayoutPositions((savedPositions && Array.isArray(savedPositions) && savedPositions.length > 0) ? savedPositions : DEFAULT_CUSTOM_POSITIONS);
   if (maherNpcState.loaded && maherNpcState.currentAct) {
     startMaherActivity(maherNpcState.currentAct.id, true);
   }
