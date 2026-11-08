@@ -3658,16 +3658,77 @@ function buildStaticArchitecture() {
   addCBox(0.38, 0.022, 0.44, lowMaxX - 0.28, blockCy, lowTopZ + 0.011, matWalnut, true);
   addCBox(0.04, 0.014, 0.28, lowMaxX - 0.26, blockCy - 0.04, lowTopZ + 0.028, matBrass, false);
 
+  // Multi-layered local billowing 3D BBQ smoke cloud plumes & glowing rising charcoal sparks directly above the 1.76m Concrete BBQ Grill firebox ("beri grill, bara api, asap juga")
+  const texConcreteBbqSmoke = (function() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    const w = 256, h = 256;
+    ctx.clearRect(0, 0, w, h);
+    const lobes = [
+      [w * 0.50, h * 0.52, w * 0.42, 0.78],
+      [w * 0.35, h * 0.46, w * 0.31, 0.58],
+      [w * 0.65, h * 0.44, w * 0.31, 0.58],
+      [w * 0.48, h * 0.34, w * 0.29, 0.52]
+    ];
+    lobes.forEach(([lx, ly, lr, op]) => {
+      const g = ctx.createRadialGradient(lx, ly, 4, lx, ly, lr);
+      g.addColorStop(0.0, `rgba(242, 240, 236, ${op})`);
+      g.addColorStop(0.46, `rgba(212, 210, 206, ${op * 0.58})`);
+      g.addColorStop(0.82, `rgba(178, 176, 174, ${op * 0.20})`);
+      g.addColorStop(1.0, 'rgba(148, 146, 144, 0.0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    const tex = new THREE.CanvasTexture(c);
+    tex.encoding = THREE.sRGBEncoding;
+    return tex;
+  })();
+  const concreteSmokeGeo = new THREE.PlaneGeometry(0.56, 0.56);
+  window.concreteGrillLocalSmokeClouds = [];
+  for (let csi = 0; csi < 14; csi++) {
+    const csMat = new THREE.MeshBasicMaterial({
+      map: texConcreteBbqSmoke,
+      color: 0xfff0dc,
+      transparent: true,
+      opacity: 0.48,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    const csMesh = new THREE.Mesh(concreteSmokeGeo, csMat);
+    const emitterSlot = (csi % 3) - 1; // 3 smoke columns (-0.48m, 0.0m, +0.48m) across the 1.76m firebox
+    const baseLocalX = (lowCx + emitterSlot * 0.48) - cOriginX;
+    const baseLocalY = (lowTopZ + 0.22) - cOriginZ;
+    const baseLocalZ = -(blockCy - cOriginY);
+    csMesh.position.set(baseLocalX, baseLocalY + (csi / 14) * 1.65, baseLocalZ);
+    csMesh.raycast = () => {};
+    csMesh.userData.isAODecal = true; // Exclude rising smoke from selection bounding box height
+    concreteCactusGrillGroup.add(csMesh);
+    window.concreteGrillLocalSmokeClouds.push({
+      mesh: csMesh,
+      baseLocalX,
+      baseLocalY,
+      baseLocalZ,
+      age: (csi / 14) * 2.4,
+      maxAge: 2.4,
+      phase: csi * 0.92
+    });
+  }
+
   if (typeof addContactShadow === 'function') {
     addContactShadow(concreteCactusGrillGroup, 4.54, 0.92, 0.005, 0.44);
   }
   archRoot.add(concreteCactusGrillGroup);
+  // Pass true world coordinates to attachNpcTargetWorld (which converts world -> local via sub(obj.position))!
   attachNpcTargetWorld(
     concreteCactusGrillGroup,
-    bPos(lowCx - cOriginX, blockCy - 0.72 - cOriginY, -0.50 - cOriginZ),
-    bPos(lowCx - cOriginX, blockCy - cOriginY, lowTopZ - cOriginZ),
-    bPos(lowCx - cOriginX, blockCy - cOriginY, lowTopZ + 0.24 - cOriginZ)
+    bPos(lowCx, blockCy - 0.80, -0.50),
+    bPos(lowCx, blockCy, lowTopZ),
+    bPos(lowCx, blockCy, lowTopZ + 0.22)
   );
+  concreteCactusGrillGroup.userData.npcActivityId = 'GRILL_CONCRETE';
   window.concreteCactusGrillObj = concreteCactusGrillGroup;
   registerDraggable(
     concreteCactusGrillGroup,
@@ -12033,7 +12094,7 @@ const smokeParticles = [];
 const waterParticles = [];
 
 const smokePlaneGeo = new THREE.PlaneGeometry(0.36, 0.36);
-for (let i = 0; i < 120; i++) {
+for (let i = 0; i < 260; i++) {
   const mat = new THREE.MeshBasicMaterial({
     map: texSmokePuff,
     color: 0xffffff,
@@ -12368,6 +12429,17 @@ const MAHER_ACTIVITIES = {
     zone: 'terrace_right',
     bx: 4.85, by: -8.36, bz: -0.25,
     ry: Math.PI, // Stands directly at the open South side of the grill (bx=4.85, by=-7.55) facing North (+by) into the open grill!
+    clip: 'Cook_Action',
+    prop: 'spatula',
+    duration: [55, 80], // 5x duration
+    en: 'Grilling BBQ',
+    ar: 'يشوي على المشواة'
+  },
+  GRILL_CONCRETE: {
+    id: 'GRILL_CONCRETE',
+    zone: 'front_yard',
+    bx: 8.98, by: -10.52, bz: -0.50,
+    ry: Math.PI, // Stands in front of the Grey Concrete BBQ Grill Counter (bx=8.98, by=-9.72) facing North (+by) into the sizzling grill!
     clip: 'Cook_Action',
     prop: 'spatula',
     duration: [55, 80], // 5x duration
@@ -13019,10 +13091,10 @@ maherBadgeSprite.renderOrder = 999;
 maherBadgeSprite.raycast = () => {};
 window.maherBadgeSprite = maherBadgeSprite;
 
-// Helper to keep NPC overhead popover badges a constant pixel size on screen in both Perspective (sizeAttenuation: false) and Orthographic Top Views
+// Helper to keep NPC overhead popover badges a constant pixel size on screen in both Perspective (sizeAttenuation: false) and Orthographic Top Views,
+// and dynamically lift worldY proportionally to camera distance so the bottom edge of the badge NEVER touches the NPC's head at any zoom level!
 function updateNpcBadgeScreenConstantScale(sprite, worldX, worldY, worldZ) {
   if (!sprite) return;
-  sprite.position.set(worldX, worldY, worldZ);
   const vh = Math.max(400, window.innerHeight || 800);
   const targetPxH = 44; // Fixed 44px height on screen at all camera distances!
   const aspect = 360 / 96; // 3.75 width-to-height ratio
@@ -13030,10 +13102,19 @@ function updateNpcBadgeScreenConstantScale(sprite, worldX, worldY, worldZ) {
     sprite.material.sizeAttenuation = true;
     const worldH = (targetPxH / vh) * ((activeCamera.top - activeCamera.bottom) / (activeCamera.zoom || 1));
     sprite.scale.set(worldH * aspect, worldH, 1.0);
+    sprite.position.set(worldX, worldY + worldH * 0.95, worldZ);
   } else {
     sprite.material.sizeAttenuation = false;
     const ndcH = targetPxH / vh;
     sprite.scale.set(ndcH * aspect, ndcH, 1.0);
+    const camDist = activeCamera
+      ? Math.hypot(activeCamera.position.x - worldX, activeCamera.position.y - worldY, activeCamera.position.z - worldZ)
+      : 10.0;
+    const fovRad = ((activeCamera && activeCamera.fov) ? activeCamera.fov : 48) * Math.PI / 180;
+    const worldPerPx = (2.0 * camDist * Math.tan(fovRad * 0.5)) / vh;
+    // Lift by half-badge height (22px) + 26px extra screen gap so the bottom border of the popover sits clearly above the head even when zoomed out!
+    const screenClearanceLift = worldPerPx * (targetPxH * 0.5 + 26);
+    sprite.position.set(worldX, worldY + Math.max(0.28, screenClearanceLift), worldZ);
   }
 }
 
@@ -13157,6 +13238,7 @@ function getDynamicActivityTarget(actId, isWife = false) {
     }
   } else {
     if (actId === 'GRILL_TERRACE') targetObj = window.terraceGrillObj;
+    else if (actId === 'GRILL_CONCRETE') targetObj = window.concreteCactusGrillObj;
     else if (actId === 'RELAX_FLOOR_SOFA') targetObj = window.tunisianFloorSofaObj;
     else if (actId === 'WATER_LEFT_POTS') targetObj = window.activeWaterPot;
     else if (actId === 'WATER_OLIVE_GARDEN') targetObj = window.activeOliveTree;
@@ -13170,6 +13252,13 @@ function getDynamicActivityTarget(actId, isWife = false) {
     targetObj.updateMatrixWorld(true);
     targetObj.userData.npcStandNode.getWorldPosition(_tmpStandWorld);
     targetObj.userData.npcLookNode.getWorldPosition(_tmpLookWorld);
+
+    if (!isWife && actId === 'GRILL_CONCRETE') {
+      const prelimZone = getZoneFromWorldPos(_tmpStandWorld.x, _tmpStandWorld.y, _tmpStandWorld.z);
+      if (prelimZone === 'front_yard') _tmpStandWorld.y = -0.50;
+      else if (prelimZone === 'terrace_right' || prelimZone === 'terrace_left') _tmpStandWorld.y = -0.25;
+      else if (prelimZone.startsWith('inside_')) _tmpStandWorld.y = 0.00;
+    }
 
     // Obstacle-Aware Dynamic Standing Adjustment for Terrace Grill (GRILL_TERRACE):
     if (!isWife && actId === 'GRILL_TERRACE') {
@@ -14761,7 +14850,7 @@ function updateMaherNpcAndParticles(dt) {
     updateNpcBadgeScreenConstantScale(
       maherBadgeSprite,
       maherNpcState.root.position.x,
-      maherNpcState.root.position.y + 1.92,
+      maherNpcState.root.position.y + 2.02,
       maherNpcState.root.position.z
     );
 
@@ -14841,6 +14930,12 @@ function updateMaherNpcAndParticles(dt) {
 
     maherNpcState.mixer.update(dt);
     applyNpcActiveSwimPoseAfterMixer(maherNpcState, nowSec, false);
+    updateNpcBadgeScreenConstantScale(
+      maherBadgeSprite,
+      maherNpcState.root.position.x,
+      maherNpcState.root.position.y + 2.02,
+      maherNpcState.root.position.z
+    );
     maherNpcState.shadowTick = (maherNpcState.shadowTick + 1) % 4;
     if (maherNpcState.shadowTick === 0) requestShadowUpdate();
   }
@@ -14933,16 +15028,45 @@ function updateMaherNpcAndParticles(dt) {
     }
   }
 
+  if (window.concreteGrillLocalSmokeClouds && window.concreteGrillLocalSmokeClouds.length > 0) {
+    for (let i = 0; i < window.concreteGrillLocalSmokeClouds.length; i++) {
+      const cs = window.concreteGrillLocalSmokeClouds[i];
+      if (!cs || !cs.mesh) continue;
+      cs.age += dt;
+      if (cs.age >= cs.maxAge) cs.age -= cs.maxAge;
+      const t = cs.age / cs.maxAge;
+      const swayX = Math.sin(nowSec * 1.55 + cs.phase) * (0.05 + t * 0.22) + t * 0.14;
+      const swayZ = Math.cos(nowSec * 1.32 + cs.phase) * (0.05 + t * 0.18) - t * 0.08;
+      cs.mesh.position.set(
+        cs.baseLocalX + swayX,
+        cs.baseLocalY + 0.08 + t * 1.95,
+        cs.baseLocalZ + swayZ
+      );
+      cs.mesh.scale.setScalar(0.55 + t * 1.75);
+      const warmMix = Math.max(0, 1.0 - t * 1.75);
+      cs.mesh.material.color.setRGB(
+        0.92 + warmMix * 0.08,
+        0.91 - warmMix * 0.05,
+        0.90 - warmMix * 0.16
+      );
+      const alpha = t < 0.20 ? (t / 0.20) : Math.pow(1.0 - (t - 0.20) / 0.80, 1.22);
+      cs.mesh.material.opacity = 0.50 * alpha;
+      cs.mesh.lookAt(activeCamera.position);
+    }
+  }
+
   // 2. Spawn continuous 3D cooking & bonfire smoke/steam dynamically locked to the live 3D objects:
   //    a) Kitchen Stove & Brass Pot / Copper Skillet
   //    b) Terrace Covered BBQ Grill with Fish & Beef Steak
-  //    c) Rooftop BBQ Grill when Maître Maher is grilling on the roof
-  //    d) Tunisian Stone & Brick Bonfire Pit in front of the New Cabin Terrace
+  //    c) Grey Concrete BBQ Grill Counter next to the Concrete Cactus Planter
+  //    d) Rooftop BBQ Grill when Maître Maher is grilling on the roof
+  //    e) Tunisian Stone & Brick Bonfire Pit in front of the New Cabin Terrace
   maherNpcState.smokeAccum += dt;
   if (maherNpcState.smokeAccum >= 0.10) {
     maherNpcState.smokeAccum = 0;
     const isCookingKitchen = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'COOK_KITCHEN');
     const isGrillingTerrace = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'GRILL_TERRACE');
+    const isGrillingConcrete = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'GRILL_CONCRETE');
     const isGrillingRoof = (maherNpcState.mode === 'PERFORMING' && maherNpcState.currentAct.id === 'ROOF_BBQ');
 
     // Kitchen pot & stove steam/smoke (dynamically follows moved/rotated stove, pot & counter!)
@@ -14968,11 +15092,14 @@ function updateMaherNpcAndParticles(dt) {
     if (window.concreteCactusGrillObj && window.concreteCactusGrillObj.userData && window.concreteCactusGrillObj.userData.npcSmokeNode) {
       window.concreteCactusGrillObj.updateMatrixWorld(true);
       window.concreteCactusGrillObj.userData.npcSmokeNode.getWorldPosition(_tmpSmokeWorld);
-      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, 0.56, 0.44);
-      // Second offset smoke plume across the 1.76m-wide concrete grill firebox
-      const rx = Math.cos(window.concreteCactusGrillObj.rotation.y) * 0.42;
-      const rz = -Math.sin(window.concreteCactusGrillObj.rotation.y) * 0.42;
-      spawnSmokePuff(_tmpSmokeWorld.x + rx, _tmpSmokeWorld.y, _tmpSmokeWorld.z + rz, 0.50, 0.38);
+      const baseOp = isGrillingConcrete ? 0.68 : 0.54;
+      const baseSc = isGrillingConcrete ? 0.52 : 0.42;
+      spawnSmokePuff(_tmpSmokeWorld.x, _tmpSmokeWorld.y, _tmpSmokeWorld.z, baseOp, baseSc);
+      // Left & right smoke plumes across the 1.76m-wide concrete grill firebox
+      const rx = Math.cos(window.concreteCactusGrillObj.rotation.y) * 0.46;
+      const rz = -Math.sin(window.concreteCactusGrillObj.rotation.y) * 0.46;
+      spawnSmokePuff(_tmpSmokeWorld.x + rx, _tmpSmokeWorld.y, _tmpSmokeWorld.z + rz, baseOp * 0.92, baseSc * 0.90);
+      spawnSmokePuff(_tmpSmokeWorld.x - rx, _tmpSmokeWorld.y, _tmpSmokeWorld.z - rz, baseOp * 0.92, baseSc * 0.90);
     }
 
     // Rooftop BBQ smoke when active (dynamically follows moved/rotated rooftop firepit!)
@@ -15017,7 +15144,7 @@ function updateMaherNpcAndParticles(dt) {
     updateNpcBadgeScreenConstantScale(
       wifeBadgeSprite,
       wifeNpcState.root.position.x,
-      wifeNpcState.root.position.y + 1.85,
+      wifeNpcState.root.position.y + 1.94,
       wifeNpcState.root.position.z
     );
 
@@ -15105,6 +15232,12 @@ function updateMaherNpcAndParticles(dt) {
 
     wifeNpcState.mixer.update(dt);
     applyNpcActiveSwimPoseAfterMixer(wifeNpcState, nowSec, true);
+    updateNpcBadgeScreenConstantScale(
+      wifeBadgeSprite,
+      wifeNpcState.root.position.x,
+      wifeNpcState.root.position.y + 1.94,
+      wifeNpcState.root.position.z
+    );
 
     // Ensure the broom bristles always touch the floor cleanly when sweeping!
     if (wifeNpcState.propBroom && wifeNpcState.propBroom.visible && wifeNpcState.broomBristleTip) {
