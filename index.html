@@ -5117,6 +5117,22 @@ function cloneModelWithUniqueMaterials(root) {
   return cloned;
 }
 
+const modelTexCache = {};
+function getPHModelTexture(url, isColor) {
+  if (!url) return null;
+  const key = url + '|' + (isColor ? '1' : '0');
+  if (modelTexCache[key]) return modelTexCache[key];
+  const tex = loadPHTexture(url, 1, 1, isColor, () => {
+    requestShadowUpdate();
+  });
+  if (tex) {
+    tex.flipY = false;
+    tex.needsUpdate = true;
+  }
+  modelTexCache[key] = tex;
+  return tex;
+}
+
 function loadPHModel(assetId) {
   if (modelCache[assetId]) {
     return Promise.resolve(cloneModelWithUniqueMaterials(modelCache[assetId]));
@@ -5141,32 +5157,93 @@ function loadPHModel(assetId) {
       clearTimeout(timerId);
       loadingActive = Math.max(0, loadingActive - 1);
       updateLoadingUI();
-      if (val) requestShadowUpdate();
+      if (val) {
+        requestShadowUpdate();
+      } else {
+        delete modelPromiseCache[assetId];
+      }
       resolve(val);
     };
     const timerId = setTimeout(() => {
       finish(null);
-    }, 3500);
+    }, 180000);
     try {
-      gltfLoader.parse(JSON.stringify(gltfJson), '', (gltf) => {
+      const gltfClone = JSON.parse(JSON.stringify(gltfJson));
+      const rawTexList = Array.isArray(gltfJson.textures) ? gltfJson.textures : [];
+      const rawImgList = Array.isArray(gltfJson.images) ? gltfJson.images : [];
+      const resolveTexUrl = (texRef) => {
+        if (!texRef || typeof texRef.index !== 'number') return null;
+        const tObj = rawTexList[texRef.index];
+        if (!tObj || typeof tObj.source !== 'number') return null;
+        const imgObj = rawImgList[tObj.source];
+        return (imgObj && imgObj.uri) ? imgObj.uri : null;
+      };
+      const matTexSpecs = {};
+      if (Array.isArray(gltfClone.materials)) {
+        gltfClone.materials.forEach((mDef, idx) => {
+          const pbr = mDef.pbrMetallicRoughness || {};
+          const mName = mDef.name || ('mat_' + idx);
+          mDef.name = mName;
+          matTexSpecs[mName] = {
+            baseColorUrl: resolveTexUrl(pbr.baseColorTexture),
+            ormUrl: resolveTexUrl(pbr.metallicRoughnessTexture),
+            normalUrl: resolveTexUrl(mDef.normalTexture),
+            emissiveUrl: resolveTexUrl(mDef.emissiveTexture),
+            metallicFactor: (typeof pbr.metallicFactor === 'number') ? pbr.metallicFactor : 1.0,
+            roughnessFactor: (typeof pbr.roughnessFactor === 'number') ? pbr.roughnessFactor : 1.0
+          };
+          if (pbr.baseColorTexture) delete pbr.baseColorTexture;
+          if (pbr.metallicRoughnessTexture) delete pbr.metallicRoughnessTexture;
+          if (mDef.normalTexture) delete mDef.normalTexture;
+          if (mDef.emissiveTexture) delete mDef.emissiveTexture;
+          if (mDef.occlusionTexture) delete mDef.occlusionTexture;
+          if (mDef.extensions) delete mDef.extensions;
+        });
+      }
+      delete gltfClone.textures;
+      delete gltfClone.images;
+      delete gltfClone.extensionsUsed;
+      delete gltfClone.extensionsRequired;
+
+      gltfLoader.parse(JSON.stringify(gltfClone), '', (gltf) => {
         const root = gltf.scene;
         root.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
-            if (child.material) {
-              child.material.envMapIntensity = 1.15;
-              if (alphaTex) {
-                child.material.alphaMap = alphaTex;
-                child.material.alphaTest = 0.42;
-                child.material.transparent = true;
-                child.material.side = THREE.DoubleSide;
-                child.material.roughness = Math.max(0.62, child.material.roughness || 0.68);
-                child.material.metalness = 0.02;
-                child.material.envMapIntensity = 0.78;
+            const mats = Array.isArray(child.material) ? child.material : (child.material ? [child.material] : []);
+            mats.forEach((mat) => {
+              const spec = matTexSpecs[mat.name];
+              if (spec) {
+                if (spec.baseColorUrl) {
+                  mat.map = getPHModelTexture(spec.baseColorUrl, true);
+                }
+                if (spec.normalUrl) {
+                  mat.normalMap = getPHModelTexture(spec.normalUrl, false);
+                }
+                if (spec.ormUrl) {
+                  const ormTex = getPHModelTexture(spec.ormUrl, false);
+                  mat.roughnessMap = ormTex;
+                  mat.metalnessMap = ormTex;
+                  mat.roughness = spec.roughnessFactor;
+                  mat.metalness = spec.metallicFactor;
+                }
+                if (spec.emissiveUrl) {
+                  mat.emissiveMap = getPHModelTexture(spec.emissiveUrl, true);
+                }
               }
-              child.material.needsUpdate = true;
-            }
+              mat.envMapIntensity = 1.15;
+              if (alphaTex) {
+                mat.alphaMap = alphaTex;
+                mat.alphaTest = 0.42;
+                mat.transparent = true;
+                mat.side = THREE.DoubleSide;
+                mat.roughness = Math.max(0.62, mat.roughness || 0.68);
+                mat.metalness = 0.02;
+                mat.envMapIntensity = 0.78;
+              }
+              mat.needsUpdate = true;
+            });
           }
         });
         modelCache[assetId] = root;
@@ -5726,8 +5803,13 @@ async function buildDetailedKitchenAndFridge() {
   window.kitchenCounterObj = kGroup;
   registerDraggable(kGroup, "Chef's L-Shaped Kitchen Counter & Sink", 'خزائن ورخام الكوجينة على شكل L');
 
-  // Real Poly Haven 3D Electric Stove (tuned PBR material so white enamel never washes out at grazing angles)
-  const stv = await loadPHModel('electric_stove');
+  // Real Poly Haven 3D Electric Stove & Kitchen Props loaded in parallel
+  const [stv, pot, jar, pitcher] = await Promise.all([
+    loadPHModel('electric_stove'),
+    loadPHModel('brass_pot_01'),
+    loadPHModel('ceramic_vase_01'),
+    loadPHModel('brass_vase_01')
+  ]);
   if (stv) {
     stv.traverse((ch) => {
       if (ch.isMesh && ch.material) {
@@ -5770,7 +5852,6 @@ async function buildDetailedKitchenAndFridge() {
     registerDraggable(sw, '4-Burner Electric Range Stove', 'فرن وغاز كهربائي عصري');
     g.add(sw);
   }
-  const pot = await loadPHModel('brass_pot_01');
   if (pot) {
     const pw = fitAndPlaceModel(pot, null, 0.22, 0.4);
     pw.position.copy(bPos(0.98, -2.65, 0.92));
@@ -5784,14 +5865,12 @@ async function buildDetailedKitchenAndFridge() {
     registerDraggable(pw, 'Hammered Brass Cooking Pot', 'طنجرة نحاس تقليدية');
     g.add(pw);
   }
-  const jar = await loadPHModel('ceramic_vase_01');
   if (jar) {
     const jw = fitAndPlaceModel(jar, null, 0.26, 0.2);
     jw.position.copy(bPos(0.42, -4.55, 0.91));
     registerDraggable(jw, 'Artisan Ceramic Kitchen Jar', 'جرة خزفية للكوجينة');
     g.add(jw);
   }
-  const pitcher = await loadPHModel('brass_vase_01');
   if (pitcher) {
     const oilW = fitAndPlaceModel(pitcher, null, 0.25, 0);
     oilW.position.copy(bPos(0.94, -3.35, 0.91));
@@ -6099,7 +6178,11 @@ async function rebuildCategory(cat) {
 
   if (cat === 'bed') {
     const cfg = FURNITURE_CATEGORIES.bed.items[state.furnitureChoice.bed];
-    const m = await loadPHModel(cfg.asset);
+    const [m, nsProto, lanProto] = await Promise.all([
+      loadPHModel(cfg.asset),
+      loadPHModel('ClassicNightstand_01'),
+      loadPHModel('brass_diya_lantern')
+    ]);
     if (m) {
       const w = fitAndPlaceModel(m, [cfg.sx, cfg.sy, cfg.sz], null, Math.PI/2, cfg.tint);
       w.position.copy(bPos(-4.55, 2.50, 0.02));
@@ -6114,14 +6197,14 @@ async function rebuildCategory(cat) {
       g.add(w);
     }
     for (const ny of [1.12, 3.88]) {
-      const ns = await loadPHModel('ClassicNightstand_01');
+      const ns = nsProto ? cloneModelWithUniqueMaterials(nsProto) : null;
       if (ns) {
         const nw = fitAndPlaceModel(ns, null, 0.66, Math.PI/2);
         nw.position.copy(bPos(-5.50, ny, 0.02));
         registerDraggable(nw, 'Carved Bedside Nightstand', 'كومودينو بجانب الفرش');
         g.add(nw);
       }
-      const lan = await loadPHModel('brass_diya_lantern');
+      const lan = lanProto ? cloneModelWithUniqueMaterials(lanProto) : null;
       if (lan) {
         const lw = fitAndPlaceModel(lan, null, 0.35, 0);
         lw.position.copy(bPos(-5.50, ny, 0.68));
@@ -6131,21 +6214,23 @@ async function rebuildCategory(cat) {
     }
   } else if (cat === 'middle') {
     const cfg = FURNITURE_CATEGORIES.middle.items[state.furnitureChoice.middle];
-    const m = await loadPHModel(cfg.asset);
+    const [m, tbl, bv] = await Promise.all([
+      loadPHModel(cfg.asset),
+      loadPHModel('coffee_table_round_01'),
+      loadPHModel('brass_vase_01')
+    ]);
     if (m) {
       const w = fitAndPlaceModel(m, [cfg.sx, cfg.sy, cfg.sz], null, Math.PI/2, cfg.tint);
       w.position.copy(bPos(0.55, 1.95, 0.02));
       registerDraggable(w, cfg.en, cfg.ar);
       g.add(w);
     }
-    const tbl = await loadPHModel('coffee_table_round_01');
     if (tbl) {
       const tw = fitAndPlaceModel(tbl, null, 0.50, 0);
       tw.position.copy(bPos(0.55, 0.15, 0.02));
       registerDraggable(tw, 'Marble Center Tea Table', 'طاولة شاي رخامية وسطية');
       g.add(tw);
     }
-    const bv = await loadPHModel('brass_vase_01');
     if (bv) {
       const bvw = fitAndPlaceModel(bv, null, 0.32, 0);
       bvw.position.copy(bPos(0.55, 0.15, 0.52));
@@ -6155,7 +6240,15 @@ async function rebuildCategory(cat) {
   } else if (cat === 'majlis') {
     const cfg = FURNITURE_CATEGORIES.majlis.items[state.furnitureChoice.majlis];
     window.majlisSofas = [];
-    const s1 = await loadPHModel(cfg.asset);
+    const [s1, ac, ct, bp, cv, ot] = await Promise.all([
+      loadPHModel(cfg.asset),
+      loadPHModel('ArmChair_01'),
+      loadPHModel('CoffeeTable_01'),
+      loadPHModel('brass_pot_01'),
+      loadPHModel('ceramic_vase_01'),
+      loadPHModel('Ottoman_01')
+    ]);
+    const s2 = s1 ? cloneModelWithUniqueMaterials(s1) : null;
     if (s1) {
       // South Sofa rotated by Math.PI so it faces North toward the coffee table & TV
       const w1 = fitAndPlaceModel(s1, [2.65, 0.98, 0.92], null, Math.PI, cfg.tint);
@@ -6171,7 +6264,6 @@ async function rebuildCategory(cat) {
       registerDraggable(w1, cfg.en + ' (South)', cfg.ar + ' (جنوب)');
       g.add(w1);
     }
-    const s2 = await loadPHModel(cfg.asset);
     if (s2) {
       // East Sofa rotated by -Math.PI/2 so it faces West toward the coffee table (not East wall)
       const w2 = fitAndPlaceModel(s2, [0.98, 2.55, 0.92], null, -Math.PI/2, cfg.tint);
@@ -6186,35 +6278,30 @@ async function rebuildCategory(cat) {
       registerDraggable(w2, cfg.en + ' (East)', cfg.ar + ' (شرق)');
       g.add(w2);
     }
-    const ac = await loadPHModel('ArmChair_01');
     if (ac) {
       const aw = fitAndPlaceModel(ac, null, 0.88, Math.PI/2.2, cfg.tint);
       aw.position.copy(bPos(1.92, 2.35, 0.02));
       registerDraggable(aw, 'Majlis Salon Armchair', 'كرسي صالون ملكي');
       g.add(aw);
     }
-    const ct = await loadPHModel('CoffeeTable_01');
     if (ct) {
       const cw = fitAndPlaceModel(ct, [1.45, 0.92, 0.48], null, 0);
       cw.position.copy(bPos(3.40, 1.75, 0.02));
       registerDraggable(cw, 'Carved Majlis Coffee Table', 'طاولة قهوة الصالة');
       g.add(cw);
     }
-    const bp = await loadPHModel('brass_pot_01');
     if (bp) {
       const bpw = fitAndPlaceModel(bp, null, 0.25, 0);
       bpw.position.copy(bPos(3.20, 1.75, 0.50));
       registerDraggable(bpw, 'Tunisian Brass Coffee Pot', 'إبريق قهوة نحاسي تونسي');
       g.add(bpw);
     }
-    const cv = await loadPHModel('ceramic_vase_01');
     if (cv) {
       const cvw = fitAndPlaceModel(cv, null, 0.27, 0);
       cvw.position.copy(bPos(3.60, 1.75, 0.50));
       registerDraggable(cvw, 'Nabeul Ceramic Table Vase', 'مزهرية خزف نابل');
       g.add(cvw);
     }
-    const ot = await loadPHModel('Ottoman_01');
     if (ot) {
       const ow = fitAndPlaceModel(ot, null, 0.42, 0.4);
       ow.position.copy(bPos(1.98, 1.20, 0.02));
@@ -6269,8 +6356,13 @@ async function rebuildCategory(cat) {
       { asset: 'chinese_chandelier', pos: [-0.25, -3.50, 2.55], h: 0.85, en: 'Chef Kitchen Pendant', ar: 'فانوس الكوجينة' },
       { asset: 'Chandelier_02', pos: [-3.85, -2.85, 2.58], h: 0.82, en: 'Hammam Bathroom Chandelier', ar: 'ثرية الحمام' }
     ];
-    for (const p of placements) {
-      const lm = await loadPHModel(p.asset);
+    const [placementModels, smProto] = await Promise.all([
+      Promise.all(placements.map(p => loadPHModel(p.asset))),
+      loadPHModel('Lantern_01')
+    ]);
+    for (let i = 0; i < placements.length; i++) {
+      const p = placements[i];
+      const lm = placementModels[i];
       if (lm) {
         const lw = fitAndPlaceModel(lm, null, p.h, 0);
         lw.position.copy(bPos(p.pos[0], p.pos[1], p.pos[2]));
@@ -6288,7 +6380,7 @@ async function rebuildCategory(cat) {
       [5.52, -5.18, 2.05, Math.PI]
     ];
     for (const sc of sconceCoords) {
-      const sm = await loadPHModel('Lantern_01');
+      const sm = smProto ? cloneModelWithUniqueMaterials(smProto) : null;
       if (sm) {
         const sw = fitAndPlaceModel(sm, null, 0.44, sc[3]);
         sw.position.copy(bPos(sc[0], sc[1], sc[2]));
@@ -6910,7 +7002,26 @@ async function buildStaticPolyHavenDecor() {
     frontOliveGardenGroup.add(tallTuft);
   });
 
-  const mir = await loadPHModel('ornate_mirror_01');
+  // Preload all Poly Haven 3D Assets for Decor, Plants, Olive Tree Planters & Rooftop BBQ in parallel
+  const [
+    mir,
+    stumpProto,
+    boxPlanterProto,
+    clayPotProto,
+    bbqProto,
+    bsProto
+  ] = await Promise.all([
+    loadPHModel('ornate_mirror_01'),
+    loadPHModel('tree_stump_01'),
+    loadPHModel('planter_box_01'),
+    loadPHModel('planter_pot_clay'),
+    loadPHModel('stone_fire_pit'),
+    loadPHModel('bar_chair_round_01'),
+    loadPHModel('potted_plant_01'),
+    loadPHModel('potted_plant_02'),
+    loadPHModel('potted_plant_04')
+  ]);
+
   if (mir) {
     const mw = fitAndPlaceModel(mir, null, 1.25, 0);
     mw.position.copy(bPos(-3.15, -4.82, 1.02));
@@ -6956,13 +7067,6 @@ async function buildStaticPolyHavenDecor() {
       }
     }
   }
-
-  // Preload Poly Haven 3D Assets for Olive Tree Planters & Uprooted Stump
-  const [stumpProto, boxPlanterProto, clayPotProto] = await Promise.all([
-    loadPHModel('tree_stump_01'),
-    loadPHModel('planter_box_01'),
-    loadPHModel('planter_pot_clay')
-  ]);
 
   // ==========================================================================
   // 1. ANCIENT 3M UNPOTTED OLIVE TREE (Left of Arched Wall: bx = -0.05, by = -8.25, bz = -0.50)
@@ -9981,7 +10085,7 @@ async function buildStaticPolyHavenDecor() {
   g.add(livestockFenceGroup);
 
   // Rooftop Stone BBQ Fire Pit & Barstools (Rooftop sofas & coffee table replaced by Rooftop Tunisian Sofa Lesehan & Meja Lesehan in buildStaticArchitecture!)
-  const bbq = await loadPHModel('stone_fire_pit');
+  const bbq = bbqProto || await loadPHModel('stone_fire_pit');
   if (bbq) {
     const bw = fitAndPlaceModel(bbq, [0.88, 1.15, 0.55], null, 0);
     bw.position.copy(bPos(-4.65, 2.65, 4.72));
@@ -9997,7 +10101,7 @@ async function buildStaticPolyHavenDecor() {
     roofGroup.add(bw);
   }
   for (const sy of [0.95, 1.95, 2.95]) {
-    const bs = await loadPHModel('bar_chair_round_01');
+    const bs = bsProto ? cloneModelWithUniqueMaterials(bsProto) : await loadPHModel('bar_chair_round_01');
     if (bs) {
       const bsw = fitAndPlaceModel(bs, null, 0.76, 0);
       bsw.position.copy(bPos(-3.65, sy, 3.78));
@@ -18082,9 +18186,6 @@ async function initApp() {
   document.documentElement.lang = state.lang;
   document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
 
-  // Stream real Poly Haven 360 HDRIs in parallel
-  loadRealPolyHavenHDRIs();
-
   buildStaticArchitecture();
   rebuildNorthWallArches();
   rebuildFacadeDecor();
@@ -18094,12 +18195,7 @@ async function initApp() {
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
-  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken, Cow, Rabbit & Goat 3D Animal Templates
-  loadMaitreMaherNPC();
-  loadMaherWifeNPC();
-  loadAnimalTemplates();
-
-  // Spawn default Country Gravel Road in front of the villa & load the Realistic Orange Peugeot 308 car
+  // Spawn default Country Gravel Road in front of the villa
   spawnGravelRoad({
     x: -14.095,
     y: -0.495,
@@ -18111,6 +18207,7 @@ async function initApp() {
     skipSelect: true
   });
 
+  // Load all indoor furniture, rooftop BBQ grill & Peugeot 308 first before heavy skeletal NPC/animal Base64 decoding
   await Promise.all([
     loadPeugeot308Car(),
     rebuildCategory('bed'),
@@ -18121,6 +18218,14 @@ async function initApp() {
     rebuildCategory('lamps'),
     buildStaticPolyHavenDecor()
   ]);
+
+  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken, Cow, Rabbit & Goat 3D Animal Templates
+  loadMaitreMaherNPC();
+  loadMaherWifeNPC();
+  loadAnimalTemplates();
+
+  // Stream real Poly Haven 360 HDRIs right after 3D furniture models so HDRIs never queue-block dl.polyhaven.org GLTF models
+  loadRealPolyHavenHDRIs();
 
   setTimeOfDay(state.timeOfDay || 'sunset');
 
