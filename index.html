@@ -87,6 +87,159 @@
     background: linear-gradient(135deg, #fbbf24, #d97706);
     border-color: #fff; color: #111;
   }
+  .btn-design-color {
+    background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
+    border: 1px solid #bae6fd; color: #fff; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(14, 165, 233, 0.45);
+  }
+  .btn-design-color:hover, .btn-design-color.active {
+    background: linear-gradient(135deg, #38bdf8, #2563eb);
+    border-color: #fff; color: #fff;
+  }
+  #design-color-panel {
+    pointer-events: auto;
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: rgba(10, 18, 30, 0.95); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1.5px solid #38bdf8; border-radius: 13px;
+    padding: 8px 14px; box-shadow: 0 12px 34px rgba(0,0,0,0.72);
+    width: fit-content; max-width: calc(100vw - 24px);
+    position: relative;
+  }
+  #design-color-panel.visible {
+    display: flex;
+  }
+  .design-color-title {
+    font-size: 11.5px; font-weight: 800; color: #7dd3fc; margin-right: 2px;
+  }
+  .color-tpl-btn {
+    background: rgba(255,255,255,0.08); color: #e2e8f0;
+    border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 99px;
+    padding: 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.16s ease; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .color-tpl-btn:hover {
+    background: rgba(56, 189, 248, 0.22); border-color: #bae6fd; color: #fff;
+  }
+  .color-tpl-btn.active {
+    background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
+    color: #fff; border-color: #fff;
+    box-shadow: 0 2px 12px rgba(14, 165, 233, 0.50);
+  }
+  .color-stair-btn {
+    background: rgba(232, 185, 89, 0.14); color: #fde68a;
+    border: 1px solid rgba(232, 185, 89, 0.45); border-radius: 99px;
+    padding: 5px 11px; font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .color-stair-btn:hover {
+    background: rgba(232, 185, 89, 0.28); border-color: #fff; color: #fff;
+  }
+  #custom-color-controls {
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding-left: 6px; border-left: 1px solid rgba(56, 189, 248, 0.32);
+  }
+  #custom-color-controls.visible {
+    display: inline-flex;
+  }
+  .color-combo-input-btn {
+    background: rgba(15, 25, 42, 0.92); color: #f8fafc;
+    border: 1.5px solid rgba(148, 163, 184, 0.45); border-radius: 10px;
+    padding: 4px 10px 4px 6px; font-size: 11px; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.15s ease;
+  }
+  .color-combo-input-btn:hover, .color-combo-input-btn.active {
+    border-color: #38bdf8; background: rgba(22, 36, 60, 0.98);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.38);
+  }
+  .color-combo-swatch {
+    width: 18px; height: 18px; border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,0.85);
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.35);
+    forced-color-adjust: none; flex-shrink: 0;
+  }
+  #color-palette-popover {
+    position: fixed; top: 102px; left: 24px; z-index: 50;
+    width: 268px; background: rgba(10, 16, 28, 0.97);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid #38bdf8; border-radius: 15px;
+    padding: 12px; box-shadow: 0 20px 52px rgba(0,0,0,0.85);
+    display: none; flex-direction: column; gap: 10px;
+    pointer-events: auto; user-select: none;
+  }
+  #color-palette-popover.visible {
+    display: flex;
+  }
+  .palette-pop-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.24); padding-bottom: 6px;
+  }
+  .palette-pop-title {
+    font-size: 11.5px; font-weight: 800; color: #7dd3fc;
+  }
+  .palette-sv-wrap {
+    position: relative; width: 240px; height: 136px; border-radius: 10px;
+    overflow: hidden; border: 1px solid rgba(255,255,255,0.28); cursor: crosshair;
+    align-self: center;
+  }
+  #palette-sv-canvas {
+    width: 100%; height: 100%; display: block;
+  }
+  #palette-sv-cursor {
+    position: absolute; width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid #fff; box-shadow: 0 0 4px rgba(0,0,0,0.9);
+    transform: translate(-50%, -50%); pointer-events: none;
+    top: 20%; left: 80%;
+  }
+  .palette-hue-wrap {
+    display: flex; align-items: center; gap: 8px; padding: 0 2px;
+  }
+  #palette-hue-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 12px; border-radius: 99px;
+    background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);
+    outline: none; border: 1px solid rgba(255,255,255,0.35); cursor: pointer;
+    forced-color-adjust: none;
+  }
+  #palette-hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 2px solid #0f172a; box-shadow: 0 1px 5px rgba(0,0,0,0.7);
+    cursor: pointer;
+  }
+  .palette-swatches-label {
+    font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .palette-swatches-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
+  }
+  .palette-swatch-item {
+    width: 100%; aspect-ratio: 1 / 1; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.32); cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    forced-color-adjust: none;
+  }
+  .palette-swatch-item:hover {
+    transform: scale(1.16); border-color: #fff; z-index: 2;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+  }
+  .palette-hex-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 7px;
+    padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .palette-live-chip {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: 1.5px solid #fff; flex-shrink: 0; forced-color-adjust: none;
+  }
+  #palette-hex-input {
+    flex: 1; background: rgba(255,255,255,0.09); border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #fff; border-radius: 8px; padding: 5px 8px; font-size: 12px; font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase;
+    text-align: center; outline: none;
+  }
+  #palette-hex-input:focus {
+    border-color: #fff; background: rgba(255,255,255,0.15);
+  }
   .hud-btn.btn-copy-obj {
     background: linear-gradient(135deg, #2563eb, #1d4ed8);
     border-color: #93c5fd; color: #fff; font-weight: 700;
@@ -400,6 +553,7 @@
   <div id="top-bar">
     <div class="top-actions">
       <button class="btn-pill btn-photoshoot" id="btn-photoshoot" onclick="startPhotoshootRender()">📸 Photoshoot (Blender Render)</button>
+      <button class="btn-pill btn-design-color" id="btn-design-color" onclick="toggleDesignColorPanel()">🎨 Design Color</button>
       <button class="btn-pill btn-catalog" id="btn-object-catalog" onclick="toggleObjectCatalog()">📦 Object Catalog</button>
       <button class="btn-pill btn-animals" id="btn-deploy-animals" onclick="toggleAnimalDeployPanel()">🐾 Deploy Animals</button>
       <button class="btn-pill btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">🇹🇳 العربية التونسية</button>
@@ -411,6 +565,27 @@
       <button class="btn-pill" id="btn-export-layout" onclick="exportLayoutToClipboard()">📋 Copy Layout</button>
       <button class="btn-pill" id="btn-reset" onclick="resetDesign()">🔄 Reset</button>
     </div>
+  </div>
+
+  <div id="design-color-panel">
+    <span class="design-color-title" id="ui-design-color-title">🎨 Design Color:</span>
+    <button class="color-tpl-btn active" id="btn-color-tpl-default" onclick="setDesignColorTemplate('default')">🏛️ Default Template</button>
+    <button class="color-tpl-btn" id="btn-color-tpl-sidibou" onclick="setDesignColorTemplate('sidibou')">🇹🇳 Sidi Bou Template</button>
+    <button class="color-tpl-btn" id="btn-color-tpl-custom" onclick="setDesignColorTemplate('custom')">🎨 Custom</button>
+    <button class="color-stair-btn" id="btn-stair-color-mode" onclick="toggleStairColorMode()" title="Toggle whether the exterior staircase shares the wall color or contrasts with the accent color">🪜 Stairs: Accent Color</button>
+    <div id="custom-color-controls">
+      <button class="color-combo-input-btn" id="btn-pick-wall-color" onclick="openColorPalettePopover('wall', this)" title="Click to open complete Color Palette for All Walls & House">
+        <span class="color-combo-swatch" id="swatch-wall-color" style="background:#f8fbff;"></span>
+        <span id="lbl-pick-wall-color">Walls & House</span>
+        <span id="hex-wall-color" style="opacity:0.8;font-size:10px;">#F8FBFF</span>
+      </button>
+      <button class="color-combo-input-btn" id="btn-pick-accent-color" onclick="openColorPalettePopover('accent', this)" title="Click to open complete Color Palette for Doors, Windows, Roof Decor & Canopies">
+        <span class="color-combo-swatch" id="swatch-accent-color" style="background:#1677e6;"></span>
+        <span id="lbl-pick-accent-color">Doors, Windows & Canopies</span>
+        <span id="hex-accent-color" style="opacity:0.8;font-size:10px;">#1677E6</span>
+      </button>
+    </div>
+    <button class="btn-pill" id="btn-close-design-color" onclick="toggleDesignColorPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
 
   <div id="animal-deploy-panel">
@@ -443,6 +618,28 @@
   </div>
 </div>
 
+<div id="color-palette-popover" role="dialog" aria-label="Complete Color Palette Picker">
+  <div class="palette-pop-header">
+    <span class="palette-pop-title" id="palette-pop-title">🎨 Pick Color</span>
+    <button class="btn-pill" id="btn-close-color-popover" type="button" onclick="closeColorPalettePopover()" style="padding:2px 8px;font-size:11px;">✖</button>
+  </div>
+  <div class="palette-sv-wrap" id="palette-sv-wrap">
+    <canvas id="palette-sv-canvas" width="240" height="136"></canvas>
+    <div id="palette-sv-cursor"></div>
+  </div>
+  <div class="palette-hue-wrap">
+    <span style="font-size:10px;color:#94a3b8;font-weight:700;">HUE</span>
+    <input type="range" id="palette-hue-slider" min="0" max="360" step="1" value="212" oninput="onPaletteHueSliderChange(this.value)" />
+  </div>
+  <div class="palette-swatches-label" id="palette-swatches-label">Curated Palette Swatches</div>
+  <div class="palette-swatches-grid" id="palette-swatches-grid"></div>
+  <div class="palette-hex-row">
+    <span class="palette-live-chip" id="palette-live-chip" style="background:#1677e6;"></span>
+    <input type="text" id="palette-hex-input" maxlength="7" value="#1677E6" aria-label="Hex Color Code" oninput="onPaletteHexInputChange(this.value)" />
+    <input type="color" id="palette-native-eye" value="#1677e6" title="System Color Eyedropper" oninput="onPaletteHexInputChange(this.value)" style="width:28px;height:28px;border:none;background:none;cursor:pointer;padding:0;" />
+  </div>
+</div>
+
 <div id="loading-badge"><span id="ui-loading-text">⏳ Downloading AAA 3D PBR Assets & HDRI Skies...</span> <span id="loading-count">0/0</span></div>
 
 <div id="window-sign-hud" onclick="toggleSelectedOpening()">
@@ -465,11 +662,12 @@
 <div id="selection-hud">
   <span class="hud-title" id="sel-name">📌 Click once on any 3D object to select • Drag = Move • ↑/↓ = Resize</span>
   <button class="hud-btn btn-open-toggle" id="btn-hud-open" onclick="toggleSelectedOpening()">🚪 Open / Close</button>
-  <span id="fence-hud-controls" style="display:none; gap:4px; align-items:center;">
+  <span id="fence-hud-controls" style="display:none; gap:4px; align-items:center; flex-wrap:wrap;">
     <button class="hud-btn" id="btn-fence-left-dec" onclick="adjustWoodenFencePanels('left', -1)" title="Reduce Left Fence Panels">◀➖ Left Fence</button>
     <button class="hud-btn" id="btn-fence-left-inc" onclick="adjustWoodenFencePanels('left', 1)" title="Extend Left Fence Panels">◀➕ Left Fence</button>
     <button class="hud-btn" id="btn-fence-gate-left" onclick="slideWoodenFenceGate(-0.65)" title="Slide Gate Left Along Fence Line">◀ Gate</button>
     <button class="hud-btn" id="btn-fence-gate-right" onclick="slideWoodenFenceGate(0.65)" title="Slide Gate Right Along Fence Line">Gate ▶</button>
+    <button class="hud-btn" id="btn-fence-gate-toggle" onclick="toggleWoodenFenceGate()" title="Add or completely remove the wooden gate from this fence" style="background:rgba(239,68,68,0.32);border-color:#fca5a5;color:#fee2e2;font-weight:700;">🚪🗑️ Remove Gate</button>
     <button class="hud-btn" id="btn-fence-right-dec" onclick="adjustWoodenFencePanels('right', -1)" title="Reduce Right Fence Panels">Right Fence ➖▶</button>
     <button class="hud-btn" id="btn-fence-right-inc" onclick="adjustWoodenFencePanels('right', 1)" title="Extend Right Fence Panels">Right Fence ➕▶</button>
   </span>
@@ -644,7 +842,21 @@ const I18N = {
     catKitchen: '🍳 Kitchen & Dining',
     catOutdoor: '🌳 Trees, Outdoor & Roof',
     catLamps: '💡 Chandeliers & Lamps',
-    catLivestock: '🐄 Livestock & Barn'
+    catLivestock: '🐄 Livestock & Barn',
+    btnDesignColor: '🎨 Design Color',
+    designColorTitle: '🎨 Design Color:',
+    tplDefault: '🏛️ Default Template',
+    tplSidiBou: '🇹🇳 Sidi Bou Template',
+    tplCustom: '🎨 Custom',
+    stairColorAccent: '🪜 Stairs: Accent Color',
+    stairColorWall: '🪜 Stairs: Same as Wall',
+    lblWallColor: 'Walls & House',
+    lblAccentColor: 'Doors, Windows & Canopies',
+    popTitleWall: '🎨 Walls & House Color',
+    popTitleAccent: '🎨 Doors, Windows, Roof Decor & Canopies',
+    popSwatchesLabel: 'Curated Palette Swatches',
+    btnGateRemove: '🚪🗑️ Remove Gate',
+    btnGateAdd: '🚪➕ Add Gate'
   },
   ar: {
     appTitle: 'فيلا تونسية وعربية عصرية 3D',
@@ -722,7 +934,21 @@ const I18N = {
     catKitchen: '🍳 الكوجينة والبار',
     catOutdoor: '🌳 الأشجار والخارج والسطح',
     catLamps: '💡 الثريات والفوانيس',
-    catLivestock: '🐄 المواشي والحظيرة'
+    catLivestock: '🐄 المواشي والحظيرة',
+    btnDesignColor: '🎨 ألوان التصميم',
+    designColorTitle: '🎨 ألوان التصميم:',
+    tplDefault: '🏛️ القالب الافتراضي',
+    tplSidiBou: '🇹🇳 قالب سيدي بوسعيد',
+    tplCustom: '🎨 مخصص (Custom)',
+    stairColorAccent: '🪜 الدرج: بلون الزخرفة',
+    stairColorWall: '🪜 الدرج: بلون الحائط',
+    lblWallColor: 'الجدران والمنزل',
+    lblAccentColor: 'الأبواب والشبابيك والمظلات',
+    popTitleWall: '🎨 لون الجدران والمنزل',
+    popTitleAccent: '🎨 لون الأبواب والشبابيك والمظلات',
+    popSwatchesLabel: 'لوحة الألوان المختارة',
+    btnGateRemove: '🚪🗑️ إزالة البوابة',
+    btnGateAdd: '🚪➕ إضافة بوابة'
   }
 };
 
@@ -757,6 +983,12 @@ const state = {
     south_ext: 'riyad_ivory',
     courtyard: 'sahara_travertine',
     bath_kitchen: 'alabaster_pearl'
+  },
+  designColor: {
+    mode: 'default', // 'default' | 'sidibou' | 'custom'
+    wallColor: '#f8fbff',
+    accentColor: '#1677e6',
+    stairSameAsWall: false
   },
   northArchStyle: 'sym_3_shifted',
   facadeStyle: 'modern_ref3_4',
@@ -967,16 +1199,66 @@ function updateLoadingUI() {
   }
 }
 
-function loadPHTexture(url, repeatX = 4, repeatY = 4, isColor = true) {
+function makePHInitialFallbackCanvas(url, isColor) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  const u = (url || '').toLowerCase();
+  if (!isColor && (u.includes('_nor') || u.includes('normal'))) {
+    // Tangent-space normal map fallback (128, 128, 255) with subtle procedural micro-relief so normalMap is never (0,0,0) before network finishes!
+    const imgData = ctx.createImageData(256, 256);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const px = (i / 4) % 256, py = Math.floor((i / 4) / 256);
+      const nx = Math.round(128 + Math.sin(px * 0.25 + py * 0.12) * 8);
+      const ny = Math.round(128 + Math.cos(py * 0.25 - px * 0.14) * 8);
+      d[i] = nx; d[i + 1] = ny; d[i + 2] = 252; d[i + 3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return c;
+  }
+  if (!isColor) {
+    // ARM / roughness / alpha fallback (R=244 AO, G=196 roughness ~0.77, B=10 metalness ~0.04) so roughnessMap is never 0.0 mirror!
+    ctx.fillStyle = u.includes('alpha') ? '#ffffff' : 'rgb(244, 196, 10)';
+    ctx.fillRect(0, 0, 256, 256);
+    return c;
+  }
+  // Diffuse color fallback tailored to surface type until Poly Haven 1K JPG finishes streaming
+  let baseHex = '#e6ddd0';
+  if (u.includes('wood')) baseHex = '#b88c62';
+  else if (u.includes('mud') || u.includes('soil')) baseHex = '#9c856b';
+  else if (u.includes('bark')) baseHex = '#82715d';
+  else if (u.includes('concrete')) baseHex = '#c2beb6';
+  else if (u.includes('blue_floor')) baseHex = '#2b6da8';
+  else if (u.includes('large_floor')) baseHex = '#e3d8c6';
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 1800; i++) {
+    const x = (i * 73) % 256, y = (i * 151) % 256;
+    ctx.fillStyle = (i % 2 === 0) ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    ctx.fillRect(x, y, 4, 2);
+  }
+  return c;
+}
+
+function loadPHTexture(url, repeatX = 4, repeatY = 4, isColor = true, onLoadExtra = null) {
   if (!url) return null;
   loadingActive++; loadingTotal++;
   updateLoadingUI();
   const tex = texLoader.load(
     url,
-    () => { loadingActive = Math.max(0, loadingActive - 1); updateLoadingUI(); },
+    (loadedTex) => {
+      loadingActive = Math.max(0, loadingActive - 1);
+      updateLoadingUI();
+      if (typeof onLoadExtra === 'function') onLoadExtra(loadedTex);
+    },
     undefined,
     () => { loadingActive = Math.max(0, loadingActive - 1); updateLoadingUI(); }
   );
+  if (!tex.image) {
+    tex.image = makePHInitialFallbackCanvas(url, isColor);
+    tex.needsUpdate = true;
+  }
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(repeatX, repeatY);
   tex.anisotropy = maxAniso;
@@ -1017,7 +1299,9 @@ function loadRealPolyHavenHDRIs() {
 }
 
 const phTexInfo = (PH_MANIFEST && PH_MANIFEST.textures) ? PH_MANIFEST.textures : {};
-const plasterDiffTex = phTexInfo.clay_plaster ? loadPHTexture(phTexInfo.clay_plaster.diff, 2.5, 1.5, true) : null;
+const plasterDiffTex = phTexInfo.clay_plaster ? loadPHTexture(phTexInfo.clay_plaster.diff, 2.5, 1.5, true, (t) => {
+  if (typeof window.syncNeutralPlasterFromDiff === 'function') window.syncNeutralPlasterFromDiff(t);
+}) : null;
 const plasterNorTex = phTexInfo.clay_plaster ? loadPHTexture(phTexInfo.clay_plaster.nor, 2.5, 1.5, false) : null;
 const plasterArmTex = phTexInfo.clay_plaster ? loadPHTexture(phTexInfo.clay_plaster.arm, 2.5, 1.5, false) : null;
 
@@ -1034,7 +1318,9 @@ const zelligeNorTex = phTexInfo.blue_floor_tiles_01 ? loadPHTexture(phTexInfo.bl
 
 const patternNorTex = phTexInfo.floor_pattern_01 ? loadPHTexture(phTexInfo.floor_pattern_01.nor, 3, 3, false) : null;
 
-const woodDiffTex = phTexInfo.wood_walnut ? loadPHTexture(phTexInfo.wood_walnut.diff, 2, 2, true) : null;
+const woodDiffTex = phTexInfo.wood_walnut ? loadPHTexture(phTexInfo.wood_walnut.diff, 2, 2, true, (t) => {
+  if (typeof window.syncNeutralWoodFromDiff === 'function') window.syncNeutralWoodFromDiff(t);
+}) : null;
 const woodNorTex = phTexInfo.wood_walnut ? loadPHTexture(phTexInfo.wood_walnut.nor, 2, 2, false) : null;
 const woodArmTex = phTexInfo.wood_walnut ? loadPHTexture(phTexInfo.wood_walnut.arm, 2, 2, false) : null;
 
@@ -1326,44 +1612,180 @@ const texPuddleMask = makePuddleMaskTexture();
 const texCrackedEarth = makeCrackedEarthTexture();
 const texManicuredLawn = makeManicuredLawnTexture();
 
+function drawMashrabiyaCanvas(c, mode = 'default', wallHex = '#f8fbff', accentHex = '#1677e6') {
+  const ctx = c.getContext('2d');
+  if (mode === 'default') {
+    ctx.fillStyle = '#3b2814';
+    ctx.fillRect(0, 0, 512, 512);
+    const step = 64;
+    for (let y = 0; y < 512; y += step) {
+      for (let x = 0; x < 512; x += step) {
+        const cx = x + step/2, cy = y + step/2;
+        const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, step*0.48);
+        grad.addColorStop(0, '#f5c469');
+        grad.addColorStop(0.55, '#8c6436');
+        grad.addColorStop(1, '#2b1c0e');
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, step, step);
+        ctx.strokeStyle = '#e8d5b5';
+        ctx.lineWidth = 3.2;
+        ctx.strokeRect(x + 2, y + 2, step - 4, step - 4);
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          const r1 = step * 0.42, r2 = step * 0.18;
+          const x1 = cx + Math.cos(a) * r1, y1 = cy + Math.sin(a) * r1;
+          const x2 = cx + Math.cos(a + Math.PI/8) * r2, y2 = cy + Math.sin(a + Math.PI/8) * r2;
+          if (i === 0) ctx.moveTo(x1, y1); else ctx.lineTo(x1, y1);
+          ctx.lineTo(x2, y2);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  } else {
+    const cWall = new THREE.Color(wallHex || '#f8fbff');
+    const cAcc = new THREE.Color(accentHex || '#1677e6');
+    const cDeepAcc = cAcc.clone().multiplyScalar(0.42);
+    const cMidAcc = cAcc.clone().multiplyScalar(0.78);
+    const cHighlight = cAcc.clone().lerp(cWall, 0.22);
+    const cStarOutline = cAcc.clone().lerp(cWall, 0.72);
+    ctx.fillStyle = '#' + cDeepAcc.getHexString();
+    ctx.fillRect(0, 0, 512, 512);
+    const step = 64;
+    for (let y = 0; y < 512; y += step) {
+      for (let x = 0; x < 512; x += step) {
+        const cx = x + step/2, cy = y + step/2;
+        const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, step*0.48);
+        grad.addColorStop(0, '#' + cHighlight.getHexString());
+        grad.addColorStop(0.55, '#' + cAcc.getHexString());
+        grad.addColorStop(1, '#' + cDeepAcc.getHexString());
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, step, step);
+        ctx.strokeStyle = '#' + cMidAcc.getHexString();
+        ctx.lineWidth = 3.0;
+        ctx.strokeRect(x + 2, y + 2, step - 4, step - 4);
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          const r1 = step * 0.42, r2 = step * 0.18;
+          const x1 = cx + Math.cos(a) * r1, y1 = cy + Math.sin(a) * r1;
+          const x2 = cx + Math.cos(a + Math.PI/8) * r2, y2 = cy + Math.sin(a + Math.PI/8) * r2;
+          if (i === 0) ctx.moveTo(x1, y1); else ctx.lineTo(x1, y1);
+          ctx.lineTo(x2, y2);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#' + cAcc.getHexString();
+        ctx.fill();
+        ctx.strokeStyle = '#' + cStarOutline.getHexString();
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
 function makeMashrabiyaTexture() {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 512;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#3b2814';
-  ctx.fillRect(0, 0, 512, 512);
-  const step = 64;
-  for (let y = 0; y < 512; y += step) {
-    for (let x = 0; x < 512; x += step) {
-      const cx = x + step/2, cy = y + step/2;
-      const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, step*0.48);
-      grad.addColorStop(0, '#f5c469');
-      grad.addColorStop(0.55, '#8c6436');
-      grad.addColorStop(1, '#2b1c0e');
-      ctx.fillStyle = grad;
-      ctx.fillRect(x, y, step, step);
-      ctx.strokeStyle = '#e8d5b5';
-      ctx.lineWidth = 3.2;
-      ctx.strokeRect(x + 2, y + 2, step - 4, step - 4);
-      ctx.beginPath();
-      for (let i = 0; i < 8; i++) {
-        const a = (i * Math.PI) / 4;
-        const r1 = step * 0.42, r2 = step * 0.18;
-        const x1 = cx + Math.cos(a) * r1, y1 = cy + Math.sin(a) * r1;
-        const x2 = cx + Math.cos(a + Math.PI/8) * r2, y2 = cy + Math.sin(a + Math.PI/8) * r2;
-        if (i === 0) ctx.moveTo(x1, y1); else ctx.lineTo(x1, y1);
-        ctx.lineTo(x2, y2);
-      }
-      ctx.closePath();
-      ctx.stroke();
-    }
-  }
+  drawMashrabiyaCanvas(c, 'default');
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.repeat.set(2, 2);
   tex.encoding = THREE.sRGBEncoding;
   return tex;
 }
+
+// High-Luminance Neutral PBR Diffuse Maps (preserving 100% of original plaster & wood grain while allowing pure white or vivid Sidi Bou blue tinting)
+function makeNeutralPlasterDiffuseTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#f8f8f8';
+  ctx.fillRect(0, 0, 512, 512);
+  const imgData = ctx.getImageData(0, 0, 512, 512);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const px = (i / 4) % 512;
+    const py = Math.floor((i / 4) / 512);
+    const n1 = Math.sin(px * 0.11 + py * 0.07) * 4.5 + Math.cos(px * 0.23 - py * 0.19) * 3.5;
+    const n2 = ((px * 73 + py * 151) % 17) - 8;
+    const v = Math.max(226, Math.min(255, Math.round(245 + n1 + n2 * 0.45)));
+    d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3.5, 2.2);
+  tex.anisotropy = maxAniso;
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+function makeNeutralWoodDiffuseTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#e8e8e8';
+  ctx.fillRect(0, 0, 512, 512);
+  for (let y = 0; y < 512; y++) {
+    const wave = Math.sin(y * 0.18) * 10 + Math.cos(y * 0.045) * 8;
+    const v = Math.max(194, Math.min(254, Math.round(228 + wave)));
+    ctx.fillStyle = `rgb(${v},${v},${v})`;
+    ctx.fillRect(0, y, 512, 1);
+  }
+  for (let p = 0; p < 512; p += 64) {
+    ctx.fillStyle = 'rgba(155,155,155,0.28)';
+    ctx.fillRect(0, p, 512, 2);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2.5, 2.5);
+  tex.anisotropy = maxAniso;
+  tex.encoding = THREE.sRGBEncoding;
+  return tex;
+}
+
+const neutralPlasterDiffTex = makeNeutralPlasterDiffuseTexture();
+const neutralWoodDiffTex = makeNeutralWoodDiffuseTexture();
+
+window.syncNeutralPlasterFromDiff = function(texOrImg) {
+  try {
+    const img = (texOrImg && texOrImg.image) ? texOrImg.image : texOrImg;
+    if (!img) return;
+    const c = neutralPlasterDiffTex.image;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const lum = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+      const v = Math.max(218, Math.min(255, Math.round(220 + (lum - 0.35) * 58)));
+      d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    neutralPlasterDiffTex.needsUpdate = true;
+  } catch (e) {}
+};
+
+window.syncNeutralWoodFromDiff = function(texOrImg) {
+  try {
+    const img = (texOrImg && texOrImg.image) ? texOrImg.image : texOrImg;
+    if (!img) return;
+    const c = neutralWoodDiffTex.image;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const lum = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+      const v = Math.max(185, Math.min(255, Math.round(190 + lum * 72)));
+      d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    neutralWoodDiffTex.needsUpdate = true;
+  } catch (e) {}
+};
 
 function makeRugTexture() {
   const c = document.createElement('canvas');
@@ -1422,7 +1844,7 @@ const wallMaterials = {};
     roughness: 0.68,
     envMapIntensity: 0.52
   });
-  wallMaterials[k].userData = { customEnvIntensity: 0.52 };
+  wallMaterials[k].userData = { customEnvIntensity: 0.52, designRole: 'wall', wallKey: k };
 });
 
 const matMashrabiya = new THREE.MeshStandardMaterial({
@@ -1433,6 +1855,7 @@ const matMashrabiya = new THREE.MeshStandardMaterial({
   metalness: 0.24,
   envMapIntensity: 1.05
 });
+matMashrabiya.userData = { customEnvIntensity: 1.05, designRole: 'mashrabiya' };
 const matArchTrim = new THREE.MeshStandardMaterial({
   color: 0xdfd2bc,
   map: plasterDiffTex,
@@ -1441,7 +1864,16 @@ const matArchTrim = new THREE.MeshStandardMaterial({
   roughness: 0.48,
   envMapIntensity: 0.65
 });
-matArchTrim.userData = { customEnvIntensity: 0.65 };
+matArchTrim.userData = { customEnvIntensity: 0.65, designRole: 'arch_trim' };
+const matOpeningArchFrame = new THREE.MeshStandardMaterial({
+  color: 0xdfd2bc,
+  map: plasterDiffTex,
+  normalMap: plasterNorTex,
+  normalScale: new THREE.Vector2(0.65, 0.65),
+  roughness: 0.48,
+  envMapIntensity: 0.65
+});
+matOpeningArchFrame.userData = { customEnvIntensity: 0.65, designRole: 'opening_frame' };
 const matLedBorderArch = new THREE.MeshStandardMaterial({
   color: 0xffb444, emissive: 0xff9d24, emissiveIntensity: 2.2, roughness: 0.15
 });
@@ -1465,6 +1897,18 @@ const matWalnut = new THREE.MeshStandardMaterial({
   metalness: 0.05,
   envMapIntensity: 1.15
 });
+// Dedicated material for Non-Grill Exterior Canopies (2nd-floor Rooftop Pergola, Cabin Terrace Pergola) & Roof Wall Vigas
+const matExteriorCanopyWood = new THREE.MeshStandardMaterial({
+  color: 0x8c5a32,
+  map: woodDiffTex,
+  normalMap: woodNorTex,
+  normalScale: new THREE.Vector2(0.95, 0.95),
+  roughnessMap: woodArmTex,
+  roughness: 0.34,
+  metalness: 0.05,
+  envMapIntensity: 1.15
+});
+matExteriorCanopyWood.userData = { customEnvIntensity: 1.15, designRole: 'canopy_wood' };
 const matDoorWood = new THREE.MeshStandardMaterial({
   color: 0x966138,
   map: woodDiffTex,
@@ -1475,6 +1919,18 @@ const matDoorWood = new THREE.MeshStandardMaterial({
   metalness: 0.06,
   envMapIntensity: 1.2
 });
+matDoorWood.userData = { customEnvIntensity: 1.2, designRole: 'door_wood' };
+const matBarnTimber = new THREE.MeshStandardMaterial({
+  color: 0x5c3a1e,
+  map: woodDiffTex || null,
+  normalMap: woodNorTex || null,
+  roughnessMap: woodArmTex || null,
+  roughness: 0.68,
+  metalness: 0.05,
+  envMapIntensity: 0.85
+});
+matBarnTimber.userData = { customEnvIntensity: 0.85, designRole: 'barn_timber' };
+window.matBarnTimber = matBarnTimber;
 const matBrass = new THREE.MeshStandardMaterial({
   color: 0xe0b158, roughness: 0.18, metalness: 0.92, envMapIntensity: 1.6
 });
@@ -1579,6 +2035,55 @@ const matAODecal = new THREE.MeshBasicMaterial({
   polygonOffsetUnits: -2
 });
 
+// Dedicated Left Exterior Diagonal Staircase Materials (supports 1-color same as wall OR 2-color accent staircase)
+const matStairWall = new THREE.MeshStandardMaterial({
+  color: 0xede3d2,
+  map: plasterDiffTex,
+  normalMap: plasterNorTex,
+  normalScale: new THREE.Vector2(0.95, 0.95),
+  roughnessMap: plasterArmTex,
+  roughness: 0.68,
+  envMapIntensity: 0.52
+});
+matStairWall.userData = { customEnvIntensity: 0.52, designRole: 'stair_wall' };
+
+const matStairCoping = new THREE.MeshStandardMaterial({
+  color: 0xdfd2bc,
+  map: plasterDiffTex,
+  normalMap: plasterNorTex,
+  normalScale: new THREE.Vector2(0.65, 0.65),
+  roughness: 0.48,
+  envMapIntensity: 0.65
+});
+matStairCoping.userData = { customEnvIntensity: 0.65, designRole: 'stair_coping' };
+
+const matStairTread = new THREE.MeshStandardMaterial({
+  color: 0xe6dac8,
+  map: texMarbleTiles,
+  normalMap: marbleNorTex,
+  normalScale: new THREE.Vector2(0.95, 0.95),
+  roughnessMap: marbleArmTex,
+  roughness: 0.28,
+  metalness: 0.04,
+  envMapIntensity: 0.68,
+  polygonOffset: true,
+  polygonOffsetFactor: -1,
+  polygonOffsetUnits: -1
+});
+matStairTread.userData = { customEnvIntensity: 0.68, designRole: 'stair_tread' };
+
+const matStairHandrail = new THREE.MeshStandardMaterial({
+  color: 0x8c5a32,
+  map: woodDiffTex,
+  normalMap: woodNorTex,
+  normalScale: new THREE.Vector2(0.95, 0.95),
+  roughnessMap: woodArmTex,
+  roughness: 0.34,
+  metalness: 0.05,
+  envMapIntensity: 1.15
+});
+matStairHandrail.userData = { customEnvIntensity: 1.15, designRole: 'stair_handrail' };
+
 // Helper to project clean world-scale box UVs onto ExtrudeGeometry walls/spandrels so plaster textures never stretch!
 function applyWorldBoxUVs(geo, uvScale = 0.38) {
   geo.computeVertexNormals();
@@ -1652,7 +2157,7 @@ function createModernArabicArchGroup(width, height, depth, opts = {}) {
   const isOpening = !!opts.isOpening;
   const hasLed = opts.hasLed !== undefined ? opts.hasLed : true;
   const infillMode = opts.infillMode || 'mashrabiya';
-  const customFrameMat = opts.frameMat || matArchTrim;
+  const customFrameMat = opts.frameMat || (isOpening ? matOpeningArchFrame : matArchTrim);
 
   const frameW = 0.11;
   const innerW = width - frameW * 2;
@@ -1906,14 +2411,6 @@ function createLivestockBarnDoorAssembly(width = 1.96, height = 2.68, depth = 0.
   });
   group.add(jamb);
 
-  const matBarnTimber = new THREE.MeshStandardMaterial({
-    color: 0x5c3a1e,
-    map: woodDiffTex || null,
-    normalMap: woodNorTex || null,
-    roughnessMap: woodArmTex || null,
-    roughness: 0.68,
-    metalness: 0.05
-  });
   const matWroughtIron = new THREE.MeshStandardMaterial({
     color: 0x1e2024,
     roughness: 0.38,
@@ -2074,7 +2571,7 @@ const WALL_DEFS = [
 function addBoxMesh(w, h, d, bx, by, bz, mat, parent = archRoot, castShadow = true) {
   const geo = new THREE.BoxGeometry(w, h, d);
   // Apply uniform world-space box UVs on walls and woodwork (skip floors & rugs which use custom repeat)
-  if (mat !== matMainFloor && mat !== matBathFloor && mat !== matCourtyardFloor && mat !== matRug) {
+  if (mat !== matMainFloor && mat !== matStairTread && mat !== matBathFloor && mat !== matCourtyardFloor && mat !== matRug) {
     applyWorldBoxUVs(geo, 0.35);
   }
   const m = new THREE.Mesh(geo, mat);
@@ -2333,9 +2830,9 @@ function buildStaticArchitecture() {
     // Stop step masonry pillar 5cm below stepTopBz so it never Z-fights with the 4.8cm marble stair tread!
     const pillarH = Math.max(0.08, (stepTopBz - 0.050) - stepBaseBz);
     // Solid plastered masonry support beneath each step (bx = -6.68, width = 1.18m, strictly inside the -7.31m inner face of the safety wall)
-    addBoxMesh(1.18, pillarH, stepRun + 0.02, -6.68, sBy, stepBaseBz + pillarH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+    addBoxMesh(1.18, pillarH, stepRun + 0.02, -6.68, sBy, stepBaseBz + pillarH * 0.5, matStairWall, leftRoofStairGroup, true);
     // Crisp Carthage marble / travertine stair tread nosing
-    addBoxMesh(1.26, 0.048, stepRun + 0.06, -6.68, sBy, stepTopBz - 0.024, matMainFloor, leftRoofStairGroup, true);
+    addBoxMesh(1.26, 0.048, stepRun + 0.06, -6.68, sBy, stepTopBz - 0.024, matStairTread, leftRoofStairGroup, true);
     if (i % 3 === 0) {
       addBoxMesh(1.14, 0.016, 0.02, -6.68, sBy - stepRun * 0.48, stepTopBz - 0.048, matLedBorderOpening, leftRoofStairGroup, false);
     }
@@ -2374,7 +2871,7 @@ function buildStaticArchitecture() {
   }
   stairWallGeo.computeVertexNormals();
   applyWorldBoxUVs(stairWallGeo, 0.35);
-  const stairSafetyWallMesh = new THREE.Mesh(stairWallGeo, wallMaterials.south_ext);
+  const stairSafetyWallMesh = new THREE.Mesh(stairWallGeo, matStairWall);
   stairSafetyWallMesh.castShadow = true;
   stairSafetyWallMesh.receiveShadow = true;
   leftRoofStairGroup.add(stairSafetyWallMesh);
@@ -2382,13 +2879,13 @@ function buildStaticArchitecture() {
   // Diagonal Golden Stone Coping Trim & Inner Walnut Handrail along the sloped safety wall
   const railLen = Math.hypot(stairEndBy - (-5.05), 4.74 - 0.72);
   const railPitch = Math.atan2(4.74 - 0.72, stairEndBy - (-5.05));
-  const stairDiagonalCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.065, railLen + 0.08), matArchTrim);
+  const stairDiagonalCoping = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.065, railLen + 0.08), matStairCoping);
   stairDiagonalCoping.position.copy(bPos(-7.40, (-5.05 + stairEndBy) * 0.5, (0.72 + 4.74) * 0.5 + 0.02));
   stairDiagonalCoping.rotation.x = railPitch;
   stairDiagonalCoping.castShadow = true;
   leftRoofStairGroup.add(stairDiagonalCoping);
 
-  const stairHandrail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.065, railLen), matWalnut);
+  const stairHandrail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.065, railLen), matStairHandrail);
   stairHandrail.position.copy(bPos(-7.26, (-5.05 + stairEndBy) * 0.5, (0.72 + 4.74) * 0.5 - 0.08));
   stairHandrail.rotation.x = railPitch;
   stairHandrail.castShadow = true;
@@ -2399,16 +2896,16 @@ function buildStaticArchitecture() {
   // Stop supporting masonry pier at bz = 3.66m (12cm below the 3.78m landing floor) & keep strictly inside [-7.31 .. -6.00] so zero Z-fighting and zero wall poke-through!
   const landingPierTopBz = 3.66;
   const landingH = landingPierTopBz - landingBaseBz;
-  addBoxMesh(1.28, landingH, 1.08, -6.66, 0.10, landingBaseBz + landingH * 0.5, wallMaterials.south_ext, leftRoofStairGroup, true);
+  addBoxMesh(1.28, landingH, 1.08, -6.66, 0.10, landingBaseBz + landingH * 0.5, matStairWall, leftRoofStairGroup, true);
   // Decorative trim collar kept strictly inside the West safety wall inner face (bx = -7.30 .. -6.00) so it never pokes out on the West exterior face
-  addBoxMesh(1.30, 0.05, 1.12, -6.65, 0.10, 3.685, matArchTrim, leftRoofStairGroup, true);
+  addBoxMesh(1.30, 0.05, 1.12, -6.65, 0.10, 3.685, matStairCoping, leftRoofStairGroup, true);
   // Top landing marble floor slab (bz = 3.758, thickness 0.06 -> top at 3.788m) bridging cleanly across the West wall portal (-6.00m) onto the rooftop floor with zero Z-fighting!
-  addBoxMesh(1.52, 0.06, 1.14, -6.55, 0.10, 3.758, matCourtyardFloor, leftRoofStairGroup, true);
+  addBoxMesh(1.52, 0.06, 1.14, -6.55, 0.10, 3.758, matStairTread, leftRoofStairGroup, true);
   // Horizontal coping on top of the West landing safety wall (bx = -7.40m, by = -0.45 .. +0.68m)
-  addBoxMesh(0.24, 0.065, 1.18, -7.40, 0.11, 4.76, matArchTrim, leftRoofStairGroup, true);
+  addBoxMesh(0.24, 0.065, 1.18, -7.40, 0.11, 4.76, matStairCoping, leftRoofStairGroup, true);
   // North return safety wall at the back of the top landing (by = +0.65m, bx = -7.42 .. -6.02m) guiding user to turn right onto the roof!
-  addBoxMesh(1.44, 0.96, 0.18, -6.72, 0.65, 3.78 + 0.48, wallMaterials.south_ext, leftRoofStairGroup, true);
-  addBoxMesh(1.50, 0.065, 0.24, -6.72, 0.65, 4.76, matArchTrim, leftRoofStairGroup, true);
+  addBoxMesh(1.44, 0.96, 0.18, -6.72, 0.65, 3.78 + 0.48, matStairWall, leftRoofStairGroup, true);
+  addBoxMesh(1.50, 0.065, 0.24, -6.72, 0.65, 4.76, matStairCoping, leftRoofStairGroup, true);
   archRoot.add(leftRoofStairGroup);
 
   // ==========================================================================
@@ -3994,21 +4491,21 @@ function buildStaticArchitecture() {
     [12.08, -13.48], [15.00, -13.48], [17.92, -13.48],
     [12.08, -16.42], [15.00, -16.42], [17.92, -16.42]
   ].forEach(([px, py]) => {
-    addBoxMesh(0.115, pergPostH, 0.115, px, py, pergPostCenterBz, matWalnut, cabinTerracePergolaGroup);
+    addBoxMesh(0.115, pergPostH, 0.115, px, py, pergPostCenterBz, matExteriorCanopyWood, cabinTerracePergolaGroup);
     // Decorative carved base & capital collars like the main roof pergola style
-    addBoxMesh(0.155, 0.08, 0.155, px, py, -0.21, matWalnut, cabinTerracePergolaGroup);
-    addBoxMesh(0.145, 0.06, 0.145, px, py, 2.38, matWalnut, cabinTerracePergolaGroup);
+    addBoxMesh(0.155, 0.08, 0.155, px, py, -0.21, matExteriorCanopyWood, cabinTerracePergolaGroup);
+    addBoxMesh(0.145, 0.06, 0.145, px, py, 2.38, matExteriorCanopyWood, cabinTerracePergolaGroup);
   });
 
   // 5 East-West Main Support Beams across the 3.10m terrace depth (by = -13.48 .. -16.42, width = 6.08m, balanced cross-section 0.105m x 0.085m)
   [-13.48, -14.215, -14.95, -15.685, -16.42].forEach((byBeam) => {
-    addBoxMesh(6.08, 0.105, 0.085, 15.00, byBeam, 2.45, matWalnut, cabinTerracePergolaGroup);
+    addBoxMesh(6.08, 0.105, 0.085, 15.00, byBeam, 2.45, matExteriorCanopyWood, cabinTerracePergolaGroup);
   });
 
   // 13 North-South Cross Rafters across the 6.00m terrace width (bx = 12.12 .. 17.88, spacing = 0.48m, balanced cross-section 0.058m x 0.046m, length = 3.22m)
   for (let i = 0; i < 13; i++) {
     const rx = 12.12 + i * 0.48;
-    addBoxMesh(0.058, 0.046, 3.22, rx, -14.95, 2.525, matWalnut, cabinTerracePergolaGroup);
+    addBoxMesh(0.058, 0.046, 3.22, rx, -14.95, 2.525, matExteriorCanopyWood, cabinTerracePergolaGroup);
   }
 
   // Climbing Grapevine Woody Root & Main Stem originating on the Soil Ground (bz = -0.50m) at the Front-Right Corner of the Front Cabin / Back-Right Corner of the Terrace
@@ -4255,7 +4752,7 @@ function buildStaticArchitecture() {
   window.cabinTerracePergolaObj = cabinTerracePergolaGroup;
   registerDraggable(cabinTerracePergolaGroup, 'Cabin Terrace Walnut Canopy & Grape Vines', 'مظلة خشب الجوز وكروم العنب في شرفة المقصورة');
 
-  const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18 });
+  const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18, frameMat: matArchTrim });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
   archRoot.add(welcomeArch);
 
@@ -4310,13 +4807,13 @@ function buildStaticArchitecture() {
 
   const roofPergolaGroup = new THREE.Group();
   [[0.6,-1.2],[5.1,-1.2],[0.6,4.0],[5.1,4.0]].forEach(([px,py]) => {
-    addBoxMesh(0.16, 2.55, 0.16, px, py, 5.02, matWalnut, roofPergolaGroup);
+    addBoxMesh(0.16, 2.55, 0.16, px, py, 5.02, matExteriorCanopyWood, roofPergolaGroup);
   });
   [-1.2, 0.1, 1.4, 2.7, 4.0].forEach(by => {
-    addBoxMesh(4.80, 0.16, 0.12, 2.85, by, 6.28, matWalnut, roofPergolaGroup);
+    addBoxMesh(4.80, 0.16, 0.12, 2.85, by, 6.28, matExteriorCanopyWood, roofPergolaGroup);
   });
   for (let i=0; i<8; i++) {
-    addBoxMesh(0.08, 0.06, 5.50, 0.85 + i*0.56, 1.40, 6.38, matWalnut, roofPergolaGroup);
+    addBoxMesh(0.08, 0.06, 5.50, 0.85 + i*0.56, 1.40, 6.38, matExteriorCanopyWood, roofPergolaGroup);
   }
   roofGroup.add(roofPergolaGroup);
   registerDraggable(roofPergolaGroup, 'Rooftop Walnut Pergola', 'برغولا السطح الخشبية');
@@ -4507,8 +5004,8 @@ function rebuildFacadeDecor() {
 
   addBoxMesh(12.34, 0.48, 0.04, 0.0, -5.16, 4.35, matMashrabiya, facadeDecorGroup);
   addBoxMesh(0.04, 0.48, 10.34, 6.16, 0.0, 4.35, matMashrabiya, facadeDecorGroup);
-  for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matWalnut, facadeDecorGroup);
-  for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matWalnut, facadeDecorGroup);
+  for (let i=0; i<11; i++) addBoxMesh(0.10, 0.14, 0.55, -5.20 + i*0.42, -5.32, 3.65, matExteriorCanopyWood, facadeDecorGroup);
+  for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matExteriorCanopyWood, facadeDecorGroup);
   // Decorative Mashrabiya LED Crown along the Shifted East Guest Cabin Front Wall (by = -13.40, bx = 12.00..18.00)
   addBoxMesh(5.80, 0.035, 0.04, 15.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
   [-4.40, -0.80].forEach(ex => {
@@ -4575,6 +5072,8 @@ function rebuildOpenings() {
   livestockDoor.userData.labelAr = 'باب حظيرة المواشي المزدوج (خلفي)';
   openingsGroup.add(livestockDoor);
   snapOpeningToNearestWall(livestockDoor, 9.00, -5.00);
+
+  if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
 }
 
 
@@ -8614,6 +9113,7 @@ async function buildStaticPolyHavenDecor() {
   // and local X = +11.545m -> world bx = +12.210m (outer right edge of front olive lawn bed)!
   woodenFenceGroup.position.copy(bPos(0.665, -17.25, -0.50));
   woodenFenceGroup.userData.isWoodenFence = true;
+  woodenFenceGroup.userData.hasGate = true;
   woodenFenceGroup.userData.leftPanels = 6;
   woodenFenceGroup.userData.rightPanels = 6;
   woodenFenceGroup.userData.panelWidth = 1.80;
@@ -8643,6 +9143,29 @@ async function buildStaticPolyHavenDecor() {
     t.encoding = THREE.sRGBEncoding;
     return t;
   })();
+  window.texNaturalFenceWood = texNaturalFenceWood;
+
+  const neutralFenceWoodDiffTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#eaeaea';
+    ctx.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 420; i++) {
+      const y = (i / 420) * 512;
+      const v = Math.sin(i * 0.37) * 12 + Math.cos(i * 0.13) * 8;
+      const lum = Math.min(255, Math.max(198, Math.round(234 + v)));
+      ctx.fillStyle = `rgb(${lum},${lum},${lum})`;
+      ctx.fillRect(0, y, 512, 2.2);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = THREE.RepeatWrapping;
+    t.wrapT = THREE.RepeatWrapping;
+    t.encoding = THREE.sRGBEncoding;
+    return t;
+  })();
+  window.neutralFenceWoodDiffTex = neutralFenceWoodDiffTex;
 
   const matFenceWood = new THREE.MeshStandardMaterial({
     map: texNaturalFenceWood,
@@ -8652,8 +9175,9 @@ async function buildStaticPolyHavenDecor() {
     roughness: 0.70,
     metalness: 0.02,
     envMapIntensity: 0.45,
-    userData: { customEnvIntensity: 0.45 }
+    userData: { customEnvIntensity: 0.45, designRole: 'fence_wood' }
   });
+  window.matFenceWood = matFenceWood;
   const matFenceWoodCap = new THREE.MeshStandardMaterial({
     map: texNaturalFenceWood,
     normalMap: woodNorTex,
@@ -8662,8 +9186,10 @@ async function buildStaticPolyHavenDecor() {
     roughness: 0.66,
     metalness: 0.03,
     envMapIntensity: 0.45,
-    userData: { customEnvIntensity: 0.45 }
+    userData: { customEnvIntensity: 0.45, designRole: 'fence_cap' }
   });
+  window.matFenceWoodCap = matFenceWoodCap;
+  if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
 
   const fenceBodySubGroup = new THREE.Group();
   fenceBodySubGroup.name = 'fenceBodySubGroup';
@@ -9138,12 +9664,16 @@ async function buildStaticPolyHavenDecor() {
       bodyGrp.remove(bodyGrp.children[0]);
     }
     const ud = fGrp.userData;
+    const hasGate = (ud.hasGate !== false);
+    gateGrp.visible = hasGate;
 
     // ========================================================================
     // CASE A: WRAP-AROUND LIVESTOCK MASONRY WALL (1.12M) + WOODEN FENCE ON TOP (1.12M -> 2.24M)
     //         & TALL 2-LEAF WOODEN GATE (2.26M) THAT AUTOMATICALLY CARVES THE LOWER MASONRY WALL
     //   - "buat tembok dinding setinggi pagar kayu memutar seperti pagar kayu, baru letakkan pagar kayu di atasnya."
     //   - "untuk pintu, tetap gate kayu tapi kali ini lebih tinggi, setinggi jumlah dinding dan kayu d tumpuk. pintu kayu ktika d move, otomatis melubangi posisi dinding bawah."
+    //   - Supports Add/Remove Gate ("pintu bisa d add dan d hapus total dari pagar2 kayu baik yg d kandang hewan maupun yg d depan rumah"):
+    //     When hasGate === false, the lower masonry wall and upper wooden fence run 100% continuously with zero gap!
     // ========================================================================
     if (ud.isLivestockTurnFence) {
       if (!gateGrp.userData.hasBuiltLivestockGate) {
@@ -9168,63 +9698,71 @@ async function buildStaticPolyHavenDecor() {
       const zCorner = zStartE - eastLen; // -5.00 at default (by = +5.00m)
       const xEndN = xCorner - northLen;  // -2.78 at default (world bx = +6.22m, flush outside Main House +6.15m foundation trim!)
 
-      const minS1 = gateHalfW + 0.55;
-      const maxS1 = eastLen - gateHalfW - 0.55;
-      const minS2 = eastLen + gateHalfW + 0.55;
-      const maxS2 = eastLen + northLen - gateHalfW - 0.55;
-
-      const rawS = (typeof ud.gateOffsetX === 'number') ? ud.gateOffsetX : 4.80;
-      if (rawS <= eastLen) {
-        // Gate is on Leg 1 (East Side, bx = 12.00m) -> oriented North-South (rotation.y = Math.PI / 2)
-        const s = Math.max(minS1, Math.min(maxS1, rawS));
-        ud.gateOffsetX = s;
-        ud.gateLeg = 'east';
-        const gz = zStartE - s;
-        gateGrp.position.set(xCorner, 0, gz);
-        gateGrp.rotation.y = Math.PI / 2;
-
-        const zGateSouth = gz + gateHalfW;
-        const zGateNorth = gz - gateHalfW;
-        const spanSouth = zStartE - zGateSouth;
-        const spanNorth = zGateNorth - zCorner;
-        const baysSouth = Math.max(1, Math.round(spanSouth / (eastLen / leftPanels)));
-        const baysNorth = Math.max(1, Math.round(spanNorth / (eastLen / leftPanels)));
-
-        // 1. Lower 1.12m Masonry Wall (automatically carved open between zGateSouth and zGateNorth where the tall wooden gate stands!)
-        addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, wallH, { extendEnd: -0.05 });
-        addLivestockMasonryWallLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, wallH, { extendStart: -0.05, extendEnd: 0.11 });
+      if (!hasGate) {
+        // Gate removed: 100% continuous unbroken masonry wall + upper wooden diamond-lattice fence along East and North legs!
+        addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, wallH, { extendEnd: 0.11 });
         addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, wallH, { extendStart: -0.11 });
-
-        // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, baysSouth, { skipEndPost: true, yOffset: wallH });
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, baysNorth, { skipStartPost: true, yOffset: wallH });
+        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels, { yOffset: wallH });
         addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, rightPanels, { skipStartPost: true, yOffset: wallH });
       } else {
-        // Gate has turned 90° onto Leg 2 (North/Back Side, by = +5.00m) -> oriented East-West (rotation.y = 0)
-        const s = Math.max(minS2, Math.min(maxS2, rawS));
-        ud.gateOffsetX = s;
-        ud.gateLeg = 'north';
-        const u = s - eastLen;
-        const gx = xCorner - u;
-        gateGrp.position.set(gx, 0, zCorner);
-        gateGrp.rotation.y = 0;
+        const minS1 = gateHalfW + 0.55;
+        const maxS1 = eastLen - gateHalfW - 0.55;
+        const minS2 = eastLen + gateHalfW + 0.55;
+        const maxS2 = eastLen + northLen - gateHalfW - 0.55;
 
-        const xGateEast = gx + gateHalfW;
-        const xGateWest = gx - gateHalfW;
-        const spanEast = xCorner - xGateEast;
-        const spanWest = xGateWest - xEndN;
-        const baysEast = Math.max(1, Math.round(spanEast / (northLen / rightPanels)));
-        const baysWest = Math.max(1, Math.round(spanWest / (northLen / rightPanels)));
+        const rawS = (typeof ud.gateOffsetX === 'number') ? ud.gateOffsetX : 4.80;
+        if (rawS <= eastLen) {
+          // Gate is on Leg 1 (East Side, bx = 12.00m) -> oriented North-South (rotation.y = Math.PI / 2)
+          const s = Math.max(minS1, Math.min(maxS1, rawS));
+          ud.gateOffsetX = s;
+          ud.gateLeg = 'east';
+          const gz = zStartE - s;
+          gateGrp.position.set(xCorner, 0, gz);
+          gateGrp.rotation.y = Math.PI / 2;
 
-        // 1. Lower 1.12m Masonry Wall (East leg solid, North leg automatically carved open between xGateEast and xGateWest where the tall wooden gate stands!)
-        addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, wallH, { extendEnd: 0.11 });
-        addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, wallH, { extendStart: -0.11, extendEnd: -0.05 });
-        addLivestockMasonryWallLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, wallH, { extendStart: -0.05 });
+          const zGateSouth = gz + gateHalfW;
+          const zGateNorth = gz - gateHalfW;
+          const spanSouth = zStartE - zGateSouth;
+          const spanNorth = zGateNorth - zCorner;
+          const baysSouth = Math.max(1, Math.round(spanSouth / (eastLen / leftPanels)));
+          const baysNorth = Math.max(1, Math.round(spanNorth / (eastLen / leftPanels)));
 
-        // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels, { yOffset: wallH });
-        addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, baysEast, { skipStartPost: true, skipEndPost: true, yOffset: wallH });
-        addDiamondLatticeFenceLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, baysWest, { skipStartPost: true, yOffset: wallH });
+          // 1. Lower 1.12m Masonry Wall (automatically carved open between zGateSouth and zGateNorth where the tall wooden gate stands!)
+          addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, wallH, { extendEnd: -0.05 });
+          addLivestockMasonryWallLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, wallH, { extendStart: -0.05, extendEnd: 0.11 });
+          addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, wallH, { extendStart: -0.11 });
+
+          // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
+          addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zGateSouth, baysSouth, { skipEndPost: true, yOffset: wallH });
+          addDiamondLatticeFenceLine(bodyGrp, xCorner, zGateNorth, xCorner, zCorner, baysNorth, { skipStartPost: true, yOffset: wallH });
+          addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xEndN, zCorner, rightPanels, { skipStartPost: true, yOffset: wallH });
+        } else {
+          // Gate has turned 90° onto Leg 2 (North/Back Side, by = +5.00m) -> oriented East-West (rotation.y = 0)
+          const s = Math.max(minS2, Math.min(maxS2, rawS));
+          ud.gateOffsetX = s;
+          ud.gateLeg = 'north';
+          const u = s - eastLen;
+          const gx = xCorner - u;
+          gateGrp.position.set(gx, 0, zCorner);
+          gateGrp.rotation.y = 0;
+
+          const xGateEast = gx + gateHalfW;
+          const xGateWest = gx - gateHalfW;
+          const spanEast = xCorner - xGateEast;
+          const spanWest = xGateWest - xEndN;
+          const baysEast = Math.max(1, Math.round(spanEast / (northLen / rightPanels)));
+          const baysWest = Math.max(1, Math.round(spanWest / (northLen / rightPanels)));
+
+          // 1. Lower 1.12m Masonry Wall (East leg solid, North leg automatically carved open between xGateEast and xGateWest where the tall wooden gate stands!)
+          addLivestockMasonryWallLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, wallH, { extendEnd: 0.11 });
+          addLivestockMasonryWallLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, wallH, { extendStart: -0.11, extendEnd: -0.05 });
+          addLivestockMasonryWallLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, wallH, { extendStart: -0.05 });
+
+          // 2. Upper 1.12m Wooden Diamond-Lattice Fence stacked on top of the masonry wall (yOffset = wallH = 1.12m)
+          addDiamondLatticeFenceLine(bodyGrp, xCorner, zStartE, xCorner, zCorner, leftPanels, { yOffset: wallH });
+          addDiamondLatticeFenceLine(bodyGrp, xCorner, zCorner, xGateEast, zCorner, baysEast, { skipStartPost: true, skipEndPost: true, yOffset: wallH });
+          addDiamondLatticeFenceLine(bodyGrp, xGateWest, zCorner, xEndN, zCorner, baysWest, { skipStartPost: true, yOffset: wallH });
+        }
       }
 
       // Ground contact AO strips under both legs of the wrap-around fence (clamped strictly between post endpoints so they never overlap the walls!)
@@ -9274,28 +9812,34 @@ async function buildStaticPolyHavenDecor() {
     ud.leftEdgeX = leftEdgeX;
     ud.rightEdgeX = rightEdgeX;
 
-    // Clamp gateOffsetX strictly along the horizontal line of the fence so there is always at least 1 panel on each side of the gate!
-    const minGateX = leftEdgeX + gateW * 0.5 + 0.65;
-    const maxGateX = rightEdgeX - gateW * 0.5 - 0.65;
-    ud.gateOffsetX = Math.max(minGateX, Math.min(maxGateX, ud.gateOffsetX || 0.0));
+    if (!hasGate) {
+      // Gate removed: build 100% continuous unbroken diamond-lattice fence across the full [leftEdgeX, rightEdgeX] span!
+      const totalBays = Math.max(2, Math.round((rightEdgeX - leftEdgeX) / panelW));
+      addDiamondLatticeFenceSegment(bodyGrp, leftEdgeX, rightEdgeX, totalBays);
+    } else {
+      // Clamp gateOffsetX strictly along the horizontal line of the fence so there is always at least 1 panel on each side of the gate!
+      const minGateX = leftEdgeX + gateW * 0.5 + 0.65;
+      const maxGateX = rightEdgeX - gateW * 0.5 - 0.65;
+      ud.gateOffsetX = Math.max(minGateX, Math.min(maxGateX, ud.gateOffsetX || 0.0));
 
-    // Position the Arched Garden Gate along the horizontal fence line (local X only!)
-    gateGrp.position.set(ud.gateOffsetX, 0, 0);
-    gateGrp.rotation.y = 0;
+      // Position the Arched Garden Gate along the horizontal fence line (local X only!)
+      gateGrp.position.set(ud.gateOffsetX, 0, 0);
+      gateGrp.rotation.y = 0;
 
-    // Automatically readjust the Left and Right fence segments around the gate's horizontal position!
-    const gateLeftX = ud.gateOffsetX - gateW * 0.5;
-    const gateRightX = ud.gateOffsetX + gateW * 0.5;
-    const leftSpan = gateLeftX - leftEdgeX;
-    const rightSpan = rightEdgeX - gateRightX;
+      // Automatically readjust the Left and Right fence segments around the gate's horizontal position!
+      const gateLeftX = ud.gateOffsetX - gateW * 0.5;
+      const gateRightX = ud.gateOffsetX + gateW * 0.5;
+      const leftSpan = gateLeftX - leftEdgeX;
+      const rightSpan = rightEdgeX - gateRightX;
 
-    // When gate is at 0, numLeftBays === leftPanels and numRightBays === rightPanels;
-    // when the user slides the gate left or right, the bay counts & widths on both sides automatically readjust so the fence stays continuous!
-    const numLeftBays = Math.max(1, Math.round(leftSpan / panelW));
-    const numRightBays = Math.max(1, Math.round(rightSpan / panelW));
+      // When gate is at 0, numLeftBays === leftPanels and numRightBays === rightPanels;
+      // when the user slides the gate left or right, the bay counts & widths on both sides automatically readjust so the fence stays continuous!
+      const numLeftBays = Math.max(1, Math.round(leftSpan / panelW));
+      const numRightBays = Math.max(1, Math.round(rightSpan / panelW));
 
-    addDiamondLatticeFenceSegment(bodyGrp, leftEdgeX, gateLeftX, numLeftBays);
-    addDiamondLatticeFenceSegment(bodyGrp, gateRightX, rightEdgeX, numRightBays);
+      addDiamondLatticeFenceSegment(bodyGrp, leftEdgeX, gateLeftX, numLeftBays);
+      addDiamondLatticeFenceSegment(bodyGrp, gateRightX, rightEdgeX, numRightBays);
+    }
 
     // Ground contact AO strip under the full fence span
     const spanTotal = rightEdgeX - leftEdgeX;
@@ -9315,6 +9859,22 @@ async function buildStaticPolyHavenDecor() {
   }
 
   window.rebuildWoodenFencePanels = rebuildWoodenFencePanels;
+
+  window.toggleWoodenFenceGate = function(forceState) {
+    const fGrp = (typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence)
+      ? selectedObject
+      : window.woodenFenceObj;
+    if (!fGrp || !fGrp.userData) return;
+    const ud = fGrp.userData;
+    const curHasGate = (ud.hasGate !== false);
+    ud.hasGate = (typeof forceState === 'boolean') ? forceState : !curHasGate;
+    if (!ud.hasGate) {
+      ud.gateLeavesOpen = false;
+      ud.gateOpenAngle = 0.0;
+    }
+    rebuildWoodenFencePanels(fGrp);
+    if (typeof updateSelectedHudText === 'function') updateSelectedHudText();
+  };
 
   window.adjustWoodenFencePanels = function(side, delta) {
     const fGrp = (typeof selectedObject !== 'undefined' && selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence)
@@ -9348,6 +9908,7 @@ async function buildStaticPolyHavenDecor() {
       : window.woodenFenceObj;
     if (!fGrp) return;
     const ud = fGrp.userData;
+    if (ud.hasGate === false) return;
     if (ud.isLivestockTurnFence) {
       const eastLen = ud.eastLen || 9.79;
       const gateHalfW = 0.725;
@@ -9391,6 +9952,7 @@ async function buildStaticPolyHavenDecor() {
   livestockFenceGroup.userData.noAutoRecenter = true;
   livestockFenceGroup.userData.isWoodenFence = true;
   livestockFenceGroup.userData.isLivestockTurnFence = true;
+  livestockFenceGroup.userData.hasGate = true;
   livestockFenceGroup.userData.leftPanels = 6;   // 6 bays along the 10.00m East leg
   livestockFenceGroup.userData.rightPanels = 4;  // 4 bays along the 6.00m North/Back leg
   livestockFenceGroup.userData.gateWidth = 1.56;
@@ -9544,7 +10106,575 @@ function applyAllMaterialsAndLights() {
     const baseInt = ZONE_BASE_INTENSITIES[k] || 0.48;
     l.intensity = baseInt * rMult;
   });
+
+  if (typeof applyDesignColorTheme === 'function') {
+    applyDesignColorTheme();
+  }
 }
+
+// ============================================================================
+// DESIGN COLOR COMBINATION ENGINE (DEFAULT, SIDI BOU TEMPLATE, & CUSTOM 2-COLOR PALETTE)
+// ============================================================================
+function syncDesignColorUI() {
+  const dc = state.designColor || { mode: 'default', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  const mode = dc.mode || 'default';
+  const t = I18N[state.lang] || I18N.en;
+
+  ['default', 'sidibou', 'custom'].forEach((m) => {
+    const btn = document.getElementById('btn-color-tpl-' + m);
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+
+  const customWrap = document.getElementById('custom-color-controls');
+  if (customWrap) {
+    customWrap.classList.toggle('visible', mode === 'custom');
+  }
+
+  const stairBtn = document.getElementById('btn-stair-color-mode');
+  if (stairBtn) {
+    const sameWall = !!dc.stairSameAsWall;
+    stairBtn.classList.toggle('same-wall', sameWall);
+    stairBtn.textContent = sameWall ? t.stairColorWall : t.stairColorAccent;
+  }
+
+  const wallHex = (dc.wallColor || '#f8fbff').toUpperCase();
+  const accHex = (dc.accentColor || '#1677e6').toUpperCase();
+  const swWall = document.getElementById('swatch-wall-color');
+  const txWall = document.getElementById('hex-wall-color');
+  const swAcc = document.getElementById('swatch-accent-color');
+  const txAcc = document.getElementById('hex-accent-color');
+  if (swWall) swWall.style.background = wallHex;
+  if (txWall) txWall.textContent = wallHex;
+  if (swAcc) swAcc.style.background = accHex;
+  if (txAcc) txAcc.textContent = accHex;
+}
+
+function applyDesignColorTheme() {
+  if (!state.designColor) {
+    state.designColor = { mode: 'default', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  }
+  const dc = state.designColor;
+  const mode = dc.mode || 'default';
+  const wallHex = (mode === 'sidibou') ? '#f8fbff' : (dc.wallColor || '#f8fbff');
+  const accentHex = (mode === 'sidibou') ? '#1677e6' : (dc.accentColor || '#1677e6');
+  const stairSameAsWall = !!dc.stairSameAsWall;
+
+  // Convert sRGB hex colors to Linear space so AgxContrastShader (pow 1/2.2) renders exact, deep Sidi Bou blue & crisp white without double-gamma washout!
+  const wallColLinear = new THREE.Color(wallHex).convertSRGBToLinear();
+  const accentColLinear = new THREE.Color(accentHex).convertSRGBToLinear();
+  const accentDarkLinear = new THREE.Color(accentHex).multiplyScalar(0.80).convertSRGBToLinear();
+  const accentCapLinear = new THREE.Color(accentHex).lerp(new THREE.Color('#ffffff'), 0.14).convertSRGBToLinear();
+  const curTimeMode = (state && state.timeOfDay) || 'sunset';
+  const customScale = curTimeMode === 'day' ? 1.0 : (curTimeMode === 'sunset' ? 0.90 : 0.55);
+
+  if (typeof texMashrabiya !== 'undefined' && texMashrabiya && texMashrabiya.image) {
+    drawMashrabiyaCanvas(texMashrabiya.image, mode, wallHex, accentHex);
+    texMashrabiya.needsUpdate = true;
+  }
+
+  const setMatEnv = (mat, baseEnvInt) => {
+    if (!mat.userData) mat.userData = {};
+    mat.userData.customEnvIntensity = baseEnvInt;
+    mat.envMapIntensity = baseEnvInt * customScale;
+  };
+
+  const applyRoleToMaterial = (mat) => {
+    if (!mat || !mat.userData || !mat.userData.designRole) return;
+    const role = mat.userData.designRole;
+    if (role === 'wall') {
+      if (mode === 'default') {
+        const wKey = mat.userData.wallKey || 'south_ext';
+        const pid = (state.wallPaints && state.wallPaints[wKey]) || 'carthage_sand';
+        const pObj = WALL_PAINTS.find(p => p.id === pid) || WALL_PAINTS[0];
+        mat.map = plasterDiffTex;
+        mat.color.set(pObj.color);
+        mat.roughness = Math.max(0.60, pObj.rough);
+        setMatEnv(mat, 0.52);
+      } else {
+        mat.map = neutralPlasterDiffTex;
+        mat.color.copy(wallColLinear);
+        mat.roughness = 0.64;
+        setMatEnv(mat, 0.44);
+      }
+    } else if (role === 'arch_trim') {
+      if (mode === 'default') {
+        const cfg = FURNITURE_CATEGORIES.openings.items[0];
+        mat.map = plasterDiffTex;
+        mat.color.set(cfg ? cfg.frameColor : 0xdfd2bc);
+        mat.roughness = 0.48;
+        setMatEnv(mat, 0.65);
+      } else {
+        mat.map = neutralPlasterDiffTex;
+        mat.color.copy(wallColLinear);
+        mat.roughness = 0.58;
+        setMatEnv(mat, 0.44);
+      }
+    } else if (role === 'opening_frame') {
+      if (mode === 'default') {
+        const cfg = FURNITURE_CATEGORIES.openings.items[0];
+        mat.map = plasterDiffTex;
+        mat.color.set(cfg ? cfg.frameColor : 0xdfd2bc);
+        mat.roughness = 0.48;
+        setMatEnv(mat, 0.65);
+      } else {
+        mat.map = neutralPlasterDiffTex;
+        mat.color.copy(accentColLinear);
+        mat.roughness = 0.56;
+        setMatEnv(mat, 0.28);
+      }
+    } else if (role === 'door_wood') {
+      if (mode === 'default') {
+        const cfg = FURNITURE_CATEGORIES.openings.items[0];
+        mat.map = woodDiffTex;
+        mat.color.set(cfg ? cfg.doorColor : 0x966138);
+        mat.roughness = 0.32;
+        setMatEnv(mat, 1.20);
+      } else {
+        mat.map = neutralWoodDiffTex;
+        mat.color.copy(accentColLinear);
+        mat.roughness = 0.55;
+        setMatEnv(mat, 0.28);
+      }
+    } else if (role === 'barn_timber') {
+      if (mode === 'default') {
+        mat.map = woodDiffTex;
+        mat.color.set(0x5c3a1e);
+        mat.roughness = 0.68;
+        setMatEnv(mat, 0.85);
+      } else {
+        mat.map = neutralWoodDiffTex;
+        mat.color.copy(accentDarkLinear);
+        mat.roughness = 0.62;
+        setMatEnv(mat, 0.26);
+      }
+    } else if (role === 'canopy_wood') {
+      if (mode === 'default') {
+        mat.map = woodDiffTex;
+        mat.color.set(0x8c5a32);
+        mat.roughness = 0.34;
+        setMatEnv(mat, 1.15);
+      } else {
+        mat.map = neutralWoodDiffTex;
+        mat.color.copy(accentColLinear);
+        mat.roughness = 0.56;
+        setMatEnv(mat, 0.26);
+      }
+    } else if (role === 'fence_wood') {
+      if (mode === 'default') {
+        if (window.texNaturalFenceWood) mat.map = window.texNaturalFenceWood;
+        mat.color.set(0xffffff);
+        mat.roughness = 0.58;
+        setMatEnv(mat, 0.38);
+      } else {
+        if (window.neutralFenceWoodDiffTex) mat.map = window.neutralFenceWoodDiffTex;
+        mat.color.copy(accentColLinear);
+        mat.roughness = 0.58;
+        setMatEnv(mat, 0.26);
+      }
+    } else if (role === 'fence_cap') {
+      if (mode === 'default') {
+        if (window.texNaturalFenceWood) mat.map = window.texNaturalFenceWood;
+        mat.color.set(0xebd5be);
+        mat.roughness = 0.54;
+        setMatEnv(mat, 0.42);
+      } else {
+        if (window.neutralFenceWoodDiffTex) mat.map = window.neutralFenceWoodDiffTex;
+        mat.color.copy(accentCapLinear);
+        mat.roughness = 0.56;
+        setMatEnv(mat, 0.28);
+      }
+    } else if (role === 'stair_wall') {
+      if (mode === 'default') {
+        const pid = (state.wallPaints && state.wallPaints.south_ext) || 'carthage_sand';
+        const pObj = WALL_PAINTS.find(p => p.id === pid) || WALL_PAINTS[0];
+        mat.map = plasterDiffTex;
+        mat.color.set(pObj.color);
+        mat.roughness = 0.68;
+        setMatEnv(mat, 0.52);
+      } else {
+        mat.map = neutralPlasterDiffTex;
+        mat.color.copy(wallColLinear);
+        mat.roughness = 0.64;
+        setMatEnv(mat, 0.44);
+      }
+    } else if (role === 'stair_coping') {
+      if (mode === 'default') {
+        const cfg = FURNITURE_CATEGORIES.openings.items[0];
+        mat.map = plasterDiffTex;
+        mat.color.set(cfg ? cfg.frameColor : 0xdfd2bc);
+        mat.roughness = 0.48;
+        setMatEnv(mat, 0.65);
+      } else {
+        mat.map = neutralPlasterDiffTex;
+        mat.color.copy(stairSameAsWall ? wallColLinear : accentColLinear);
+        mat.roughness = 0.56;
+        setMatEnv(mat, stairSameAsWall ? 0.44 : 0.28);
+      }
+    } else if (role === 'stair_tread') {
+      if (mode === 'default') {
+        mat.map = texMarbleTiles;
+        mat.color.set(0xe6dac8);
+        mat.roughness = 0.28;
+        setMatEnv(mat, 0.68);
+      } else {
+        mat.map = stairSameAsWall ? neutralPlasterDiffTex : neutralWoodDiffTex;
+        mat.color.copy(stairSameAsWall ? wallColLinear : accentColLinear);
+        mat.roughness = 0.54;
+        setMatEnv(mat, stairSameAsWall ? 0.42 : 0.28);
+      }
+    } else if (role === 'stair_handrail') {
+      if (mode === 'default') {
+        mat.map = woodDiffTex;
+        mat.color.set(0x8c5a32);
+        mat.roughness = 0.34;
+        setMatEnv(mat, 1.15);
+      } else {
+        mat.map = stairSameAsWall ? neutralPlasterDiffTex : neutralWoodDiffTex;
+        mat.color.copy(stairSameAsWall ? wallColLinear : accentColLinear);
+        mat.roughness = 0.56;
+        setMatEnv(mat, stairSameAsWall ? 0.42 : 0.26);
+      }
+    } else if (role === 'mashrabiya') {
+      mat.map = texMashrabiya;
+      mat.color.set(0xffffff);
+      if (mode === 'default') {
+        mat.roughness = 0.36;
+        mat.metalness = 0.24;
+        setMatEnv(mat, 1.05);
+      } else {
+        mat.roughness = 0.54;
+        mat.metalness = 0.06;
+        setMatEnv(mat, 0.28);
+      }
+    }
+    mat.needsUpdate = true;
+  };
+
+  Object.values(wallMaterials).forEach(applyRoleToMaterial);
+  [
+    matMashrabiya, matArchTrim, matOpeningArchFrame, matExteriorCanopyWood,
+    matDoorWood, matBarnTimber, matStairWall, matStairCoping, matStairTread, matStairHandrail,
+    window.matFenceWood, window.matFenceWoodCap
+  ].forEach(applyRoleToMaterial);
+
+  if (typeof scene !== 'undefined' && scene) {
+    scene.traverse((obj) => {
+      if (obj.isMesh && obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(applyRoleToMaterial);
+        else applyRoleToMaterial(obj.material);
+      }
+    });
+  }
+
+  syncDesignColorUI();
+  requestShadowUpdate();
+}
+window.applyDesignColorTheme = applyDesignColorTheme;
+
+window.setDesignColorTemplate = function(mode) {
+  if (!state.designColor) {
+    state.designColor = { mode: 'default', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  }
+  state.designColor.mode = mode;
+  if (mode !== 'custom') {
+    closeColorPalettePopover();
+  }
+  applyDesignColorTheme();
+};
+
+window.toggleStairColorMode = function() {
+  if (!state.designColor) {
+    state.designColor = { mode: 'default', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  }
+  state.designColor.stairSameAsWall = !state.designColor.stairSameAsWall;
+  applyDesignColorTheme();
+};
+
+window.toggleDesignColorPanel = function(forceState) {
+  const panel = document.getElementById('design-color-panel');
+  const btn = document.getElementById('btn-design-color');
+  if (!panel) return;
+  const nextVisible = (typeof forceState === 'boolean') ? forceState : !panel.classList.contains('visible');
+  panel.classList.toggle('visible', nextVisible);
+  if (btn) btn.classList.toggle('active', nextVisible);
+  if (!nextVisible) {
+    closeColorPalettePopover();
+  } else {
+    syncDesignColorUI();
+  }
+};
+
+// ============================================================================
+// INTERACTIVE POPOVER COLOR PALETTE CONTROLLER (2D SV SPECTRUM + HUE + 24 SWATCHES)
+// ============================================================================
+const CURATED_PALETTE_SWATCHES = [
+  '#F8FBFF', '#FFFFFF', '#F5EFE6', '#EDE3D2', '#DFD2BC', '#CBD5E1', '#94A3B8', '#334155',
+  '#1677E6', '#0284C7', '#0EA5E9', '#38BDF8', '#1D4ED8', '#1E3A8A', '#0D9488', '#14B8A6',
+  '#15803D', '#4D7C0F', '#D97706', '#EA580C', '#B91C1C', '#9D174D', '#6D28D9', '#8C5A32'
+];
+
+const colorPopoverState = {
+  open: false,
+  targetSlot: 'wall', // 'wall' | 'accent'
+  h: 212,
+  s: 0.90,
+  v: 0.90,
+  draggingSV: false,
+  initialized: false
+};
+
+function hsvToHex(h, s, v) {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; b = 0; }
+  else if (h < 120) { r = x; g = c; b = 0; }
+  else if (h < 180) { r = 0; g = c; b = x; }
+  else if (h < 240) { r = 0; g = x; b = c; }
+  else if (h < 300) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  const toHex = (n) => Math.max(0, Math.min(255, Math.round((n + m) * 255))).toString(16).padStart(2, '0');
+  return ('#' + toHex(r) + toHex(g) + toHex(b)).toUpperCase();
+}
+
+function hexToHsv(hexStr) {
+  let clean = (hexStr || '#ffffff').trim().replace(/^#/, '');
+  if (clean.length === 3) clean = clean[0]+clean[0]+clean[1]+clean[1]+clean[2]+clean[2];
+  const num = parseInt(clean, 16);
+  if (isNaN(num)) return { h: 210, s: 0.8, v: 0.9 };
+  const r = ((num >> 16) & 255) / 255;
+  const g = ((num >> 8) & 255) / 255;
+  const b = (num & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+  if (max !== min) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  return { h: Math.round(h) % 360, s, v };
+}
+
+function renderPaletteSVCanvas() {
+  const canvas = document.getElementById('palette-sv-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const pureHueHex = hsvToHex(colorPopoverState.h, 1, 1);
+
+  ctx.clearRect(0, 0, w, h);
+  const gradH = ctx.createLinearGradient(0, 0, w, 0);
+  gradH.addColorStop(0, '#FFFFFF');
+  gradH.addColorStop(1, pureHueHex);
+  ctx.fillStyle = gradH;
+  ctx.fillRect(0, 0, w, h);
+
+  const gradV = ctx.createLinearGradient(0, 0, 0, h);
+  gradV.addColorStop(0, 'rgba(0,0,0,0)');
+  gradV.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.fillStyle = gradV;
+  ctx.fillRect(0, 0, w, h);
+
+  const cursor = document.getElementById('palette-sv-cursor');
+  if (cursor) {
+    cursor.style.left = (colorPopoverState.s * 100).toFixed(1) + '%';
+    cursor.style.top = ((1 - colorPopoverState.v) * 100).toFixed(1) + '%';
+    cursor.style.background = hsvToHex(colorPopoverState.h, colorPopoverState.s, colorPopoverState.v);
+  }
+}
+
+function applyPopoverCurrentColor(hexVal) {
+  const hex = (hexVal || hsvToHex(colorPopoverState.h, colorPopoverState.s, colorPopoverState.v)).toUpperCase();
+  if (!state.designColor) {
+    state.designColor = { mode: 'custom', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  }
+  state.designColor.mode = 'custom';
+  if (colorPopoverState.targetSlot === 'wall') {
+    state.designColor.wallColor = hex;
+  } else {
+    state.designColor.accentColor = hex;
+  }
+
+  const prevBox = document.getElementById('palette-live-chip');
+  const hexIn = document.getElementById('palette-hex-input');
+  const eyeIn = document.getElementById('palette-native-eye');
+  if (prevBox) prevBox.style.background = hex;
+  if (hexIn && document.activeElement !== hexIn) hexIn.value = hex;
+  if (eyeIn && document.activeElement !== eyeIn) eyeIn.value = hex.toLowerCase();
+
+  document.querySelectorAll('#palette-swatches-grid .palette-swatch-item').forEach((el) => {
+    el.classList.toggle('active', (el.getAttribute('data-hex') || '').toUpperCase() === hex);
+  });
+
+  applyDesignColorTheme();
+}
+
+function initColorPalettePopoverDOM() {
+  if (colorPopoverState.initialized) return;
+  colorPopoverState.initialized = true;
+
+  const grid = document.getElementById('palette-swatches-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    CURATED_PALETTE_SWATCHES.forEach((swHex) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'palette-swatch-item';
+      btn.style.background = swHex;
+      btn.setAttribute('data-hex', swHex);
+      btn.title = swHex;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const hsv = hexToHsv(swHex);
+        colorPopoverState.h = hsv.h;
+        colorPopoverState.s = hsv.s;
+        colorPopoverState.v = hsv.v;
+        const hueRange = document.getElementById('palette-hue-slider');
+        if (hueRange) hueRange.value = String(hsv.h);
+        renderPaletteSVCanvas();
+        applyPopoverCurrentColor(swHex);
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  const svWrap = document.getElementById('palette-sv-wrap');
+  const updateSVFromPointer = (clientX, clientY) => {
+    if (!svWrap) return;
+    const rect = svWrap.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const v = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+    colorPopoverState.s = s;
+    colorPopoverState.v = v;
+    renderPaletteSVCanvas();
+    applyPopoverCurrentColor();
+  };
+
+  if (svWrap) {
+    svWrap.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      colorPopoverState.draggingSV = true;
+      if (svWrap.setPointerCapture) {
+        try { svWrap.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      updateSVFromPointer(e.clientX, e.clientY);
+    });
+    svWrap.addEventListener('pointermove', (e) => {
+      if (!colorPopoverState.draggingSV) return;
+      updateSVFromPointer(e.clientX, e.clientY);
+    });
+    const endDrag = () => { colorPopoverState.draggingSV = false; };
+    svWrap.addEventListener('pointerup', endDrag);
+    svWrap.addEventListener('pointercancel', endDrag);
+  }
+
+  document.addEventListener('pointerdown', (e) => {
+    if (!colorPopoverState.open) return;
+    const pop = document.getElementById('color-palette-popover');
+    const bWall = document.getElementById('btn-pick-wall-color');
+    const bAcc = document.getElementById('btn-pick-accent-color');
+    if (pop && pop.contains(e.target)) return;
+    if (bWall && bWall.contains(e.target)) return;
+    if (bAcc && bAcc.contains(e.target)) return;
+    closeColorPalettePopover();
+  });
+}
+
+window.openColorPalettePopover = function(slot, anchorBtn) {
+  initColorPalettePopoverDOM();
+  const pop = document.getElementById('color-palette-popover');
+  if (!pop) return;
+
+  if (colorPopoverState.open && colorPopoverState.targetSlot === slot) {
+    closeColorPalettePopover();
+    return;
+  }
+
+  colorPopoverState.open = true;
+  colorPopoverState.targetSlot = (slot === 'accent') ? 'accent' : 'wall';
+
+  const bWall = document.getElementById('btn-pick-wall-color');
+  const bAcc = document.getElementById('btn-pick-accent-color');
+  if (bWall) bWall.classList.toggle('active', colorPopoverState.targetSlot === 'wall');
+  if (bAcc) bAcc.classList.toggle('active', colorPopoverState.targetSlot === 'accent');
+
+  const t = I18N[state.lang] || I18N.en;
+  const titleEl = document.getElementById('palette-pop-title');
+  if (titleEl) {
+    titleEl.textContent = (colorPopoverState.targetSlot === 'wall') ? t.popTitleWall : t.popTitleAccent;
+  }
+
+  const dc = state.designColor || { mode: 'custom', wallColor: '#f8fbff', accentColor: '#1677e6' };
+  const curHex = ((colorPopoverState.targetSlot === 'wall') ? dc.wallColor : dc.accentColor) || '#F8FBFF';
+  const hsv = hexToHsv(curHex);
+  colorPopoverState.h = hsv.h;
+  colorPopoverState.s = hsv.s;
+  colorPopoverState.v = hsv.v;
+
+  const hueRange = document.getElementById('palette-hue-slider');
+  if (hueRange) hueRange.value = String(hsv.h);
+  const prevBox = document.getElementById('palette-live-chip');
+  if (prevBox) prevBox.style.background = curHex.toUpperCase();
+  const hexIn = document.getElementById('palette-hex-input');
+  if (hexIn) hexIn.value = curHex.toUpperCase();
+  const eyeIn = document.getElementById('palette-native-eye');
+  if (eyeIn) eyeIn.value = curHex.toLowerCase();
+
+  renderPaletteSVCanvas();
+  pop.classList.add('visible');
+
+  // Position popover cleanly near the clicked input button within viewport bounds
+  const refEl = anchorBtn || (colorPopoverState.targetSlot === 'wall' ? bWall : bAcc);
+  if (refEl) {
+    const r = refEl.getBoundingClientRect();
+    const popW = 268;
+    const popH = 340;
+    let left = Math.max(12, Math.min(window.innerWidth - popW - 12, r.left));
+    let top = r.bottom + 8;
+    if (top + popH > window.innerHeight - 12) {
+      top = Math.max(12, r.top - popH - 8);
+    }
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+  }
+};
+
+window.closeColorPalettePopover = function() {
+  colorPopoverState.open = false;
+  colorPopoverState.draggingSV = false;
+  const pop = document.getElementById('color-palette-popover');
+  if (pop) pop.classList.remove('visible');
+  const bWall = document.getElementById('btn-pick-wall-color');
+  const bAcc = document.getElementById('btn-pick-accent-color');
+  if (bWall) bWall.classList.remove('active');
+  if (bAcc) bAcc.classList.remove('active');
+};
+
+window.onPaletteHueSliderChange = function(val) {
+  colorPopoverState.h = Math.max(0, Math.min(360, Number(val) || 0));
+  renderPaletteSVCanvas();
+  applyPopoverCurrentColor();
+};
+
+window.onPaletteHexInputChange = function(val) {
+  const clean = (val || '').trim();
+  if (/^#?[0-9a-fA-F]{6}$/.test(clean)) {
+    const hex = (clean.startsWith('#') ? clean : '#' + clean).toUpperCase();
+    const hsv = hexToHsv(hex);
+    colorPopoverState.h = hsv.h;
+    colorPopoverState.s = hsv.s;
+    colorPopoverState.v = hsv.v;
+    const hueRange = document.getElementById('color-pop-hue-range');
+    if (hueRange) hueRange.value = String(hsv.h);
+    renderPaletteSVCanvas();
+    applyPopoverCurrentColor(hex);
+  }
+};
 
 function setTimeOfDay(mode) {
   state.timeOfDay = mode;
@@ -10420,6 +11550,9 @@ function updateSelectedHudText() {
   const pasteBtn = document.getElementById('btn-hud-paste');
   const delBtn = document.getElementById('btn-hud-delete');
   const fenceCtrl = document.getElementById('fence-hud-controls');
+  const fenceGateLeftBtn = document.getElementById('btn-fence-gate-left');
+  const fenceGateRightBtn = document.getElementById('btn-fence-gate-right');
+  const fenceGateToggleBtn = document.getElementById('btn-fence-gate-toggle');
   const animalCtrl = document.getElementById('animal-hud-controls');
   const oliveCtrl = document.getElementById('olive-hud-controls');
   const olivePotBtn = document.getElementById('btn-hud-olive-pot');
@@ -10488,10 +11621,11 @@ function updateSelectedHudText() {
     const scaleTag = (!isWalkway && !isGravelRoad && Math.abs(sf - 1.0) > 0.005) ? ` (${Math.round(sf * 100)}%)` : '';
     const isFence = !!(selectedObject.userData && selectedObject.userData.isWoodenFence);
     const isTurnFence = !!(selectedObject.userData && selectedObject.userData.isLivestockTurnFence);
+    const hasGate = isFence ? (selectedObject.userData.hasGate !== false) : false;
     const fenceTag = isFence
       ? (isTurnFence
-          ? ` [East:${selectedObject.userData.leftPanels || 6} | Back:${selectedObject.userData.rightPanels || 4} | Gate:${selectedObject.userData.gateLeg === 'north' ? 'Back' : 'East'}]`
-          : ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}]`)
+          ? ` [East:${selectedObject.userData.leftPanels || 6} | Back:${selectedObject.userData.rightPanels || 4} | Gate:${hasGate ? (selectedObject.userData.gateLeg === 'north' ? 'Back' : 'East') : 'None'}]`
+          : ` [L:${selectedObject.userData.leftPanels || 6} | R:${selectedObject.userData.rightPanels || 6}${hasGate ? '' : ' | Gate:None'}]`)
       : '';
     const isAnimal = !!(selectedObject.userData && selectedObject.userData.isAnimal);
     const animalTag = (isAnimal && selectedObject.userData.animalState)
@@ -10508,6 +11642,14 @@ function updateSelectedHudText() {
     el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + roadTag + scaleTag;
     if (fenceCtrl) {
       fenceCtrl.style.display = isFence ? 'inline-flex' : 'none';
+      if (isFence) {
+        if (fenceGateLeftBtn) fenceGateLeftBtn.style.display = hasGate ? 'inline-block' : 'none';
+        if (fenceGateRightBtn) fenceGateRightBtn.style.display = hasGate ? 'inline-block' : 'none';
+        if (fenceGateToggleBtn) {
+          fenceGateToggleBtn.textContent = hasGate ? t('btnGateRemove') : t('btnGateAdd');
+          fenceGateToggleBtn.classList.toggle('gate-removed', !hasGate);
+        }
+      }
     }
     if (animalCtrl) {
       animalCtrl.style.display = isAnimal ? 'inline-flex' : 'none';
@@ -10549,8 +11691,9 @@ function updateSelectedHudText() {
       deselBtn.textContent = t('btnDeselect');
     }
     if (openBtn) {
-      openBtn.style.display = isTurnFence ? 'inline-block' : 'none';
-      if (isTurnFence) {
+      const showGateLeafBtn = isTurnFence && hasGate;
+      openBtn.style.display = showGateLeafBtn ? 'inline-block' : 'none';
+      if (showGateLeafBtn) {
         openBtn.textContent = selectedObject.userData.gateLeavesOpen ? t('btnCloseLeaf') : t('winSignBtn');
       }
     }
@@ -10558,7 +11701,7 @@ function updateSelectedHudText() {
 }
 
 function toggleSelectedOpening() {
-  if (selectedObject && selectedObject.userData && selectedObject.userData.isLivestockTurnFence) {
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isLivestockTurnFence && selectedObject.userData.hasGate !== false) {
     selectedObject.userData.gateLeavesOpen = !selectedObject.userData.gateLeavesOpen;
     requestShadowUpdate();
     updateSelectedHudText();
@@ -10574,6 +11717,9 @@ function toggleSelectedOpening() {
 
 renderer.domElement.addEventListener('pointerdown', (e) => {
   if (e.button !== undefined && e.button !== 0) return;
+  if (document.activeElement && document.activeElement.tagName === 'BUTTON') {
+    document.activeElement.blur();
+  }
   const cx = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
   const cy = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
   downClientX = cx;
@@ -10604,7 +11750,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   } else {
     downOpeningRoot = null;
     downHitRoot = hits.length > 0 ? getDraggableRoot(hits[0].object) : null;
-    if (hits.length > 0 && downHitRoot && downHitRoot.userData && downHitRoot.userData.isWoodenFence) {
+    if (hits.length > 0 && downHitRoot && downHitRoot.userData && downHitRoot.userData.isWoodenFence && downHitRoot.userData.hasGate !== false) {
       hitFenceGate = isHitInsideFenceGate(hits[0].object);
     }
   }
@@ -11067,6 +12213,7 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
     cloned.userData.isWoodenFence = true;
     cloned.userData.isLivestockTurnFence = !!entry.isLivestockTurnFence;
     cloned.userData.noAutoRecenter = !!entry.isLivestockTurnFence;
+    cloned.userData.hasGate = (customOpts && typeof customOpts.hasGate === 'boolean') ? customOpts.hasGate : true;
     cloned.userData.leftPanels = (customOpts && typeof customOpts.leftPanels === 'number') ? customOpts.leftPanels : 6;
     cloned.userData.rightPanels = (customOpts && typeof customOpts.rightPanels === 'number') ? customOpts.rightPanels : (entry.isLivestockTurnFence ? 4 : 6);
     cloned.userData.panelWidth = 1.80;
@@ -11136,6 +12283,7 @@ function copySelectedObject() {
           leftPanels: oud.leftPanels,
           rightPanels: oud.rightPanels,
           gateOffsetX: oud.gateOffsetX,
+          hasGate: oud.hasGate,
           hasPot: oud.hasPot,
           isGravelRoad: !!oud.isGravelRoad,
           roadWidth: oud.roadWidth,
@@ -11177,6 +12325,7 @@ function copySelectedObject() {
         leftPanels: ud.leftPanels,
         rightPanels: ud.rightPanels,
         gateOffsetX: ud.gateOffsetX,
+        hasGate: ud.hasGate,
         hasPot: ud.hasPot,
         isGravelRoad: !!ud.isGravelRoad,
         roadWidth: ud.roadWidth,
@@ -11239,6 +12388,7 @@ function pasteCopiedObject() {
           leftPanels: it.leftPanels,
           rightPanels: it.rightPanels,
           gateOffsetX: it.gateOffsetX,
+          hasGate: it.hasGate,
           hasPot: it.hasPot,
           roadWidth: it.roadWidth,
           roadSegments: it.roadSegments ? JSON.parse(JSON.stringify(it.roadSegments)) : undefined,
@@ -11307,6 +12457,7 @@ function pasteCopiedObject() {
     leftPanels: copiedObjectBlueprint.leftPanels,
     rightPanels: copiedObjectBlueprint.rightPanels,
     gateOffsetX: copiedObjectBlueprint.gateOffsetX,
+    hasGate: copiedObjectBlueprint.hasGate,
     hasPot: copiedObjectBlueprint.hasPot,
     roadWidth: copiedObjectBlueprint.roadWidth,
     roadSegments: copiedObjectBlueprint.roadSegments ? JSON.parse(JSON.stringify(copiedObjectBlueprint.roadSegments)) : undefined,
@@ -11327,6 +12478,14 @@ function deleteSelectedObject() {
 
   targetsToDelete.forEach((targetObj) => {
     if (!targetObj) return;
+    if (targetObj.userData && targetObj.userData.isAnimal && typeof deployedAnimals !== 'undefined') {
+      const aIdx = deployedAnimals.findIndex(a => a && a.root === targetObj);
+      if (aIdx !== -1) {
+        const anim = deployedAnimals[aIdx];
+        if (anim.mixer) anim.mixer.stopAllAction();
+        deployedAnimals.splice(aIdx, 1);
+      }
+    }
     const dIdx = draggableObjects.indexOf(targetObj);
     if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
 
@@ -11364,6 +12523,7 @@ function deleteSelectedObject() {
       targetObj.parent.remove(targetObj);
     }
   });
+  if (typeof updateAnimalCountBadge === 'function') updateAnimalCountBadge();
   requestShadowUpdate();
 }
 
@@ -11555,7 +12715,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   // When the Wooden Fence is selected (in non-walk mode), ArrowLeft / ArrowRight slides the Garden Gate horizontally along the fence line!
-  if (selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence && viewMode !== 'walk' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isWoodenFence && selectedObject.userData.hasGate !== false && viewMode !== 'walk' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     e.preventDefault();
     if (typeof window.slideWoodenFenceGate === 'function') {
       window.slideWoodenFenceGate(e.key === 'ArrowRight' ? 0.45 : -0.45);
@@ -11575,7 +12735,10 @@ window.addEventListener('keydown', (e) => {
       requestShadowUpdate();
     }
   }
-  if (e.key === 'Escape' && selectedObject) deselectObject();
+  if (e.key === 'Escape') {
+    if (typeof closeColorPalettePopover === 'function') closeColorPalettePopover();
+    if (selectedObject) deselectObject();
+  }
 });
 
 window.addEventListener('keyup', (e) => {
@@ -11693,7 +12856,10 @@ function resolveWalkCollisions(px, pz) {
     const xEndN = xCorner - northLen;
     const fenceSegs = [];
 
-    if (sGate <= eastLen) {
+    if (ud.hasGate === false) {
+      fenceSegs.push([xCorner, zCorner, xCorner, zStartE]);
+      fenceSegs.push([xEndN, zCorner, xCorner, zCorner]);
+    } else if (sGate <= eastLen) {
       const gz = zStartE - sGate;
       const halfPortal = gateW * 0.50 + minDist - 0.04;
       fenceSegs.push([xCorner, zGateClamp(gz + halfPortal, zCorner, zStartE), xCorner, zStartE]);
@@ -11932,7 +13098,7 @@ function updateWalkAndOpenings(dt) {
   // Animate the 2 Wooden Gate Leaves ("2 daun pintu kayu") on all Wrap-Around Livestock Fences
   for (let fi = 0; fi < draggableObjects.length; fi++) {
     const fObj = draggableObjects[fi];
-    if (!fObj || !fObj.userData || !fObj.userData.isLivestockTurnFence) continue;
+    if (!fObj || !fObj.userData || !fObj.userData.isLivestockTurnFence || fObj.userData.hasGate === false) continue;
     const gateGrp = fObj.getObjectByName('fenceGateSubGroup');
     if (!gateGrp || !gateGrp.userData.leftLeafPivot || !gateGrp.userData.rightLeafPivot) continue;
 
@@ -12009,6 +13175,8 @@ function updateStaticUIStrings() {
   setText('btn-time-day', t('day'));
   setText('btn-time-night', t('night'));
   setText('btn-photoshoot', t('photoshoot'));
+  setText('btn-design-color', t('btnDesignColor'));
+  if (typeof syncDesignColorUI === 'function') syncDesignColorUI();
   setText('btn-deploy-animals', t('btnDeployAnimals'));
   setText('btn-object-catalog', t('btnObjectCatalog'));
   setText('catalog-modal-title', t('catalogTitle'));
@@ -12217,6 +13385,7 @@ function buildCurrentLayoutPayload() {
       leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
       rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
       gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined,
+      hasGate: o.userData.isWoodenFence ? (o.userData.hasGate !== false) : undefined,
       endBx: o.userData.isDynamicLWalkway ? +o.userData.endBx.toFixed(3) : undefined,
       walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined,
       hasPot: o.userData.isIndividualSmallOlive ? !!o.userData.hasPot : undefined,
@@ -12233,6 +13402,7 @@ function saveDesign() {
   const payloadStr = JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
+    designColor: state.designColor,
     customPositions
   });
   localStorage.setItem('tunisia_modern_arabic_villa_v10', payloadStr);
@@ -12248,6 +13418,7 @@ function exportLayoutToClipboard() {
   localStorage.setItem('tunisia_modern_arabic_villa_v10', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
+    designColor: state.designColor,
     customPositions
   }));
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -16844,6 +18015,7 @@ function applyLayoutPositions(layoutList) {
         if (typeof sp.leftPanels === 'number') bestObj.userData.leftPanels = sp.leftPanels;
         if (typeof sp.rightPanels === 'number') bestObj.userData.rightPanels = sp.rightPanels;
         if (typeof sp.gateOffsetX === 'number') bestObj.userData.gateOffsetX = sp.gateOffsetX;
+        if (typeof sp.hasGate === 'boolean') bestObj.userData.hasGate = sp.hasGate;
         if (typeof window.rebuildWoodenFencePanels === 'function') window.rebuildWoodenFencePanels(bestObj);
       }
       bestObj.updateMatrixWorld(true);
@@ -16859,6 +18031,7 @@ function applyLayoutPositions(layoutList) {
         leftPanels: sp.leftPanels,
         rightPanels: sp.rightPanels,
         gateOffsetX: sp.gateOffsetX,
+        hasGate: sp.hasGate,
         hasPot: sp.hasPot,
         skipSelect: true
       });
@@ -16895,6 +18068,14 @@ async function initApp() {
       const parsed = JSON.parse(savedRaw);
       if (parsed.lang) state.lang = parsed.lang;
       if (parsed.timeOfDay) state.timeOfDay = parsed.timeOfDay;
+      if (parsed.designColor && typeof parsed.designColor === 'object') {
+        state.designColor = {
+          mode: parsed.designColor.mode || 'default',
+          wallColor: parsed.designColor.wallColor || '#f8fbff',
+          accentColor: parsed.designColor.accentColor || '#1677e6',
+          stairSameAsWall: !!parsed.designColor.stairSameAsWall
+        };
+      }
       if (parsed.customPositions) savedPositions = parsed.customPositions;
     } catch(e) {}
   }
@@ -16909,6 +18090,7 @@ async function initApp() {
   rebuildFacadeDecor();
   rebuildOpenings();
   applyAllMaterialsAndLights();
+  if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
@@ -16944,6 +18126,7 @@ async function initApp() {
 
   // Apply the user's saved v10 layout if present, otherwise apply the locked 106-item custom default layout
   applyLayoutPositions((savedPositions && Array.isArray(savedPositions) && savedPositions.length > 0) ? savedPositions : DEFAULT_CUSTOM_POSITIONS);
+  if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
   if (maherNpcState.loaded && maherNpcState.currentAct) {
     startMaherActivity(maherNpcState.currentAct.id, true);
   }
