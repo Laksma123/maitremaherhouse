@@ -544,6 +544,7 @@
 <script src="./animal_rabbit_data.js"></script>
 <script src="./animal_goat_data.js"></script>
 <script src="./road_and_grape_data.js"></script>
+<script src="./bulldozer_data.js"></script>
 </head>
 <body>
 
@@ -585,6 +586,11 @@
         <span id="hex-accent-color" style="opacity:0.8;font-size:10px;">#1677E6</span>
       </button>
     </div>
+    <button class="color-combo-input-btn" id="btn-pick-bulldozer-color" onclick="openColorPalettePopover('bulldozer', this)" title="Click to open complete Color Palette for the Selected Bulldozer">
+      <span class="color-combo-swatch" id="swatch-bulldozer-color" style="background:#e5a01d;forced-color-adjust:none;"></span>
+      <span id="lbl-pick-bulldozer-color">🚜 Bulldozer Color</span>
+      <span id="hex-bulldozer-color" style="opacity:0.8;font-size:10px;">#E5A01D</span>
+    </button>
     <button class="btn-pill" id="btn-close-design-color" onclick="toggleDesignColorPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
 
@@ -674,6 +680,15 @@
   <span id="animal-hud-controls" style="display:none; gap:6px; align-items:center;">
     <button class="hud-btn" id="btn-animal-rad-dec" onclick="adjustSelectedAnimalRadius(-0.35)" title="Smaller Roam Radius">⭕ Area -</button>
     <button class="hud-btn" id="btn-animal-rad-inc" onclick="adjustSelectedAnimalRadius(0.35)" title="Larger Roam Radius">⭕ Area +</button>
+  </span>
+  <span id="bulldozer-hud-controls" style="display:none; gap:5px; align-items:center; flex-wrap:wrap;">
+    <button class="hud-btn" id="btn-hud-bulldozer-color" onclick="openColorPalettePopover('bulldozer', this)" title="Customize Selected Bulldozer Paint Color" style="display:inline-flex;align-items:center;gap:5px;background:rgba(234,179,8,0.28);border-color:#fde047;color:#fef9c3;font-weight:700;">
+      <span id="swatch-hud-bulldozer-color" style="width:12px;height:12px;border-radius:3px;background:#e5a01d;border:1px solid rgba(255,255,255,0.75);display:inline-block;forced-color-adjust:none;"></span>
+      <span id="lbl-hud-bulldozer-color">🎨 Bulldozer Color</span>
+    </button>
+    <button class="hud-btn" id="btn-hud-bulldozer-pause" onclick="toggleSelectedBulldozerDrive()" title="Pause or Resume Bulldozer Grading">⏸️ Pause</button>
+    <button class="hud-btn" id="btn-bulldozer-rad-dec" onclick="adjustSelectedAnimalRadius(-0.65)" title="Smaller Grading Area">⭕ Area -</button>
+    <button class="hud-btn" id="btn-bulldozer-rad-inc" onclick="adjustSelectedAnimalRadius(0.65)" title="Larger Grading Area">⭕ Area +</button>
   </span>
   <span id="olive-hud-controls" style="display:none; gap:6px; align-items:center;">
     <button class="hud-btn" id="btn-hud-olive-pot" onclick="toggleSelectedSmallOlivePot()" title="Toggle Pot On/Off for Selected Small Olive(s)">🏺 Pot: ON</button>
@@ -854,6 +869,11 @@ const I18N = {
     lblAccentColor: 'Doors, Windows & Canopies',
     popTitleWall: '🎨 Walls & House Color',
     popTitleAccent: '🎨 Doors, Windows, Roof Decor & Canopies',
+    popTitleBulldozer: '🚜 Bulldozer Body Paint Color',
+    lblBulldozerColor: '🚜 Bulldozer Color',
+    btnHudBulldozerColor: '🎨 Bulldozer Color',
+    btnBulldozerPause: '⏸️ Pause',
+    btnBulldozerResume: '▶️ Grade Soil',
     popSwatchesLabel: 'Curated Palette Swatches',
     btnGateRemove: '🚪🗑️ Remove Gate',
     btnGateAdd: '🚪➕ Add Gate'
@@ -946,6 +966,11 @@ const I18N = {
     lblAccentColor: 'الأبواب والشبابيك والمظلات',
     popTitleWall: '🎨 لون الجدران والمنزل',
     popTitleAccent: '🎨 لون الأبواب والشبابيك والمظلات',
+    popTitleBulldozer: '🚜 لون طلاء الجرافة (Bulldozer)',
+    lblBulldozerColor: '🚜 لون الجرافة',
+    btnHudBulldozerColor: '🎨 لون الجرافة',
+    btnBulldozerPause: '⏸️ إيقاف مؤقت',
+    btnBulldozerResume: '▶️ تسوية الأرض',
     popSwatchesLabel: 'لوحة الألوان المختارة',
     btnGateRemove: '🚪🗑️ إزالة البوابة',
     btnGateAdd: '🚪➕ إضافة بوابة'
@@ -5166,7 +5191,7 @@ function loadPHModel(assetId) {
     };
     const timerId = setTimeout(() => {
       finish(null);
-    }, 180000);
+    }, 12000);
     try {
       const gltfClone = JSON.parse(JSON.stringify(gltfJson));
       const rawTexList = Array.isArray(gltfJson.textures) ? gltfJson.textures : [];
@@ -5395,6 +5420,14 @@ const OBJECT_CATALOG_REGISTRY = new Map([
     icon: '🐐',
     isAnimal: true,
     animalType: 'goat'
+  }],
+  ['Heavy Construction Bulldozer', {
+    key: 'Heavy Construction Bulldozer',
+    labelEn: 'Heavy Construction Bulldozer (Animated Terrain Grader)',
+    labelAr: 'جرافة بناء ثقيلة (تسوية الأرض والحصى)',
+    category: 'outdoor',
+    icon: '🚜',
+    isBulldozer: true
   }]
 ]);
 window.OBJECT_CATALOG_REGISTRY = OBJECT_CATALOG_REGISTRY;
@@ -5440,10 +5473,11 @@ function classifyCatalogItem(labelEn) {
     s.includes('bonfire') || s.includes('pool') || s.includes('fence') || s.includes('walkway') ||
     s.includes('rooftop') || s.includes('pergola') || s.includes('canopy') || s.includes('grape') ||
     s.includes('post-swim') || s.includes('cabin terrace') || s.includes('jalsa') ||
-    s.includes('road') || s.includes('peugeot') || s.includes('car')
+    s.includes('road') || s.includes('peugeot') || s.includes('car') || s.includes('bulldozer')
   ) {
     let icon = '🌿';
-    if (s.includes('peugeot') || s.includes('car')) icon = '🚗';
+    if (s.includes('bulldozer')) icon = '🚜';
+    else if (s.includes('peugeot') || s.includes('car')) icon = '🚗';
     else if (s.includes('road')) icon = '🛣️';
     else if (s.includes('grape') || s.includes('canopy')) icon = '🍇';
     else if (s.includes('orange tree')) icon = '🍊';
@@ -5504,7 +5538,7 @@ function registerDraggable(obj, labelEn, labelAr) {
   draggableObjects.push(obj);
 
   // Automatically register a clean master template in OBJECT_CATALOG_REGISTRY for Object Catalog spawning & Copy/Paste
-  if (!obj.userData.isAnimal && labelEn && !OBJECT_CATALOG_REGISTRY.has(labelEn)) {
+  if (!obj.userData.isAnimal && !obj.userData.isBulldozer && labelEn && !OBJECT_CATALOG_REGISTRY.has(labelEn)) {
     const meta = classifyCatalogItem(labelEn);
     const rawY = obj.position.y;
     let deltaH = 0.0;
@@ -10251,6 +10285,16 @@ function syncDesignColorUI() {
   if (txWall) txWall.textContent = wallHex;
   if (swAcc) swAcc.style.background = accHex;
   if (txAcc) txAcc.textContent = accHex;
+
+  const lblBull = document.getElementById('lbl-pick-bulldozer-color');
+  if (lblBull) lblBull.textContent = t.lblBulldozerColor || '🚜 Bulldozer Color';
+  const curBullHex = (typeof getActiveBulldozerHexColor === 'function') ? getActiveBulldozerHexColor() : '#E5A01D';
+  const swBull = document.getElementById('swatch-bulldozer-color');
+  const txBull = document.getElementById('hex-bulldozer-color');
+  const swHudBull = document.getElementById('swatch-hud-bulldozer-color');
+  if (swBull) swBull.style.background = curBullHex;
+  if (txBull) txBull.textContent = curBullHex;
+  if (swHudBull) swHudBull.style.background = curBullHex;
 }
 
 function applyDesignColorTheme() {
@@ -10505,6 +10549,12 @@ window.toggleDesignColorPanel = function(forceState) {
     closeColorPalettePopover();
   } else {
     syncDesignColorUI();
+    if (selectedObject && selectedObject.userData && selectedObject.userData.isBulldozer) {
+      const bullBtn = document.getElementById('btn-pick-bulldozer-color');
+      if (bullBtn && !colorPopoverState.open) {
+        openColorPalettePopover('bulldozer', bullBtn);
+      }
+    }
   }
 };
 
@@ -10593,16 +10643,6 @@ function renderPaletteSVCanvas() {
 
 function applyPopoverCurrentColor(hexVal) {
   const hex = (hexVal || hsvToHex(colorPopoverState.h, colorPopoverState.s, colorPopoverState.v)).toUpperCase();
-  if (!state.designColor) {
-    state.designColor = { mode: 'custom', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
-  }
-  state.designColor.mode = 'custom';
-  if (colorPopoverState.targetSlot === 'wall') {
-    state.designColor.wallColor = hex;
-  } else {
-    state.designColor.accentColor = hex;
-  }
-
   const prevBox = document.getElementById('palette-live-chip');
   const hexIn = document.getElementById('palette-hex-input');
   const eyeIn = document.getElementById('palette-native-eye');
@@ -10613,6 +10653,24 @@ function applyPopoverCurrentColor(hexVal) {
   document.querySelectorAll('#palette-swatches-grid .palette-swatch-item').forEach((el) => {
     el.classList.toggle('active', (el.getAttribute('data-hex') || '').toUpperCase() === hex);
   });
+
+  if (colorPopoverState.targetSlot === 'bulldozer') {
+    if (typeof applyBulldozerColorFromPicker === 'function') {
+      applyBulldozerColorFromPicker(hex);
+    }
+    syncDesignColorUI();
+    return;
+  }
+
+  if (!state.designColor) {
+    state.designColor = { mode: 'custom', wallColor: '#f8fbff', accentColor: '#1677e6', stairSameAsWall: false };
+  }
+  state.designColor.mode = 'custom';
+  if (colorPopoverState.targetSlot === 'wall') {
+    state.designColor.wallColor = hex;
+  } else {
+    state.designColor.accentColor = hex;
+  }
 
   applyDesignColorTheme();
 }
@@ -10682,9 +10740,15 @@ function initColorPalettePopoverDOM() {
     const pop = document.getElementById('color-palette-popover');
     const bWall = document.getElementById('btn-pick-wall-color');
     const bAcc = document.getElementById('btn-pick-accent-color');
+    const bBull = document.getElementById('btn-pick-bulldozer-color');
+    const bBullHud = document.getElementById('btn-hud-bulldozer-color');
+    const bTopDesign = document.getElementById('btn-design-color');
     if (pop && pop.contains(e.target)) return;
     if (bWall && bWall.contains(e.target)) return;
     if (bAcc && bAcc.contains(e.target)) return;
+    if (bBull && bBull.contains(e.target)) return;
+    if (bBullHud && bBullHud.contains(e.target)) return;
+    if (bTopDesign && bTopDesign.contains(e.target)) return;
     closeColorPalettePopover();
   });
 }
@@ -10700,21 +10764,27 @@ window.openColorPalettePopover = function(slot, anchorBtn) {
   }
 
   colorPopoverState.open = true;
-  colorPopoverState.targetSlot = (slot === 'accent') ? 'accent' : 'wall';
+  colorPopoverState.targetSlot = (slot === 'bulldozer') ? 'bulldozer' : ((slot === 'accent') ? 'accent' : 'wall');
 
   const bWall = document.getElementById('btn-pick-wall-color');
   const bAcc = document.getElementById('btn-pick-accent-color');
+  const bBull = document.getElementById('btn-pick-bulldozer-color');
   if (bWall) bWall.classList.toggle('active', colorPopoverState.targetSlot === 'wall');
   if (bAcc) bAcc.classList.toggle('active', colorPopoverState.targetSlot === 'accent');
+  if (bBull) bBull.classList.toggle('active', colorPopoverState.targetSlot === 'bulldozer');
 
   const t = I18N[state.lang] || I18N.en;
   const titleEl = document.getElementById('palette-pop-title');
   if (titleEl) {
-    titleEl.textContent = (colorPopoverState.targetSlot === 'wall') ? t.popTitleWall : t.popTitleAccent;
+    titleEl.textContent = (colorPopoverState.targetSlot === 'bulldozer')
+      ? (t.popTitleBulldozer || '🚜 Bulldozer Body Paint Color')
+      : ((colorPopoverState.targetSlot === 'wall') ? t.popTitleWall : t.popTitleAccent);
   }
 
   const dc = state.designColor || { mode: 'custom', wallColor: '#f8fbff', accentColor: '#1677e6' };
-  const curHex = ((colorPopoverState.targetSlot === 'wall') ? dc.wallColor : dc.accentColor) || '#F8FBFF';
+  const curHex = (colorPopoverState.targetSlot === 'bulldozer')
+    ? ((typeof getActiveBulldozerHexColor === 'function') ? getActiveBulldozerHexColor() : '#E5A01D')
+    : (((colorPopoverState.targetSlot === 'wall') ? dc.wallColor : dc.accentColor) || '#F8FBFF');
   const hsv = hexToHsv(curHex);
   colorPopoverState.h = hsv.h;
   colorPopoverState.s = hsv.s;
@@ -10733,7 +10803,7 @@ window.openColorPalettePopover = function(slot, anchorBtn) {
   pop.classList.add('visible');
 
   // Position popover cleanly near the clicked input button within viewport bounds
-  const refEl = anchorBtn || (colorPopoverState.targetSlot === 'wall' ? bWall : bAcc);
+  const refEl = anchorBtn || (colorPopoverState.targetSlot === 'bulldozer' ? bBull : (colorPopoverState.targetSlot === 'wall' ? bWall : bAcc));
   if (refEl) {
     const r = refEl.getBoundingClientRect();
     const popW = 268;
@@ -10755,8 +10825,10 @@ window.closeColorPalettePopover = function() {
   if (pop) pop.classList.remove('visible');
   const bWall = document.getElementById('btn-pick-wall-color');
   const bAcc = document.getElementById('btn-pick-accent-color');
+  const bBull = document.getElementById('btn-pick-bulldozer-color');
   if (bWall) bWall.classList.remove('active');
   if (bAcc) bAcc.classList.remove('active');
+  if (bBull) bBull.classList.remove('active');
 };
 
 window.onPaletteHueSliderChange = function(val) {
@@ -10773,7 +10845,7 @@ window.onPaletteHexInputChange = function(val) {
     colorPopoverState.h = hsv.h;
     colorPopoverState.s = hsv.s;
     colorPopoverState.v = hsv.v;
-    const hueRange = document.getElementById('color-pop-hue-range');
+    const hueRange = document.getElementById('palette-hue-slider');
     if (hueRange) hueRange.value = String(hsv.h);
     renderPaletteSVCanvas();
     applyPopoverCurrentColor(hex);
@@ -11311,7 +11383,7 @@ function updatePointer(e) {
 
 function setSelectionHighlight(obj, active) {
   if (!obj) return;
-  if (obj.userData && obj.userData.isAnimal) return;
+  if (obj.userData && (obj.userData.isAnimal || obj.userData.isBulldozer)) return;
   const isCar = !!(obj.userData && obj.userData.labelEn === 'Peugeot 308 Orange Hatchback');
   const highlightHex = isCar ? 0x3a1000 : 0xd4a853;
   const highlightInt = isCar ? 0.06 : 0.22;
@@ -11616,6 +11688,7 @@ function selectObject(obj) {
   if (selectedObject === obj) {
     updateSelectedHudText();
     if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+    if (typeof syncDesignColorUI === 'function') syncDesignColorUI();
     return;
   }
   if (selectedObject) setSelectionHighlight(selectedObject, false);
@@ -11623,6 +11696,7 @@ function selectObject(obj) {
   if (selectedObject) setSelectionHighlight(selectedObject, true);
   updateSelectedHudText();
   if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+  if (typeof syncDesignColorUI === 'function') syncDesignColorUI();
 }
 
 function deselectObject() {
@@ -11672,10 +11746,19 @@ function updateSelectedHudText() {
   const roadEndBtn = document.getElementById('btn-road-end-toggle');
   const radDecBtn = document.getElementById('btn-animal-rad-dec');
   const radIncBtn = document.getElementById('btn-animal-rad-inc');
+  const bulldozerCtrl = document.getElementById('bulldozer-hud-controls');
+  const bulldozerColorLbl = document.getElementById('lbl-hud-bulldozer-color');
+  const bulldozerColorSwatch = document.getElementById('swatch-hud-bulldozer-color');
+  const bulldozerPauseBtn = document.getElementById('btn-hud-bulldozer-pause');
+  const bulldozerRadDecBtn = document.getElementById('btn-bulldozer-rad-dec');
+  const bulldozerRadIncBtn = document.getElementById('btn-bulldozer-rad-inc');
   if (smallBtn) smallBtn.textContent = t('btnSmaller');
   if (bigBtn) bigBtn.textContent = t('btnBigger');
   if (radDecBtn) radDecBtn.textContent = t('btnAreaMinus');
   if (radIncBtn) radIncBtn.textContent = t('btnAreaPlus');
+  if (bulldozerColorLbl) bulldozerColorLbl.textContent = t('btnHudBulldozerColor');
+  if (bulldozerRadDecBtn) bulldozerRadDecBtn.textContent = t('btnAreaMinus');
+  if (bulldozerRadIncBtn) bulldozerRadIncBtn.textContent = t('btnAreaPlus');
   if (roadWDecBtn) roadWDecBtn.textContent = t('btnRoadWidthDec');
   if (roadWIncBtn) roadWIncBtn.textContent = t('btnRoadWidthInc');
   if (roadLDecBtn) roadLDecBtn.textContent = t('btnRoadLenDec');
@@ -11693,6 +11776,7 @@ function updateSelectedHudText() {
     if (deselBtn) deselBtn.style.display = 'none';
     if (fenceCtrl) fenceCtrl.style.display = 'none';
     if (animalCtrl) animalCtrl.style.display = 'none';
+    if (bulldozerCtrl) bulldozerCtrl.style.display = 'none';
     if (oliveCtrl) oliveCtrl.style.display = 'none';
     if (roadCtrl) roadCtrl.style.display = 'none';
     if (copyBtn) copyBtn.style.display = 'none';
@@ -11735,6 +11819,10 @@ function updateSelectedHudText() {
     const animalTag = (isAnimal && selectedObject.userData.animalState)
       ? ` [Roam R: ${selectedObject.userData.animalState.roamRadius.toFixed(1)}m]`
       : '';
+    const isBulldozer = !!(selectedObject.userData && selectedObject.userData.isBulldozer);
+    const bulldozerTag = (isBulldozer && selectedObject.userData.bulldozerState)
+      ? ` [Grade R: ${selectedObject.userData.bulldozerState.roamRadius.toFixed(1)}m | ${(selectedObject.userData.paintColor || '#E5A01D').toUpperCase()}]`
+      : '';
     let roadTag = '';
     if (isGravelRoad) {
       const rw = (selectedObject.userData.roadWidth || 3.4).toFixed(1);
@@ -11743,7 +11831,7 @@ function updateSelectedHudText() {
       const activeLen = segs[activeIdx] ? segs[activeIdx].length.toFixed(1) : '14.0';
       roadTag = ` [W: ${rw}m | End Len: ${activeLen}m | Segs: ${segs.length}]`;
     }
-    el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + roadTag + scaleTag;
+    el.textContent = t('hudSelected') + lbl + fenceTag + animalTag + bulldozerTag + roadTag + scaleTag;
     if (fenceCtrl) {
       fenceCtrl.style.display = isFence ? 'inline-flex' : 'none';
       if (isFence) {
@@ -11757,6 +11845,18 @@ function updateSelectedHudText() {
     }
     if (animalCtrl) {
       animalCtrl.style.display = isAnimal ? 'inline-flex' : 'none';
+    }
+    if (bulldozerCtrl) {
+      bulldozerCtrl.style.display = isBulldozer ? 'inline-flex' : 'none';
+      if (isBulldozer) {
+        if (bulldozerColorSwatch) {
+          bulldozerColorSwatch.style.background = selectedObject.userData.paintColor || '#E5A01D';
+        }
+        if (bulldozerPauseBtn) {
+          const isPaused = !!(selectedObject.userData.bulldozerState && selectedObject.userData.bulldozerState.paused);
+          bulldozerPauseBtn.textContent = isPaused ? t('btnBulldozerResume') : t('btnBulldozerPause');
+        }
+      }
     }
     if (roadCtrl) {
       roadCtrl.style.display = isGravelRoad ? 'inline-flex' : 'none';
@@ -11888,7 +11988,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
     isDraggingFenceGate = false;
     return;
   }
-  if (downHitRoot && downHitRoot.userData && downHitRoot.userData.isAnimal && selectedObject !== downHitRoot) {
+  if (downHitRoot && downHitRoot.userData && (downHitRoot.userData.isAnimal || downHitRoot.userData.isBulldozer) && selectedObject !== downHitRoot) {
     selectObject(downHitRoot);
   }
   if (downHitRoot && (downHitRoot === selectedObject || multiSelectedOlives.includes(downHitRoot))) {
@@ -11979,6 +12079,8 @@ window.addEventListener('pointermove', (e) => {
       requestShadowUpdate();
       return;
     }
+    const prevX = selectedObject.position.x;
+    const prevZ = selectedObject.position.z;
     const nextX = planeIntersect.x + dragOffset.x;
     const nextZ = planeIntersect.z + dragOffset.z;
     if (multiDragOffsets.length > 1) {
@@ -12003,6 +12105,32 @@ window.addEventListener('pointermove', (e) => {
         st.homeY = surfY;
         st.targetX = st.homeX;
         st.targetZ = st.homeZ;
+      }
+      if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+    }
+    if (selectedObject.userData && selectedObject.userData.isBulldozer) {
+      const surfY = (typeof getAnimalSurfaceY === 'function')
+        ? getAnimalSurfaceY(selectedObject.position.x, selectedObject.position.z, selectedObject)
+        : selectedObject.position.y;
+      selectedObject.position.y = surfY;
+      const st = selectedObject.userData.bulldozerState;
+      if (st) {
+        st.homeX = selectedObject.position.x;
+        st.homeZ = selectedObject.position.z;
+        st.homeY = surfY;
+        st.targetX = st.homeX;
+        st.targetZ = st.homeZ;
+        const dragStep = Math.hypot(nextX - prevX, nextZ - prevZ);
+        if (dragStep > 0.008) {
+          const dragYaw = Math.atan2(nextX - prevX, nextZ - prevZ);
+          let diff = dragYaw - selectedObject.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          selectedObject.rotation.y += diff * 0.28;
+          if (typeof advanceBulldozerGradingEffects === 'function') {
+            advanceBulldozerGradingEffects(st, prevX, prevZ, nextX, nextZ, Math.min(0.05, dragStep / 1.15));
+          }
+        }
       }
       if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
     }
@@ -12088,6 +12216,11 @@ function rotateSelected(deltaRad) {
       st.state = 'IDLE';
       st.stateTimer = Math.max(st.stateTimer || 0, 3.0);
       if (typeof playAnimalClip === 'function') playAnimalClip(st, 'idle', 0.20);
+    }
+    if (obj.userData && obj.userData.isBulldozer && obj.userData.bulldozerState) {
+      const bst = obj.userData.bulldozerState;
+      bst.targetX = obj.position.x + Math.sin(obj.rotation.y) * Math.min(2.2, bst.roamRadius * 0.65);
+      bst.targetZ = obj.position.z + Math.cos(obj.rotation.y) * Math.min(2.2, bst.roamRadius * 0.65);
     }
     obj.updateMatrixWorld(true);
   });
@@ -12214,6 +12347,9 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   if (!entry) return null;
   if (entry.isAnimal && entry.animalType) {
     return deployAnimal(entry.animalType, customOpts || null);
+  }
+  if ((entry.isBulldozer || entry.key === 'Heavy Construction Bulldozer') && typeof window.deployBulldozer === 'function') {
+    return window.deployBulldozer(customOpts || {});
   }
   if ((entry.isGravelRoad || entry.key === 'Country Gravel Road') && typeof window.spawnGravelRoad === 'function') {
     return window.spawnGravelRoad(customOpts || {});
@@ -12375,15 +12511,19 @@ function copySelectedObject() {
       items: multiSelectedOlives.map((o) => {
         const oud = o.userData || {};
         const st = oud.animalState;
+        const bst = oud.bulldozerState;
         return {
           isAnimal: !!oud.isAnimal,
           animalType: oud.animalType || 'chicken',
-          key: oud.labelEn,
+          isBulldozer: !!oud.isBulldozer,
+          paintColor: oud.paintColor || '#E5A01D',
+          paused: !!(bst && bst.paused),
+          key: oud.isBulldozer ? 'Heavy Construction Bulldozer' : oud.labelEn,
           labelEn: oud.labelEn,
           labelAr: oud.labelAr,
           s: oud.scaleFactor || 1.0,
           ry: o.rotation.y,
-          roamRadius: st ? st.roamRadius : 2.4,
+          roamRadius: bst ? bst.roamRadius : (st ? st.roamRadius : 2.4),
           leftPanels: oud.leftPanels,
           rightPanels: oud.rightPanels,
           gateOffsetX: oud.gateOffsetX,
@@ -12412,6 +12552,25 @@ function copySelectedObject() {
         s: ud.scaleFactor || 1.0,
         ry: selectedObject.rotation.y,
         roamRadius: st ? st.roamRadius : 2.4,
+        srcX: selectedObject.position.x,
+        srcY: selectedObject.position.y,
+        srcZ: selectedObject.position.z,
+        pasteCount: 0
+      };
+    } else if (ud.isBulldozer) {
+      const bst = ud.bulldozerState;
+      copiedObjectBlueprint = {
+        isMulti: false,
+        isAnimal: false,
+        isBulldozer: true,
+        key: 'Heavy Construction Bulldozer',
+        labelEn: ud.labelEn,
+        labelAr: ud.labelAr,
+        paintColor: ud.paintColor || '#E5A01D',
+        paused: !!(bst && bst.paused),
+        s: ud.scaleFactor || 1.0,
+        ry: selectedObject.rotation.y,
+        roamRadius: bst ? bst.roamRadius : 5.0,
         srcX: selectedObject.position.x,
         srcY: selectedObject.position.y,
         srcZ: selectedObject.position.z,
@@ -12480,6 +12639,22 @@ function pasteCopiedObject() {
           skipSelect: true
         });
         if (an) spawnedList.push(an);
+      } else if (it.isBulldozer && typeof window.deployBulldozer === 'function') {
+        const surfY = (typeof getAnimalSurfaceY === 'function')
+          ? getAnimalSurfaceY(tx, tz, null, ty)
+          : ty;
+        const bd = window.deployBulldozer({
+          x: tx,
+          y: surfY,
+          z: tz,
+          ry: it.ry,
+          s: it.s,
+          roamRadius: it.roamRadius,
+          paintColor: it.paintColor,
+          paused: it.paused,
+          skipSelect: true
+        });
+        if (bd) spawnedList.push(bd);
       } else {
         const entry = OBJECT_CATALOG_REGISTRY.get(it.key);
         if (!entry) return;
@@ -12548,6 +12723,21 @@ function pasteCopiedObject() {
       roamRadius: copiedObjectBlueprint.roamRadius
     });
   }
+  if (copiedObjectBlueprint.isBulldozer && typeof window.deployBulldozer === 'function') {
+    const surfY = (typeof getAnimalSurfaceY === 'function')
+      ? getAnimalSurfaceY(refX, refZ, null, refY)
+      : refY;
+    return window.deployBulldozer({
+      x: refX,
+      y: surfY,
+      z: refZ,
+      ry: copiedObjectBlueprint.ry,
+      s: copiedObjectBlueprint.s,
+      roamRadius: copiedObjectBlueprint.roamRadius,
+      paintColor: copiedObjectBlueprint.paintColor,
+      paused: copiedObjectBlueprint.paused
+    });
+  }
 
   const entry = OBJECT_CATALOG_REGISTRY.get(copiedObjectBlueprint.key);
   if (!entry) return null;
@@ -12575,6 +12765,10 @@ function deleteSelectedObject() {
     deleteSelectedAnimal();
     return;
   }
+  if (selectedObject.userData && selectedObject.userData.isBulldozer && multiSelectedOlives.length <= 1 && typeof deleteSelectedBulldozer === 'function') {
+    deleteSelectedBulldozer();
+    return;
+  }
   const targetsToDelete = (multiSelectedOlives.length > 1)
     ? multiSelectedOlives.slice()
     : [selectedObject];
@@ -12588,6 +12782,14 @@ function deleteSelectedObject() {
         const anim = deployedAnimals[aIdx];
         if (anim.mixer) anim.mixer.stopAllAction();
         deployedAnimals.splice(aIdx, 1);
+      }
+    }
+    if (targetObj.userData && targetObj.userData.isBulldozer && typeof deployedBulldozers !== 'undefined') {
+      const bIdx = deployedBulldozers.findIndex(b => b && b.root === targetObj);
+      if (bIdx !== -1) {
+        const bull = deployedBulldozers[bIdx];
+        if (bull.mixer) bull.mixer.stopAllAction();
+        deployedBulldozers.splice(bIdx, 1);
       }
     }
     const dIdx = draggableObjects.indexOf(targetObj);
@@ -13476,16 +13678,21 @@ function buildCurrentLayoutPayload() {
   return draggableObjects.map(o => {
     const isAnim = !!(o.userData && o.userData.isAnimal);
     const animSt = isAnim ? o.userData.animalState : null;
+    const isBull = !!(o.userData && o.userData.isBulldozer);
+    const bullSt = isBull ? o.userData.bulldozerState : null;
     return {
       labelEn: o.userData.labelEn,
-      x: +(animSt ? animSt.homeX : o.position.x).toFixed(3),
-      y: +(animSt ? animSt.homeY : o.position.y).toFixed(3),
-      z: +(animSt ? animSt.homeZ : o.position.z).toFixed(3),
+      x: +(bullSt ? bullSt.homeX : (animSt ? animSt.homeX : o.position.x)).toFixed(3),
+      y: +(bullSt ? bullSt.homeY : (animSt ? animSt.homeY : o.position.y)).toFixed(3),
+      z: +(bullSt ? bullSt.homeZ : (animSt ? animSt.homeZ : o.position.z)).toFixed(3),
       ry: +o.rotation.y.toFixed(4),
       s: +(o.userData.scaleFactor || 1.0).toFixed(3),
       isAnimal: isAnim ? true : undefined,
       animalType: isAnim ? o.userData.animalType : undefined,
-      roamRadius: animSt ? +animSt.roamRadius.toFixed(2) : undefined,
+      isBulldozer: isBull ? true : undefined,
+      paintColor: isBull ? (o.userData.paintColor || '#E5A01D') : undefined,
+      paused: (bullSt && bullSt.paused) ? true : undefined,
+      roamRadius: bullSt ? +bullSt.roamRadius.toFixed(2) : (animSt ? +animSt.roamRadius.toFixed(2) : undefined),
       leftPanels: o.userData.isWoodenFence ? o.userData.leftPanels : undefined,
       rightPanels: o.userData.isWoodenFence ? o.userData.rightPanels : undefined,
       gateOffsetX: o.userData.isWoodenFence ? o.userData.gateOffsetX : undefined,
@@ -16870,11 +17077,17 @@ window.animalRoamRingGroup = animalRoamRingGroup;
 })();
 
 function updateAnimalRoamRing() {
-  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isAnimal || !selectedObject.userData.animalState) {
+  if (!selectedObject || !selectedObject.userData) {
     animalRoamRingGroup.visible = false;
     return;
   }
-  const st = selectedObject.userData.animalState;
+  const st = selectedObject.userData.isAnimal
+    ? selectedObject.userData.animalState
+    : (selectedObject.userData.isBulldozer ? selectedObject.userData.bulldozerState : null);
+  if (!st) {
+    animalRoamRingGroup.visible = false;
+    return;
+  }
   const r = st.roamRadius || 2.0;
   animalRoamRingGroup.visible = true;
   animalRoamRingGroup.position.set(st.homeX, st.homeY + 0.018, st.homeZ);
@@ -16940,8 +17153,17 @@ function cloneSkinnedHierarchy(sourceRoot) {
     clonedMesh.receiveShadow = false;
     clonedMesh.raycast = function() {};
     if (clonedMesh.material) {
-      clonedMesh.material = clonedMesh.material.clone();
-      clonedMesh.material.skinning = true;
+      if (Array.isArray(clonedMesh.material)) {
+        clonedMesh.material = clonedMesh.material.map((m) => {
+          if (!m) return m;
+          const cm = m.clone();
+          cm.skinning = true;
+          return cm;
+        });
+      } else {
+        clonedMesh.material = clonedMesh.material.clone();
+        clonedMesh.material.skinning = true;
+      }
     }
   });
   return clonedRoot;
@@ -17386,11 +17608,20 @@ function deployAnimal(type, customOpts) {
 }
 
 function adjustSelectedAnimalRadius(deltaR) {
-  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isAnimal || !selectedObject.userData.animalState) return;
-  const st = selectedObject.userData.animalState;
-  st.roamRadius = Math.max(0.60, Math.min(8.00, st.roamRadius + deltaR));
-  updateSelectedHudText();
-  updateAnimalRoamRing();
+  if (!selectedObject || !selectedObject.userData) return;
+  if (selectedObject.userData.isAnimal && selectedObject.userData.animalState) {
+    const st = selectedObject.userData.animalState;
+    st.roamRadius = Math.max(0.60, Math.min(8.00, st.roamRadius + deltaR));
+    updateSelectedHudText();
+    updateAnimalRoamRing();
+    return;
+  }
+  if (selectedObject.userData.isBulldozer && selectedObject.userData.bulldozerState) {
+    const bst = selectedObject.userData.bulldozerState;
+    bst.roamRadius = Math.max(1.50, Math.min(14.00, bst.roamRadius + deltaR));
+    updateSelectedHudText();
+    updateAnimalRoamRing();
+  }
 }
 
 function deleteSelectedAnimal() {
@@ -17925,6 +18156,1254 @@ function loadPeugeot308Car() {
 }
 
 // ============================================================================
+// INTERACTIVE 3D HEAVY BULLDOZER SYSTEM (bulldozer.glb / BULLDOZER_GLB_B64)
+// - Spawnable from Object Catalog ("Heavy Construction Bulldozer")
+// - 5 Default Bulldozers scattered around all 4 exterior sides of the house
+// - Active 3D Tunisian surface rocks, front-blade soil wave, flying pebbles/gravel
+//   thrown backward in parabolic arcs, and neat flat leveled & tracked ground trails
+// - Instant PBR paint color customization via Selection HUD or Design Color tool
+// ============================================================================
+const deployedBulldozersGroup = new THREE.Group();
+scene.add(deployedBulldozersGroup);
+const deployedBulldozers = [];
+window.deployedBulldozers = deployedBulldozers;
+
+const bulldozerTemplate = {
+  loaded: false,
+  scene: null,
+  clips: {},
+  pending: []
+};
+window.bulldozerTemplate = bulldozerTemplate;
+let bulldozerCounter = 0;
+let lastActiveBulldozerRoot = null;
+let defaultBulldozerPaintHex = '#E5A01D';
+
+const DEFAULT_BULLDOZER_SPAWNS = [
+  // 1) Front-East / South-East Yard (Open rocky ground South-East of Courtyard Terrace)
+  { labelEn: 'Heavy Construction Bulldozer #1', x: 7.50, y: -0.50, z: 21.50, ry: 0.42, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#E5A01D' },
+  // 2) Front-West / South-West Yard (West of Country Gravel Road)
+  { labelEn: 'Heavy Construction Bulldozer #2', x: -20.20, y: -0.50, z: 14.80, ry: -0.22, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#F59E0B' },
+  // 3) West Flank (Left of Swimming Pool & Villa)
+  { labelEn: 'Heavy Construction Bulldozer #3', x: -19.50, y: -0.50, z: -2.50, ry: 0.15, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#D97706' },
+  // 4) North-West / Back-Left Yard (Behind Master Bedroom & Salon)
+  { labelEn: 'Heavy Construction Bulldozer #4', x: -3.50, y: -0.50, z: -13.50, ry: 1.57, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#E5A01D' },
+  // 5) East / North-East Flank (East of Livestock Paddock & Villa)
+  { labelEn: 'Heavy Construction Bulldozer #5', x: 21.50, y: -0.50, z: -4.50, ry: 0.12, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#EA580C' }
+];
+
+// --- 1. Procedural PBR Leveled & Tracked Ground Trail Material ---
+const bulldozerTrailGroup = new THREE.Group();
+scene.add(bulldozerTrailGroup);
+const bulldozerTrailPool = [];
+window.bulldozerTrailPool = bulldozerTrailPool;
+const MAX_BULLDOZER_TRAIL_SEGMENTS = 260;
+let bulldozerTrailCursor = 0;
+
+const matBulldozerGradedTrail = (function buildBulldozerGradedTrailMaterial() {
+  const w = 512, h = 512;
+  const dCan = document.createElement('canvas');
+  dCan.width = w; dCan.height = h;
+  const dCtx = dCan.getContext('2d');
+
+  const nCan = document.createElement('canvas');
+  nCan.width = w; nCan.height = h;
+  const nCtx = nCan.getContext('2d');
+  nCtx.fillStyle = 'rgb(128,128,255)';
+  nCtx.fillRect(0, 0, w, h);
+
+  const imgD = dCtx.createImageData(w, h);
+  const dataD = imgD.data;
+  const imgN = nCtx.getImageData(0, 0, w, h);
+  const dataN = imgN.data;
+
+  // Deterministic pseudo-noise for fine compacted Tunisian sandy-loam soil texture
+  const hash2 = (x, y) => {
+    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+
+  for (let y = 0; y < h; y++) {
+    const v = y / h;
+    // Smooth cosine feather at front/back ends of each trail stamp so overlapping stamps blend with zero seam
+    const vAlpha = Math.sin(Math.min(1.0, Math.min(v / 0.28, (1.0 - v) / 0.28)) * Math.PI * 0.5);
+    for (let x = 0; x < w; x++) {
+      const u = x / w;
+      const idx = (y * w + x) * 4;
+
+      // Lateral feather at outer edges (u in 0..0.12 and 0.88..1.0)
+      let uAlpha = 1.0;
+      if (u < 0.12) uAlpha = u / 0.12;
+      else if (u > 0.88) uAlpha = (1.0 - u) / 0.12;
+      uAlpha = uAlpha * uAlpha * (3.0 - 2.0 * uAlpha);
+
+      // Left track lane: u in [0.12, 0.29], Right track lane: u in [0.71, 0.88]
+      // Center leveled blade lane: u in [0.29, 0.71]
+      const inLeftTrack = (u >= 0.12 && u <= 0.29);
+      const inRightTrack = (u >= 0.71 && u <= 0.88);
+      const inTrack = inLeftTrack || inRightTrack;
+
+      const grain = (hash2(x * 0.5, y * 0.5) - 0.5) * 9.0 + (hash2(x * 0.15, y * 0.15) - 0.5) * 6.0;
+      // Subtle longitudinal grader-blade smoothing lines in the center leveled zone
+      const bladeLine = Math.sin(u * 95.0) * 1.8;
+
+      // Base warm leveled & compacted Tunisian sandy-loam earth color (rich natural earth tone matching surrounding ground)
+      let r = 114 + grain * 0.55 + bladeLine;
+      let g = 96 + grain * 0.48 + bladeLine * 0.85;
+      let b = 76 + grain * 0.38 + bladeLine * 0.65;
+
+      let nx = 128;
+      let ny = 128;
+
+      // Raised soil berm ridges right along the outer edges of the blade cut (u ~ 0.11 and u ~ 0.89)
+      const bermL = Math.exp(-Math.pow((u - 0.105) / 0.028, 2));
+      const bermR = Math.exp(-Math.pow((u - 0.895) / 0.028, 2));
+      if (bermL > 0.05 || bermR > 0.05) {
+        const bVal = Math.max(bermL, bermR);
+        r -= bVal * 14;
+        g -= bVal * 12;
+        b -= bVal * 10;
+        nx += (bermL > bermR ? (u < 0.105 ? -28 : 28) : (u < 0.895 ? -28 : 28)) * bVal;
+      }
+
+      if (inTrack) {
+        // Caterpillar cleat bars repeating every 22 pixels along Y
+        const cleatPhase = (y % 22) / 22.0;
+        const cleatWave = Math.sin(cleatPhase * Math.PI * 2.0);
+        const trackEdgeDist = inLeftTrack
+          ? Math.min((u - 0.12) / 0.03, (0.29 - u) / 0.03, 1.0)
+          : Math.min((u - 0.71) / 0.03, (0.88 - u) / 0.03, 1.0);
+        const cleatStrength = Math.max(0.0, trackEdgeDist);
+
+        // Cleat indentation shadow & highlight
+        const shade = cleatWave * 16.0 * cleatStrength - 9.0 * cleatStrength;
+        r += shade;
+        g += shade * 0.86;
+        b += shade * 0.72;
+
+        // Strong normal map relief for caterpillar cleat imprints
+        ny = Math.round(128 + Math.cos(cleatPhase * Math.PI * 2.0) * 62.0 * cleatStrength);
+        nx = Math.round(128 + (inLeftTrack ? (u < 0.205 ? -18 : 18) : (u < 0.795 ? -18 : 18)) * (1.0 - cleatStrength));
+      } else if (u > 0.29 && u < 0.71) {
+        // Neat, flat leveled center zone: smooth compacted earth finish
+        r += 5.0;
+        g += 4.0;
+        b += 3.0;
+        nx = Math.round(128 + Math.cos(u * 95.0) * 4.5);
+        ny = 128;
+      }
+
+      dataD[idx] = Math.max(0, Math.min(255, Math.round(r)));
+      dataD[idx + 1] = Math.max(0, Math.min(255, Math.round(g)));
+      dataD[idx + 2] = Math.max(0, Math.min(255, Math.round(b)));
+      dataD[idx + 3] = Math.max(0, Math.min(255, Math.round(uAlpha * vAlpha * 218)));
+
+      dataN[idx] = Math.max(0, Math.min(255, nx));
+      dataN[idx + 1] = Math.max(0, Math.min(255, ny));
+      dataN[idx + 2] = 245;
+      dataN[idx + 3] = 255;
+    }
+  }
+
+  dCtx.putImageData(imgD, 0, 0);
+  nCtx.putImageData(imgN, 0, 0);
+
+  const dTex = new THREE.CanvasTexture(dCan);
+  dTex.encoding = THREE.sRGBEncoding;
+  dTex.wrapS = THREE.ClampToEdgeWrapping;
+  dTex.wrapT = THREE.ClampToEdgeWrapping;
+  dTex.anisotropy = 8;
+
+  const nTex = new THREE.CanvasTexture(nCan);
+  nTex.wrapS = THREE.ClampToEdgeWrapping;
+  nTex.wrapT = THREE.ClampToEdgeWrapping;
+  nTex.anisotropy = 8;
+
+  return new THREE.MeshStandardMaterial({
+    map: dTex,
+    normalMap: nTex,
+    normalScale: new THREE.Vector2(1.55, 1.55),
+    roughness: 0.88,
+    metalness: 0.02,
+    transparent: true,
+    opacity: 0.96,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -3,
+    polygonOffsetUnits: -3,
+    clippingPlanes: TERRAIN_CLIP_PLANES,
+    envMapIntensity: 0.14,
+    userData: { customEnvIntensity: 0.14 }
+  });
+})();
+
+const sharedTrailStampGeo = new THREE.PlaneGeometry(2.12, 1.18);
+sharedTrailStampGeo.rotateX(-Math.PI / 2);
+
+function stampBulldozerGradedTrail(wx, surfY, wz, yaw, scaleFactor = 1.0) {
+  // Only stamp on exterior soil/yard ground (-0.55 .. -0.42) so indoor floors/pool stay clean
+  if (surfY > -0.35) return;
+  if (wx < -31.2 || wx > 31.2 || wz < -26.8 || wz > 35.8) return;
+
+  let segMesh = null;
+  if (bulldozerTrailPool.length < MAX_BULLDOZER_TRAIL_SEGMENTS) {
+    segMesh = new THREE.Mesh(sharedTrailStampGeo, matBulldozerGradedTrail);
+    segMesh.receiveShadow = true;
+    segMesh.castShadow = false;
+    segMesh.raycast = function() {};
+    bulldozerTrailGroup.add(segMesh);
+    bulldozerTrailPool.push(segMesh);
+  } else {
+    segMesh = bulldozerTrailPool[bulldozerTrailCursor];
+    bulldozerTrailCursor = (bulldozerTrailCursor + 1) % MAX_BULLDOZER_TRAIL_SEGMENTS;
+  }
+
+  const sf = Math.max(0.5, Math.min(2.5, scaleFactor || 1.0));
+  // Slight micro-elevation step per index to prevent coplanar alpha shimmer
+  const yJitter = (bulldozerTrailCursor % 7) * 0.00018;
+  segMesh.position.set(wx, surfY + 0.0045 + yJitter, wz);
+  segMesh.rotation.set(0, yaw, 0);
+  segMesh.scale.set(sf, 1.0, sf);
+  segMesh.visible = true;
+}
+
+// --- 2. Scattered 3D Tunisian Exterior Surface Rocks ("tanah rata tapi banyak bebatuan") ---
+const tunisianSurfaceRocksGroup = new THREE.Group();
+scene.add(tunisianSurfaceRocksGroup);
+const tunisianSurfaceRocks = [];
+window.tunisianSurfaceRocks = tunisianSurfaceRocks;
+
+const rockMaterials = [
+  new THREE.MeshStandardMaterial({ color: 0x756450, map: soilDiffTex, normalMap: soilNorTex, roughness: 0.92, metalness: 0.02, envMapIntensity: 0.15, userData: { customEnvIntensity: 0.15 } }),
+  new THREE.MeshStandardMaterial({ color: 0x5e4f3e, map: soilDiffTex, normalMap: soilNorTex, roughness: 0.94, metalness: 0.02, envMapIntensity: 0.14, userData: { customEnvIntensity: 0.14 } }),
+  new THREE.MeshStandardMaterial({ color: 0x87745d, map: soilDiffTex, normalMap: soilNorTex, roughness: 0.90, metalness: 0.02, envMapIntensity: 0.16, userData: { customEnvIntensity: 0.16 } })
+];
+
+function buildExteriorTunisianSurfaceRocks() {
+  if (tunisianSurfaceRocks.length > 0) return;
+  const baseGeos = [0, 1, 2].map((gIdx) => {
+    const geo = new THREE.DodecahedronGeometry(0.14, 0);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const vx = pos.getX(i), vy = pos.getY(i), vz = pos.getZ(i);
+      const n = 0.82 + 0.34 * Math.abs(Math.sin(vx * 19.3 + vy * 11.7 + vz * 23.1 + gIdx * 4.7));
+      pos.setXYZ(i, vx * n * 1.25, vy * n * 0.62, vz * n * 1.15);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  });
+
+  // Deterministic scatter across all 4 sides of the exterior Tunisian ground
+  let seed = 1337;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+
+  for (let i = 0; i < 210; i++) {
+    const wx = -29.5 + rand() * 59.0;
+    const wz = -25.0 + rand() * 58.0;
+    // Skip main house + terraces + pool + livestock paddock interior + gravel road strip
+    if (wx >= -11.5 && wx <= 18.6 && wz >= -6.2 && wz <= 16.8) continue;
+    if (Math.abs(wx - (-14.1)) < 2.4) continue;
+    // Skip L-shaped entrance walkway area
+    if (wx >= -6.8 && wx <= 5.5 && wz >= 6.8 && wz <= 14.5) continue;
+
+    const clusterGrp = new THREE.Group();
+    const stoneCount = 2 + (i % 3);
+    for (let s = 0; s < stoneCount; s++) {
+      const m = new THREE.Mesh(baseGeos[(i + s) % baseGeos.length], rockMaterials[(i + s) % rockMaterials.length]);
+      const sc = (s === 0) ? (0.75 + rand() * 0.85) : (0.38 + rand() * 0.52);
+      m.scale.set(sc * (0.9 + rand() * 0.3), sc * (0.65 + rand() * 0.35), sc * (0.9 + rand() * 0.3));
+      const ang = rand() * Math.PI * 2;
+      const dist = (s === 0) ? 0.0 : (0.14 + rand() * 0.22);
+      m.position.set(Math.cos(ang) * dist, 0.03 * sc, Math.sin(ang) * dist);
+      m.rotation.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.raycast = function() {};
+      clusterGrp.add(m);
+    }
+    clusterGrp.position.set(wx, -0.50, wz);
+    tunisianSurfaceRocksGroup.add(clusterGrp);
+    tunisianSurfaceRocks.push({
+      grp: clusterGrp,
+      wx,
+      wz,
+      flattened: 0.0,
+      recoverTimer: 0.0
+    });
+  }
+}
+
+// --- 3. 3D Flying Pebbles/Gravel ("bebatuan2 kecil atau kerikil terlempar ke belakangnya") & Dust Pool ---
+const bulldozerEffectsGroup = new THREE.Group();
+scene.add(bulldozerEffectsGroup);
+const bulldozerGravelPool = [];
+const bulldozerDustPool = [];
+window.bulldozerGravelPool = bulldozerGravelPool;
+window.bulldozerDustPool = bulldozerDustPool;
+
+(function initBulldozerGravelAndDustPools() {
+  const pebbleGeo = new THREE.DodecahedronGeometry(0.052, 0);
+  const pos = pebbleGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    pos.setXYZ(
+      i,
+      pos.getX(i) * (0.85 + (i % 3) * 0.16),
+      pos.getY(i) * (0.68 + ((i + 1) % 3) * 0.14),
+      pos.getZ(i) * (0.88 + ((i + 2) % 3) * 0.15)
+    );
+  }
+  pebbleGeo.computeVertexNormals();
+
+  for (let i = 0; i < 180; i++) {
+    const mesh = new THREE.Mesh(pebbleGeo, rockMaterials[i % rockMaterials.length]);
+    mesh.visible = false;
+    mesh.castShadow = true;
+    mesh.receiveShadow = false;
+    mesh.raycast = function() {};
+    bulldozerEffectsGroup.add(mesh);
+    bulldozerGravelPool.push({
+      mesh,
+      active: false,
+      age: 0,
+      maxAge: 0.75,
+      vx: 0, vy: 0, vz: 0,
+      rvx: 0, rvy: 0, rvz: 0,
+      groundY: -0.48,
+      baseScale: 1.0,
+      bounced: false
+    });
+  }
+
+  const dustGeo = new THREE.DodecahedronGeometry(0.18, 1);
+  for (let i = 0; i < 64; i++) {
+    const dustMat = new THREE.MeshBasicMaterial({
+      color: (i % 2 === 0) ? 0xd6be9c : 0xc4ab89,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false
+    });
+    const mesh = new THREE.Mesh(dustGeo, dustMat);
+    mesh.visible = false;
+    mesh.raycast = function() {};
+    bulldozerEffectsGroup.add(mesh);
+    bulldozerDustPool.push({
+      mesh,
+      active: false,
+      age: 0,
+      maxAge: 0.9,
+      vx: 0, vy: 0, vz: 0,
+      startScale: 0.45
+    });
+  }
+})();
+
+let _gravelSpawnCursor = 0;
+let _dustSpawnCursor = 0;
+
+function spawnBulldozerFlyingPebble(wx, wy, wz, backDirX, backDirZ, rightDirX, rightDirZ, scaleFactor = 1.0, burstBoost = 1.0) {
+  const p = bulldozerGravelPool[_gravelSpawnCursor];
+  _gravelSpawnCursor = (_gravelSpawnCursor + 1) % bulldozerGravelPool.length;
+
+  const sf = Math.max(0.6, Math.min(2.0, scaleFactor || 1.0));
+  const backSpeed = (1.65 + Math.random() * 2.25) * burstBoost * Math.sqrt(sf);
+  const sideJitter = (Math.random() - 0.5) * 1.35 * Math.sqrt(sf);
+
+  p.active = true;
+  p.age = 0.0;
+  p.maxAge = 0.58 + Math.random() * 0.36;
+  p.bounced = false;
+  p.groundY = wy;
+  p.baseScale = (0.65 + Math.random() * 0.95) * sf;
+
+  p.mesh.position.set(wx, wy + 0.06 * sf + Math.random() * 0.12 * sf, wz);
+  p.mesh.scale.setScalar(p.baseScale);
+  p.mesh.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+  p.mesh.visible = true;
+
+  p.vx = backDirX * backSpeed + rightDirX * sideJitter;
+  p.vy = (1.55 + Math.random() * 1.95) * burstBoost * Math.sqrt(sf);
+  p.vz = backDirZ * backSpeed + rightDirZ * sideJitter;
+
+  p.rvx = (Math.random() - 0.5) * 22.0;
+  p.rvy = (Math.random() - 0.5) * 22.0;
+  p.rvz = (Math.random() - 0.5) * 22.0;
+}
+
+function spawnBulldozerDustPuff(wx, wy, wz, backDirX, backDirZ, scaleFactor = 1.0) {
+  const d = bulldozerDustPool[_dustSpawnCursor];
+  _dustSpawnCursor = (_dustSpawnCursor + 1) % bulldozerDustPool.length;
+
+  const sf = Math.max(0.6, Math.min(2.0, scaleFactor || 1.0));
+  d.active = true;
+  d.age = 0.0;
+  d.maxAge = 0.65 + Math.random() * 0.40;
+  d.startScale = (0.42 + Math.random() * 0.35) * sf;
+
+  d.mesh.position.set(wx, wy + 0.08 * sf, wz);
+  d.mesh.scale.setScalar(d.startScale);
+  d.mesh.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+  d.mesh.material.opacity = 0.32;
+  d.mesh.visible = true;
+
+  const backSpd = (0.55 + Math.random() * 0.85) * sf;
+  d.vx = backDirX * backSpd + (Math.random() - 0.5) * 0.45;
+  d.vy = (0.35 + Math.random() * 0.45) * sf;
+  d.vz = backDirZ * backSpd + (Math.random() - 0.5) * 0.45;
+}
+
+function createBladeGradingWaveGroup() {
+  const waveGrp = new THREE.Group();
+  waveGrp.name = 'BladeGradingWaveGroup';
+  // Positioned right along the lower front cutting edge of the bulldozer blade (z = +1.92m)
+  waveGrp.position.set(0, 0.02, 1.92);
+
+  const soilMat = new THREE.MeshStandardMaterial({
+    color: 0x6b5844,
+    map: soilDiffTex,
+    normalMap: soilNorTex,
+    roughness: 0.95,
+    metalness: 0.02,
+    envMapIntensity: 0.14,
+    userData: { customEnvIntensity: 0.14 }
+  });
+
+  // 7 overlapping soil mounds across the width of the blade (-0.84m .. +0.84m)
+  const moundGeo = new THREE.DodecahedronGeometry(0.16, 1);
+  const mStones = [];
+  for (let i = -3; i <= 3; i++) {
+    const mound = new THREE.Mesh(moundGeo, soilMat);
+    const lx = i * 0.26;
+    const arch = 1.0 - Math.abs(i) * 0.11;
+    mound.position.set(lx, 0.06 * arch, (Math.abs(i) % 2) * 0.03);
+    mound.scale.set(1.35, 0.62 * arch, 0.85);
+    mound.castShadow = true;
+    mound.receiveShadow = true;
+    mound.raycast = function() {};
+    waveGrp.add(mound);
+    mStones.push({ mesh: mound, baseY: 0.06 * arch, phase: i * 1.1, isMound: true });
+  }
+
+  // 16 rolling 3D stones/pebbles churning along the front of the blade
+  const stoneGeo = new THREE.DodecahedronGeometry(0.058, 0);
+  for (let i = 0; i < 16; i++) {
+    const stMesh = new THREE.Mesh(stoneGeo, rockMaterials[i % rockMaterials.length]);
+    const lx = -0.86 + (i / 15) * 1.72;
+    const by = 0.045 + (i % 3) * 0.035;
+    const bz = 0.06 + (i % 2) * 0.045;
+    stMesh.position.set(lx, by, bz);
+    const sc = 0.72 + (i % 4) * 0.22;
+    stMesh.scale.set(sc * 1.15, sc * 0.78, sc);
+    stMesh.castShadow = true;
+    stMesh.receiveShadow = false;
+    stMesh.raycast = function() {};
+    waveGrp.add(stMesh);
+    mStones.push({ mesh: stMesh, baseY: by, baseZ: bz, phase: i * 0.85, isMound: false });
+  }
+
+  waveGrp.userData.churnItems = mStones;
+  return waveGrp;
+}
+
+// --- 4. Custom PBR Paint Shader for Bulldozer Body & Blade ---
+function attachBulldozerPaintShader(mat, initialHex) {
+  if (!mat) return;
+  const col = new THREE.Color(initialHex || '#E5A01D').convertSRGBToLinear();
+  const isDefaultYellow = ((initialHex || '#E5A01D').toUpperCase() === '#E5A01D');
+  mat.userData.paintColorUniform = { value: col };
+  mat.userData.paintMixUniform = { value: isDefaultYellow ? 0.0 : 1.0 };
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uBulldozerPaintColor = mat.userData.paintColorUniform;
+    shader.uniforms.uBulldozerPaintMix = mat.userData.paintMixUniform;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>
+      uniform vec3 uBulldozerPaintColor;
+      uniform float uBulldozerPaintMix;`
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>
+      if (uBulldozerPaintMix > 0.001) {
+        float maxC = max(diffuseColor.r, max(diffuseColor.g, diffuseColor.b));
+        float minC = min(diffuseColor.r, min(diffuseColor.g, diffuseColor.b));
+        float warmSat = (diffuseColor.r - diffuseColor.b) / max(maxC, 0.0005);
+        float paintMask = smoothstep(0.20, 0.46, warmSat) * smoothstep(0.005, 0.032, diffuseColor.r - minC);
+        float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+        vec3 targetShade = uBulldozerPaintColor * (lum * 2.15 + 0.045 * pow(maxC, 0.65));
+        diffuseColor.rgb = mix(diffuseColor.rgb, targetShade, paintMask * uBulldozerPaintMix);
+      }`
+    );
+  };
+  mat.customProgramCacheKey = () => 'bulldozer_pbr_paint_v1';
+  mat.needsUpdate = true;
+}
+
+function setBulldozerPaintColor(bulldozerRoot, hexColor) {
+  if (!bulldozerRoot || typeof hexColor !== 'string') return;
+  const cleanHex = hexColor.trim().toUpperCase();
+  if (!/^#[0-9A-F]{6}$/.test(cleanHex)) return;
+
+  bulldozerRoot.userData.paintColor = cleanHex;
+  lastActiveBulldozerRoot = bulldozerRoot;
+  defaultBulldozerPaintHex = cleanHex;
+
+  const isFactoryYellow = (cleanHex === '#E5A01D');
+  const linCol = new THREE.Color(cleanHex).convertSRGBToLinear();
+
+  const bodyMats = bulldozerRoot.userData.bodyMaterials || [];
+  for (let i = 0; i < bodyMats.length; i++) {
+    const m = bodyMats[i];
+    if (!m) continue;
+    if (!m.userData.paintColorUniform) {
+      attachBulldozerPaintShader(m, cleanHex);
+    } else {
+      m.userData.paintColorUniform.value.copy(linCol);
+      m.userData.paintMixUniform.value = isFactoryYellow ? 0.0 : 1.0;
+    }
+  }
+
+  if (selectedObject === bulldozerRoot) {
+    updateSelectedHudText();
+  }
+  if (typeof syncDesignColorUI === 'function') syncDesignColorUI();
+  requestShadowUpdate();
+}
+window.setBulldozerPaintColor = setBulldozerPaintColor;
+
+function getActiveBulldozerHexColor() {
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isBulldozer) {
+    return (selectedObject.userData.paintColor || '#E5A01D').toUpperCase();
+  }
+  if (lastActiveBulldozerRoot && lastActiveBulldozerRoot.userData && lastActiveBulldozerRoot.parent) {
+    return (lastActiveBulldozerRoot.userData.paintColor || '#E5A01D').toUpperCase();
+  }
+  if (deployedBulldozers.length > 0 && deployedBulldozers[0].root) {
+    return (deployedBulldozers[0].root.userData.paintColor || '#E5A01D').toUpperCase();
+  }
+  return defaultBulldozerPaintHex;
+}
+window.getActiveBulldozerHexColor = getActiveBulldozerHexColor;
+
+function applyBulldozerColorFromPicker(hexColor) {
+  if (!hexColor || !/^#[0-9a-fA-F]{6}$/.test(hexColor)) return;
+  const cleanHex = hexColor.toUpperCase();
+  defaultBulldozerPaintHex = cleanHex;
+
+  // 1) If a single or multi-selected bulldozer is active, apply to it immediately
+  const multiBulls = multiSelectedOlives.filter(o => o && o.userData && o.userData.isBulldozer);
+  if (multiBulls.length > 0) {
+    multiBulls.forEach(b => setBulldozerPaintColor(b, cleanHex));
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    return;
+  }
+  if (selectedObject && selectedObject.userData && selectedObject.userData.isBulldozer) {
+    setBulldozerPaintColor(selectedObject, cleanHex);
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+    return;
+  }
+  // 2) If user opened Design Color panel without selecting a bulldozer first, recolor all deployed bulldozers!
+  if (deployedBulldozers.length > 0) {
+    deployedBulldozers.forEach(st => {
+      if (st && st.root) setBulldozerPaintColor(st.root, cleanHex);
+    });
+    if (typeof saveStateToLocalStorage === 'function') saveStateToLocalStorage();
+  }
+}
+window.applyBulldozerColorFromPicker = applyBulldozerColorFromPicker;
+
+function toggleSelectedBulldozerDrive() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isBulldozer || !selectedObject.userData.bulldozerState) return;
+  const st = selectedObject.userData.bulldozerState;
+  st.paused = !st.paused;
+  updateSelectedHudText();
+}
+window.toggleSelectedBulldozerDrive = toggleSelectedBulldozerDrive;
+
+// --- 5. Load Bulldozer GLB Template & Deploy Instances ---
+function loadBulldozerTemplate() {
+  const onGltfReady = (gltf) => {
+    const root = gltf.scene;
+    root.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.frustumCulled = false;
+        ch.raycast = function() {};
+        const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+        mats.forEach((m) => {
+          if (!m) return;
+          m.skinning = true;
+          const mName = (m.name || '').toLowerCase();
+          if (mName.includes('track')) {
+            m.transparent = true;
+            m.alphaTest = 0.35;
+            m.side = THREE.DoubleSide;
+            m.roughness = 0.78;
+            m.metalness = 0.32;
+            m.envMapIntensity = 0.45;
+            m.userData = { customEnvIntensity: 0.45, isTrackMat: true };
+            if (m.map) {
+              m.map.encoding = THREE.sRGBEncoding;
+              m.map.wrapS = THREE.RepeatWrapping;
+              m.map.wrapT = THREE.RepeatWrapping;
+            }
+            if (m.normalMap) {
+              m.normalMap.wrapS = THREE.RepeatWrapping;
+              m.normalMap.wrapT = THREE.RepeatWrapping;
+            }
+          } else {
+            m.roughness = 0.42;
+            m.metalness = 0.28;
+            m.envMapIntensity = 0.68;
+            m.userData = { customEnvIntensity: 0.68, isBodyMat: true };
+            if (m.map) m.map.encoding = THREE.sRGBEncoding;
+          }
+          m.needsUpdate = true;
+        });
+      }
+    });
+
+    root.updateMatrixWorld(true);
+    (gltf.animations || []).forEach((clip) => {
+      const nm = clip.name.toLowerCase();
+      if (nm.includes('work') || nm.includes('drive')) bulldozerTemplate.clips.work = clip;
+      else if (nm.includes('blade') || nm.includes('take')) bulldozerTemplate.clips.blade = clip;
+    });
+    if (!bulldozerTemplate.clips.work && gltf.animations && gltf.animations.length > 0) {
+      bulldozerTemplate.clips.work = gltf.animations[0];
+    }
+
+    bulldozerTemplate.scene = root;
+    bulldozerTemplate.loaded = true;
+    while (bulldozerTemplate.pending.length > 0) {
+      const req = bulldozerTemplate.pending.shift();
+      deployBulldozer(req);
+    }
+    requestShadowUpdate();
+  };
+
+  const localUrl = './bulldozer.glb';
+  const ghUrl = 'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/bulldozer.glb';
+  const loadFromUrl = () => {
+    const firstUrl = (window.location.protocol === 'file:') ? ghUrl : localUrl;
+    gltfLoader.load(firstUrl, onGltfReady, undefined, () => {
+      gltfLoader.load(ghUrl, onGltfReady, undefined, (err) => {
+        console.warn('Could not load bulldozer GLB:', err);
+      });
+    });
+  };
+
+  if (window.BULLDOZER_GLB_B64 && typeof window.BULLDOZER_GLB_B64 === 'string') {
+    try {
+      const binStr = window.atob(window.BULLDOZER_GLB_B64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+      gltfLoader.parse(bytes.buffer, '', onGltfReady, () => loadFromUrl());
+      return;
+    } catch (e) {
+      console.warn('Bulldozer Base64 decode fallback:', e);
+    }
+  }
+  loadFromUrl();
+}
+
+function isValidBulldozerPosition(bull, wx, wz, expectedY) {
+  if (wx < -29.8 || wx > 29.8 || wz < -25.2 || wz > 33.8) return false;
+  // Never drive into the Villa, Terraces, Swimming Pool, or Livestock Paddock
+  if (wx >= -11.4 && wx <= 18.8 && wz >= -6.2 && wz <= 14.2) return false;
+  // Keep clear of the East Guest Cabin front terrace & Bonfire Pit
+  if (wx >= 11.4 && wx <= 18.8 && wz >= 9.0 && wz <= 20.4) return false;
+  // Keep clear of the parked Peugeot 308 car
+  if (window.peugeot308CarObj) {
+    const cx = window.peugeot308CarObj.position.x;
+    const cz = window.peugeot308CarObj.position.z;
+    if (Math.hypot(wx - cx, wz - cz) < 3.4) return false;
+  }
+
+  if (bull) {
+    const distFromHome = Math.hypot(wx - bull.homeX, wz - bull.homeZ);
+    if (distFromHome > bull.roamRadius + 0.15) return false;
+  }
+
+  const refY = (typeof expectedY === 'number') ? expectedY : (bull ? bull.homeY : -0.50);
+  const surfY = getAnimalSurfaceY(wx, wz, bull ? bull.root : null, refY);
+  if (Math.abs(surfY - refY) > 0.08) return false;
+
+  // Avoid olive trees & large trees
+  const curX = bull ? bull.root.position.x : wx;
+  const curZ = bull ? bull.root.position.z : wz;
+  for (let i = 0; i < draggableObjects.length; i++) {
+    const other = draggableObjects[i];
+    if (!other || (bull && other === bull.root) || other.userData.isDynamicLWalkway || other.userData.isGravelRoad) continue;
+    if (Math.abs(other.position.y - refY) > 1.2) continue;
+    const minSep = other.userData.isBulldozer ? 3.2 : (other.userData.isWoodenFence ? 2.4 : 1.65);
+    const dNew = Math.hypot(wx - other.position.x, wz - other.position.z);
+    const dCur = Math.hypot(curX - other.position.x, curZ - other.position.z);
+    if (dNew < minSep && (!bull || dNew < dCur)) return false;
+  }
+
+  return true;
+}
+
+function pickLogicalBulldozerTarget(bull) {
+  const curX = bull.root.position.x;
+  const curZ = bull.root.position.z;
+  const maxR = bull.roamRadius;
+
+  // Alternate back-and-forth grading passes across the bulldozer's work zone
+  bull.passAngle = (typeof bull.passAngle === 'number')
+    ? (bull.passAngle + Math.PI * (0.68 + Math.random() * 0.45))
+    : (bull.root.rotation.y);
+
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const theta = (attempt < 8)
+      ? (bull.passAngle + (Math.random() - 0.5) * 0.65)
+      : (Math.random() * Math.PI * 2);
+    const r = (0.45 + 0.52 * Math.random()) * maxR;
+    const tx = bull.homeX + Math.cos(theta) * r;
+    const tz = bull.homeZ + Math.sin(theta) * r;
+    if (Math.hypot(tx - curX, tz - curZ) < 1.45) continue;
+
+    let pathClear = true;
+    for (let s = 1; s <= 5; s++) {
+      const f = s / 5;
+      const sx = curX + (tx - curX) * f;
+      const sz = curZ + (tz - curZ) * f;
+      if (!isValidBulldozerPosition(bull, sx, sz, bull.homeY)) {
+        pathClear = false;
+        break;
+      }
+    }
+    if (pathClear) {
+      bull.passAngle = Math.atan2(tz - bull.homeZ, tx - bull.homeX);
+      return { x: tx, z: tz };
+    }
+  }
+  return null;
+}
+
+function findSmartBulldozerSpawnPosition(preferPos) {
+  let baseX = 6.8, baseZ = 15.4;
+  if (preferPos && typeof preferPos.x === 'number') {
+    baseX = preferPos.x;
+    baseZ = preferPos.z;
+  } else if (viewMode === 'walk') {
+    baseX = walkState.pos.x - Math.sin(walkState.yaw) * 3.8;
+    baseZ = walkState.pos.z - Math.cos(walkState.yaw) * 3.8;
+  } else if (controls && controls.target) {
+    const isDefaultExterior = (
+      viewMode === 'orbit' &&
+      state.roofVisible &&
+      activeCamera.position.z > 11.0 &&
+      Math.abs(controls.target.x - 2.2) < 2.5 &&
+      Math.abs(controls.target.z - 6.6) < 2.8
+    );
+    if (isDefaultExterior) {
+      baseX = -11.5;
+      baseZ = 15.2;
+    } else {
+      baseX = controls.target.x;
+      baseZ = controls.target.z;
+    }
+  }
+
+  for (let i = 0; i < 45; i++) {
+    const r = (i === 0) ? 0 : (1.6 + i * 0.65);
+    const ang = i * 2.3999632;
+    const cx = Math.max(-29.0, Math.min(29.0, baseX + Math.cos(ang) * r));
+    const cz = Math.max(-24.5, Math.min(32.5, baseZ + Math.sin(ang) * r));
+    const cy = getAnimalSurfaceY(cx, cz, null, -0.50);
+    if (Math.abs(cy - (-0.50)) > 0.08) continue;
+    if (isValidBulldozerPosition(null, cx, cz, cy)) {
+      return { x: cx, y: cy, z: cz };
+    }
+  }
+  return { x: baseX, y: -0.50, z: baseZ };
+}
+
+function advanceBulldozerGradingEffects(bull, prevX, prevZ, curX, curZ, dt) {
+  if (!bull || !bull.root) return;
+  const root = bull.root;
+  const sf = Math.max(0.5, Math.min(2.2, root.userData.scaleFactor || 1.0));
+  const yaw = root.rotation.y;
+  const fwdX = Math.sin(yaw);
+  const fwdZ = Math.cos(yaw);
+  const rightX = Math.cos(yaw);
+  const rightZ = -Math.sin(yaw);
+  const stepDist = Math.hypot(curX - prevX, curZ - prevZ);
+
+  // 1) Scroll caterpillar track UVs smoothly along the belt
+  if (bull.trackTextures && bull.trackTextures.length > 0) {
+    bull.trackUvOffset = ((bull.trackUvOffset || 0) + stepDist * 0.85) % 1.0;
+    for (let i = 0; i < bull.trackTextures.length; i++) {
+      bull.trackTextures[i].offset.x = bull.trackUvOffset;
+    }
+  }
+
+  // 2) Churn the front-blade 3D soil wave mounds & rolling pebbles
+  if (bull.bladeWaveGroup && bull.bladeWaveGroup.userData.churnItems) {
+    bull.wavePhase = (bull.wavePhase || 0) + dt * 14.0;
+    const items = bull.bladeWaveGroup.userData.churnItems;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (it.isMound) {
+        const pulse = 1.0 + 0.14 * Math.sin(bull.wavePhase + it.phase);
+        it.mesh.scale.y = 0.62 * pulse;
+      } else {
+        it.mesh.rotation.x += dt * 9.5;
+        it.mesh.rotation.z += dt * 4.2;
+        it.mesh.position.y = it.baseY + Math.abs(Math.sin(bull.wavePhase * 1.3 + it.phase)) * 0.045;
+      }
+    }
+  }
+
+  // 3) Flatten any 3D Tunisian surface rocks under the front blade & burst extra flying gravel backward!
+  const bladeWX = curX + fwdX * (1.85 * sf);
+  const bladeWZ = curZ + fwdZ * (1.85 * sf);
+  const bladeRadius = 1.25 * sf;
+  for (let i = 0; i < tunisianSurfaceRocks.length; i++) {
+    const rk = tunisianSurfaceRocks[i];
+    if (rk.flattened > 0.85) continue;
+    if (Math.hypot(rk.wx - bladeWX, rk.wz - bladeWZ) <= bladeRadius) {
+      rk.flattened = 1.0;
+      rk.recoverTimer = 48.0;
+      rk.grp.scale.y = 0.14;
+      rk.grp.position.y = -0.505;
+      // Burst 5 crushed rock pebbles flying backward from the blade!
+      for (let b = 0; b < 5; b++) {
+        const lat = (Math.random() - 0.5) * 1.55 * sf;
+        spawnBulldozerFlyingPebble(
+          curX - fwdX * (0.95 * sf) + rightX * lat,
+          root.position.y,
+          curZ - fwdZ * (0.95 * sf) + rightZ * lat,
+          -fwdX, -fwdZ, rightX, rightZ, sf, 1.25
+        );
+      }
+    }
+  }
+
+  // 4) Stamp neat, flat, leveled & tracked ground trail decals ("terlihat berjejak tapi rapi dan rata")
+  const distFromLastStamp = Math.hypot(curX - bull.lastTrailX, curZ - bull.lastTrailZ);
+  if (distFromLastStamp >= 0.34 * sf) {
+    // Stamp behind the center of the tracks so the leveled trail emerges cleanly from the rear of the bulldozer
+    const stampX = curX - fwdX * (0.65 * sf);
+    const stampZ = curZ - fwdZ * (0.65 * sf);
+    stampBulldozerGradedTrail(stampX, root.position.y, stampZ, yaw, sf);
+    bull.lastTrailX = curX;
+    bull.lastTrailZ = curZ;
+  }
+
+  // 5) Continuously throw small pebbles/gravel ("bebatuan2 kecil atau kerikil") backward behind tracks & blade
+  bull.pebbleAccum = (bull.pebbleAccum || 0) + stepDist * 22.0 + dt * 14.0;
+  while (bull.pebbleAccum >= 1.0) {
+    bull.pebbleAccum -= 1.0;
+    const isLeft = (Math.random() < 0.5);
+    const trackLat = (isLeft ? -0.66 : 0.66) * sf + (Math.random() - 0.5) * 0.38 * sf;
+    // Eject from rear of tracks (z = -1.25m) or under rear of blade (z = +0.85m), always thrown backward (-fwd)
+    const fromRear = (Math.random() < 0.82);
+    const lonOff = (fromRear ? -1.28 : 0.85) * sf;
+    const px = curX + fwdX * lonOff + rightX * trackLat;
+    const pz = curZ + fwdZ * lonOff + rightZ * trackLat;
+    spawnBulldozerFlyingPebble(
+      px,
+      root.position.y,
+      pz,
+      -fwdX, -fwdZ,
+      rightX, rightZ,
+      sf,
+      fromRear ? 1.15 : 0.90
+    );
+  }
+
+  // 6) Emit warm dry-earth dust puffs behind the tracks
+  bull.dustAccum = (bull.dustAccum || 0) + stepDist * 4.2 + dt * 2.5;
+  if (bull.dustAccum >= 1.0) {
+    bull.dustAccum -= 1.0;
+    const side = (Math.random() < 0.5 ? -0.64 : 0.64) * sf;
+    const dx = curX - fwdX * (1.28 * sf) + rightX * side;
+    const dz = curZ - fwdZ * (1.28 * sf) + rightZ * side;
+    spawnBulldozerDustPuff(dx, root.position.y, dz, -fwdX, -fwdZ, sf);
+  }
+}
+
+function deployBulldozer(customOpts = {}) {
+  if (!bulldozerTemplate.loaded || !bulldozerTemplate.scene) {
+    bulldozerTemplate.pending.push(customOpts || {});
+    return null;
+  }
+
+  buildExteriorTunisianSurfaceRocks();
+
+  bulldozerCounter++;
+  const idx = bulldozerCounter;
+  const bulldozerRoot = new THREE.Group();
+  bulldozerRoot.userData.noAutoRecenter = true;
+  bulldozerRoot.userData.isBulldozer = true;
+
+  const clonedModel = cloneSkinnedHierarchy(bulldozerTemplate.scene);
+  // Native bulldozer.glb has the front hydraulic blade at +Z and rear radiator/exhaust at -Z
+  clonedModel.rotation.y = 0;
+  bulldozerRoot.add(clonedModel);
+
+  // Collect cloned body materials (for custom paint recoloring) and cloned track textures (for UV scrolling)
+  const bodyMaterials = [];
+  const trackTextures = [];
+  const seenMats = new Set();
+
+  clonedModel.traverse((ch) => {
+    if (!ch.isMesh || !ch.material) return;
+    const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+    const clonedMats = mats.map((m) => {
+      if (!m) return m;
+      const cm = m.clone();
+      cm.skinning = true;
+      const mName = (cm.name || '').toLowerCase();
+      if (mName.includes('track')) {
+        if (cm.map) {
+          cm.map = cm.map.clone();
+          cm.map.needsUpdate = true;
+          cm.map.wrapS = THREE.RepeatWrapping;
+          cm.map.wrapT = THREE.RepeatWrapping;
+          trackTextures.push(cm.map);
+        }
+        if (cm.normalMap) {
+          cm.normalMap = cm.normalMap.clone();
+          cm.normalMap.needsUpdate = true;
+          cm.normalMap.wrapS = THREE.RepeatWrapping;
+          cm.normalMap.wrapT = THREE.RepeatWrapping;
+          trackTextures.push(cm.normalMap);
+        }
+      } else if (!seenMats.has(cm)) {
+        seenMats.add(cm);
+        bodyMaterials.push(cm);
+      }
+      return cm;
+    });
+    ch.material = Array.isArray(ch.material) ? clonedMats : clonedMats[0];
+  });
+
+  bulldozerRoot.userData.bodyMaterials = bodyMaterials;
+  const initialColor = (customOpts && typeof customOpts.paintColor === 'string')
+    ? customOpts.paintColor.toUpperCase()
+    : defaultBulldozerPaintHex;
+  bulldozerRoot.userData.paintColor = initialColor;
+  bodyMaterials.forEach(m => attachBulldozerPaintShader(m, initialColor));
+
+  // Attach active 3D soil/gravel wave at the front blade
+  const bladeWaveGroup = createBladeGradingWaveGroup();
+  bulldozerRoot.add(bladeWaveGroup);
+
+  // Soft contact shadow under tracks & blade
+  if (typeof addContactShadow === 'function') {
+    addContactShadow(bulldozerRoot, 2.05, 3.65, 0.007, 0.44);
+  }
+
+  // Fast invisible hit-box proxy so clicking/selecting/dragging the bulldozer is instant
+  const hitGeo = new THREE.BoxGeometry(2.10, 2.35, 3.90);
+  const hitMat = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0.0,
+    depthWrite: false,
+    colorWrite: false
+  });
+  const hitBox = new THREE.Mesh(hitGeo, hitMat);
+  hitBox.position.set(0, 1.18, 0.32);
+  hitBox.userData.isAODecal = true;
+  bulldozerRoot.add(hitBox);
+
+  const spawn = (customOpts && typeof customOpts.x === 'number')
+    ? {
+        x: customOpts.x,
+        y: (typeof customOpts.y === 'number') ? customOpts.y : getAnimalSurfaceY(customOpts.x, customOpts.z, null),
+        z: customOpts.z
+      }
+    : findSmartBulldozerSpawnPosition(customOpts && customOpts.nearPoint ? customOpts.nearPoint : null);
+
+  bulldozerRoot.position.set(spawn.x, spawn.y, spawn.z);
+  const initYaw = (customOpts && typeof customOpts.ry === 'number')
+    ? customOpts.ry
+    : (Math.random() * Math.PI * 2);
+  bulldozerRoot.rotation.y = initYaw;
+
+  const labelEn = `Heavy Construction Bulldozer #${idx}`;
+  const labelAr = `جرافة بناء ثقيلة (بلدوزر) #${idx}`;
+  registerDraggable(bulldozerRoot, labelEn, labelAr);
+
+  const sf = (customOpts && typeof customOpts.s === 'number' && customOpts.s > 0.1) ? customOpts.s : 1.0;
+  bulldozerRoot.userData.scaleFactor = sf;
+  bulldozerRoot.scale.setScalar(sf);
+
+  // Register template in OBJECT_CATALOG_REGISTRY if not yet populated
+  if (OBJECT_CATALOG_REGISTRY.has('Heavy Construction Bulldozer')) {
+    const regEntry = OBJECT_CATALOG_REGISTRY.get('Heavy Construction Bulldozer');
+    if (!regEntry.template) regEntry.template = bulldozerRoot;
+  }
+
+  deployedBulldozersGroup.add(bulldozerRoot);
+
+  // Set up AnimationMixer playing Bulldozer_Work_Drive (low grading blade + spinning wheels + chassis rumble)
+  const mixer = new THREE.AnimationMixer(clonedModel);
+  const actions = {};
+  if (bulldozerTemplate.clips.work) {
+    actions.work = mixer.clipAction(bulldozerTemplate.clips.work);
+    actions.work.timeScale = 1.15;
+    actions.work.play();
+    actions.work.time = (idx * 0.47) % 2.4;
+    mixer.update(0.01);
+  }
+
+  const roamRadius = (customOpts && typeof customOpts.roamRadius === 'number')
+    ? Math.max(1.50, Math.min(14.00, customOpts.roamRadius))
+    : 5.20;
+
+  const fwdX = Math.sin(initYaw);
+  const fwdZ = Math.cos(initYaw);
+
+  const bullState = {
+    root: bulldozerRoot,
+    model: clonedModel,
+    mixer,
+    actions,
+    bladeWaveGroup,
+    trackTextures,
+    trackUvOffset: 0.0,
+    wavePhase: idx * 1.3,
+    homeX: spawn.x,
+    homeY: spawn.y,
+    homeZ: spawn.z,
+    roamRadius,
+    paused: !!(customOpts && customOpts.paused),
+    state: 'GRADE_DRIVE',
+    stateTimer: 0.2,
+    passAngle: initYaw,
+    targetX: spawn.x + fwdX * Math.min(3.2, roamRadius * 0.65),
+    targetZ: spawn.z + fwdZ * Math.min(3.2, roamRadius * 0.65),
+    driveSpeed: 1.08 + (idx % 3) * 0.08,
+    lastTrailX: spawn.x,
+    lastTrailZ: spawn.z,
+    pebbleAccum: 0.0,
+    dustAccum: 0.0,
+    shadowTick: idx % 4
+  };
+
+  // Validate initial forward target; if blocked, pick a clear target within roamRadius
+  if (!isValidBulldozerPosition(bullState, bullState.targetX, bullState.targetZ, spawn.y)) {
+    const alt = pickLogicalBulldozerTarget(bullState);
+    if (alt) {
+      bullState.targetX = alt.x;
+      bullState.targetZ = alt.z;
+    }
+  }
+
+  // Pre-stamp an initial 3.6m neat leveled & tracked ground path directly behind the bulldozer at spawn
+  // so it immediately looks like it has already been leveling the rocky Tunisian terrain!
+  for (let s = 9; s >= 0; s--) {
+    const distBack = (0.65 + s * 0.36) * sf;
+    const sx = spawn.x - fwdX * distBack;
+    const sz = spawn.z - fwdZ * distBack;
+    stampBulldozerGradedTrail(sx, spawn.y, sz, initYaw, sf);
+    for (let r = 0; r < tunisianSurfaceRocks.length; r++) {
+      const rk = tunisianSurfaceRocks[r];
+      if (Math.hypot(rk.wx - sx, rk.wz - sz) < 1.20 * sf) {
+        rk.flattened = 1.0;
+        rk.recoverTimer = 48.0;
+        rk.grp.scale.y = 0.14;
+        rk.grp.position.y = -0.505;
+      }
+    }
+  }
+
+  bulldozerRoot.userData.bulldozerState = bullState;
+  deployedBulldozers.push(bullState);
+  lastActiveBulldozerRoot = bulldozerRoot;
+
+  if (!customOpts || !customOpts.skipSelect) {
+    selectObject(bulldozerRoot);
+  }
+  requestShadowUpdate();
+  return bulldozerRoot;
+}
+window.deployBulldozer = deployBulldozer;
+
+function deleteSelectedBulldozer() {
+  if (!selectedObject || !selectedObject.userData || !selectedObject.userData.isBulldozer) return;
+  const targetObj = selectedObject;
+  const st = targetObj.userData.bulldozerState;
+  deselectObject();
+
+  if (st && st.mixer) st.mixer.stopAllAction();
+  const bIdx = deployedBulldozers.indexOf(st);
+  if (bIdx !== -1) deployedBulldozers.splice(bIdx, 1);
+
+  const dIdx = draggableObjects.indexOf(targetObj);
+  if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
+
+  if (targetObj.parent) targetObj.parent.remove(targetObj);
+  updateAnimalRoamRing();
+  requestShadowUpdate();
+}
+window.deleteSelectedBulldozer = deleteSelectedBulldozer;
+
+function updateDeployedBulldozers(dt) {
+  // 1) Update 3D flying pebbles/gravel physics (parabolic arc + ground bounce + spin)
+  for (let i = 0; i < bulldozerGravelPool.length; i++) {
+    const p = bulldozerGravelPool[i];
+    if (!p.active) continue;
+    p.age += dt;
+    if (p.age >= p.maxAge) {
+      p.active = false;
+      p.mesh.visible = false;
+      continue;
+    }
+    p.vy -= 9.4 * dt;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+    p.mesh.rotation.x += p.rvx * dt;
+    p.mesh.rotation.y += p.rvy * dt;
+    p.mesh.rotation.z += p.rvz * dt;
+
+    const floorY = p.groundY + 0.022;
+    if (p.mesh.position.y <= floorY) {
+      p.mesh.position.y = floorY;
+      if (!p.bounced) {
+        p.bounced = true;
+        p.vy = Math.abs(p.vy) * 0.36;
+        p.vx *= 0.58;
+        p.vz *= 0.58;
+      } else {
+        p.vy = 0;
+        p.vx *= 0.82;
+        p.vz *= 0.82;
+      }
+    }
+    const lifeLeft = 1.0 - (p.age / p.maxAge);
+    if (lifeLeft < 0.28) {
+      p.mesh.scale.setScalar(p.baseScale * (lifeLeft / 0.28));
+    }
+  }
+
+  // 2) Update warm dry-earth dust clouds behind tracks
+  for (let i = 0; i < bulldozerDustPool.length; i++) {
+    const d = bulldozerDustPool[i];
+    if (!d.active) continue;
+    d.age += dt;
+    if (d.age >= d.maxAge) {
+      d.active = false;
+      d.mesh.visible = false;
+      continue;
+    }
+    const f = d.age / d.maxAge;
+    d.mesh.position.x += d.vx * dt;
+    d.mesh.position.y += d.vy * dt;
+    d.mesh.position.z += d.vz * dt;
+    d.mesh.scale.setScalar(d.startScale * (1.0 + f * 1.85));
+    d.mesh.material.opacity = 0.30 * (1.0 - f) * (1.0 - f);
+  }
+
+  // 3) Slowly recover flattened surface rocks far from any bulldozer after ~48s
+  for (let i = 0; i < tunisianSurfaceRocks.length; i++) {
+    const rk = tunisianSurfaceRocks[i];
+    if (rk.flattened > 0.0) {
+      rk.recoverTimer -= dt;
+      if (rk.recoverTimer <= 0) {
+        rk.flattened = Math.max(0.0, rk.flattened - dt * 0.25);
+        rk.grp.scale.y = 1.0 - 0.86 * rk.flattened;
+        rk.grp.position.y = -0.50 - 0.005 * rk.flattened;
+      }
+    }
+  }
+
+  if (deployedBulldozers.length === 0) return;
+  let needShadow = false;
+
+  for (let i = 0; i < deployedBulldozers.length; i++) {
+    const bull = deployedBulldozers[i];
+    const root = bull.root;
+    if (!root) continue;
+
+    if (root.position.y > 2.2 && (viewMode === 'top1' || !state.roofVisible)) {
+      root.visible = false;
+      continue;
+    } else {
+      root.visible = true;
+    }
+
+    // If user is actively dragging this bulldozer or it is paused, keep blade animation gentle
+    if ((isDraggingObject && selectedObject === root) || bull.paused) {
+      if (bull.mixer) bull.mixer.update(dt * (bull.paused ? 0.0 : 0.85));
+      continue;
+    }
+
+    const prevX = root.position.x;
+    const prevZ = root.position.z;
+
+    if (bull.state === 'GRADE_DRIVE') {
+      const dx = bull.targetX - prevX;
+      const dz = bull.targetZ - prevZ;
+      const dist = Math.hypot(dx, dz);
+      const sf = Math.max(0.55, Math.min(1.75, root.userData.scaleFactor || 1.0));
+      const step = bull.driveSpeed * Math.sqrt(sf) * dt;
+
+      if (dist <= step + 0.08) {
+        bull.state = 'TURN_PAUSE';
+        bull.stateTimer = 0.35 + Math.random() * 0.45;
+      } else {
+        const targetYaw = Math.atan2(dx, dz);
+        let diff = targetYaw - root.rotation.y;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+
+        // Turn in place smoothly when angle difference is large, then drive forward
+        const turnRate = 3.2;
+        root.rotation.y += diff * Math.min(1.0, dt * turnRate);
+        const alignFactor = Math.max(0.25, Math.cos(Math.min(Math.PI * 0.45, Math.abs(diff))));
+        const moveStep = step * alignFactor;
+        const nx = prevX + Math.sin(root.rotation.y) * moveStep;
+        const nz = prevZ + Math.cos(root.rotation.y) * moveStep;
+
+        if (isValidBulldozerPosition(bull, nx, nz, bull.homeY)) {
+          root.position.x = nx;
+          root.position.z = nz;
+          root.position.y = bull.homeY;
+          advanceBulldozerGradingEffects(bull, prevX, prevZ, nx, nz, dt);
+        } else {
+          bull.state = 'TURN_PAUSE';
+          bull.stateTimer = 0.25;
+        }
+      }
+    } else {
+      bull.stateTimer -= dt;
+      if (bull.stateTimer <= 0) {
+        const nextTarget = pickLogicalBulldozerTarget(bull);
+        if (nextTarget) {
+          bull.targetX = nextTarget.x;
+          bull.targetZ = nextTarget.z;
+          bull.state = 'GRADE_DRIVE';
+        } else {
+          // Reverse/turn 180° inside its current zone if surrounded
+          bull.passAngle = (bull.passAngle || root.rotation.y) + Math.PI;
+          bull.targetX = bull.homeX + Math.cos(bull.passAngle) * Math.min(2.2, bull.roamRadius * 0.5);
+          bull.targetZ = bull.homeZ + Math.sin(bull.passAngle) * Math.min(2.2, bull.roamRadius * 0.5);
+          bull.state = 'GRADE_DRIVE';
+        }
+      }
+    }
+
+    if (bull.mixer) bull.mixer.update(dt);
+    bull.shadowTick = (bull.shadowTick + 1) % 4;
+    if (bull.shadowTick === 0) needShadow = true;
+  }
+
+  if (needShadow) requestShadowUpdate();
+}
+
+// ============================================================================
 // BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (106 OBJECTS)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
@@ -18033,13 +19512,33 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.715,"y":-0.5,"z":25.344,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.772,"y":-0.5,"z":25.749,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.097,"y":-0.5,"z":25.899,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.237,"y":-0.5,"z":26.083,"ry":0,"s":1.12,"hasPot":false}
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.237,"y":-0.5,"z":26.083,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Heavy Construction Bulldozer #1","x":6.8,"y":-0.5,"z":15.4,"ry":-1.2,"s":1,"isBulldozer":true,"roamRadius":4.4,"paintColor":"#E5A01D"},
+  {"labelEn":"Heavy Construction Bulldozer #2","x":-19.2,"y":-0.5,"z":15.2,"ry":0.65,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#F59E0B"},
+  {"labelEn":"Heavy Construction Bulldozer #3","x":-19.5,"y":-0.5,"z":-2.5,"ry":0.15,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#D97706"},
+  {"labelEn":"Heavy Construction Bulldozer #4","x":-3.5,"y":-0.5,"z":-13.5,"ry":1.57,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#E5A01D"},
+  {"labelEn":"Heavy Construction Bulldozer #5","x":13.5,"y":-0.5,"z":-13.5,"ry":-1.57,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#EA580C"}
 ];
 
-function applyLayoutPositions(layoutList) {
+function spawnInitialAnimalsAndBulldozers(layoutList) {
   if (!layoutList || !Array.isArray(layoutList)) return;
-  const usedObjs = new Set();
+  let hasSavedBulldozer = false;
   layoutList.forEach((sp) => {
+    if (sp && (sp.isBulldozer || (sp.labelEn && sp.labelEn.startsWith('Heavy Construction Bulldozer')))) {
+      hasSavedBulldozer = true;
+      deployBulldozer({
+        x: sp.x,
+        y: sp.y,
+        z: sp.z,
+        ry: sp.ry,
+        s: sp.s,
+        roamRadius: sp.roamRadius,
+        paintColor: sp.paintColor,
+        paused: sp.paused,
+        skipSelect: true
+      });
+      return;
+    }
     if (sp && sp.isAnimal && sp.animalType) {
       deployAnimal(sp.animalType, {
         x: sp.x,
@@ -18050,6 +19549,58 @@ function applyLayoutPositions(layoutList) {
         roamRadius: sp.roamRadius,
         skipSelect: true
       });
+    }
+  });
+  if (!hasSavedBulldozer && typeof DEFAULT_BULLDOZER_SPAWNS !== 'undefined') {
+    DEFAULT_BULLDOZER_SPAWNS.forEach((bd) => {
+      deployBulldozer({
+        x: bd.x,
+        y: bd.y,
+        z: bd.z,
+        ry: bd.ry,
+        s: bd.s,
+        roamRadius: bd.roamRadius,
+        paintColor: bd.paintColor,
+        skipSelect: true
+      });
+    });
+  }
+}
+
+function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
+  if (!layoutList || !Array.isArray(layoutList)) return;
+  const usedObjs = new Set();
+  let hasSavedBulldozer = false;
+  layoutList.forEach((sp) => {
+    if (sp && (sp.isBulldozer || (sp.labelEn && sp.labelEn.startsWith('Heavy Construction Bulldozer')))) {
+      hasSavedBulldozer = true;
+      if (!skipAnimalsAndBulldozers) {
+        deployBulldozer({
+          x: sp.x,
+          y: sp.y,
+          z: sp.z,
+          ry: sp.ry,
+          s: sp.s,
+          roamRadius: sp.roamRadius,
+          paintColor: sp.paintColor,
+          paused: sp.paused,
+          skipSelect: true
+        });
+      }
+      return;
+    }
+    if (sp && sp.isAnimal && sp.animalType) {
+      if (!skipAnimalsAndBulldozers) {
+        deployAnimal(sp.animalType, {
+          x: sp.x,
+          y: sp.y,
+          z: sp.z,
+          ry: sp.ry,
+          s: sp.s,
+          roamRadius: sp.roamRadius,
+          skipSelect: true
+        });
+      }
       return;
     }
     if (sp && sp.isGravelRoad && typeof window.spawnGravelRoad === 'function') {
@@ -18143,6 +19694,22 @@ function applyLayoutPositions(layoutList) {
     }
   });
 
+  // Ensure all 5 default exterior bulldozers spawn around the house even if localStorage had an older pre-bulldozer layout
+  if (!skipAnimalsAndBulldozers && !hasSavedBulldozer && typeof DEFAULT_BULLDOZER_SPAWNS !== 'undefined') {
+    DEFAULT_BULLDOZER_SPAWNS.forEach((bd) => {
+      deployBulldozer({
+        x: bd.x,
+        y: bd.y,
+        z: bd.z,
+        ry: bd.ry,
+        s: bd.s,
+        roamRadius: bd.roamRadius,
+        paintColor: bd.paintColor,
+        skipSelect: true
+      });
+    });
+  }
+
   // If the layout replaced the Front Olive Lawn Bed with individual unpotted small olive trees,
   // remove the unused default lawn bed instance from the active scene while keeping its catalog blueprint intact!
   if (window.frontOliveGardenObj && !usedObjs.has(window.frontOliveGardenObj)) {
@@ -18207,7 +19774,20 @@ async function initApp() {
     skipSelect: true
   });
 
-  // Load all indoor furniture, rooftop BBQ grill & Peugeot 308 first before heavy skeletal NPC/animal Base64 decoding
+  const activeLayout = (savedPositions && Array.isArray(savedPositions) && savedPositions.length > 0)
+    ? savedPositions
+    : DEFAULT_CUSTOM_POSITIONS;
+
+  // Immediately decode local Base64 templates (Heavy Bulldozers, Surface Rocks, Animals, NPCs & Peugeot 308)
+  // so all 5 exterior bulldozers, surface rocks & animals appear and animate in <0.5s without waiting on external CDN!
+  buildExteriorTunisianSurfaceRocks();
+  loadBulldozerTemplate();
+  loadAnimalTemplates();
+  loadMaitreMaherNPC();
+  loadMaherWifeNPC();
+  spawnInitialAnimalsAndBulldozers(activeLayout);
+
+  // Load all indoor furniture, rooftop BBQ grill & Peugeot 308 in parallel
   await Promise.all([
     loadPeugeot308Car(),
     rebuildCategory('bed'),
@@ -18219,18 +19799,13 @@ async function initApp() {
     buildStaticPolyHavenDecor()
   ]);
 
-  // Load Maître Maher & Mme Maher (Wife) 3D NPCs + Chicken, Cow, Rabbit & Goat 3D Animal Templates
-  loadMaitreMaherNPC();
-  loadMaherWifeNPC();
-  loadAnimalTemplates();
-
   // Stream real Poly Haven 360 HDRIs right after 3D furniture models so HDRIs never queue-block dl.polyhaven.org GLTF models
   loadRealPolyHavenHDRIs();
 
   setTimeOfDay(state.timeOfDay || 'sunset');
 
   // Apply the user's saved v10 layout if present, otherwise apply the locked 106-item custom default layout
-  applyLayoutPositions((savedPositions && Array.isArray(savedPositions) && savedPositions.length > 0) ? savedPositions : DEFAULT_CUSTOM_POSITIONS);
+  applyLayoutPositions(activeLayout, true);
   if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
   if (maherNpcState.loaded && maherNpcState.currentAct) {
     startMaherActivity(maherNpcState.currentAct.id, true);
@@ -18260,6 +19835,7 @@ window.addEventListener('resize', () => {
 let lastFrameTime = performance.now();
 function animate(now) {
   requestAnimationFrame(animate);
+  if (window._pauseRAF) return;
   const nowMs = now || performance.now();
   const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastFrameTime) / 1000));
   lastFrameTime = nowMs;
@@ -18268,6 +19844,7 @@ function animate(now) {
   updateWalkAndOpenings(dt);
   updateMaherNpcAndParticles(dt);
   updateDeployedAnimals(dt);
+  updateDeployedBulldozers(dt);
   if (viewMode !== 'walk') controls.update();
   if (composer) {
     if (renderPass) renderPass.camera = activeCamera;
