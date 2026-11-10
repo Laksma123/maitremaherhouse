@@ -545,6 +545,7 @@
 <script src="./animal_goat_data.js"></script>
 <script src="./road_and_grape_data.js"></script>
 <script src="./bulldozer_data.js"></script>
+<script src="./tractor_data.js"></script>
 </head>
 <body>
 
@@ -5427,7 +5428,18 @@ const OBJECT_CATALOG_REGISTRY = new Map([
     labelAr: 'جرافة بناء ثقيلة (تسوية الأرض والحصى)',
     category: 'outdoor',
     icon: '🚜',
-    isBulldozer: true
+    isBulldozer: true,
+    machineType: 'bulldozer'
+  }],
+  ['David Brown 25D Tractor + PTO Land Crusher', {
+    key: 'David Brown 25D Tractor + PTO Land Crusher',
+    labelEn: 'David Brown 25D Tractor + PTO Land Crusher (Stone & Soil Pulverizer)',
+    labelAr: 'جرار ديفيد براون 25D مع كسارة التربة والحجارة الخلفية (PTO)',
+    category: 'outdoor',
+    icon: '🚜',
+    isBulldozer: true,
+    isTractor: true,
+    machineType: 'tractor'
   }]
 ]);
 window.OBJECT_CATALOG_REGISTRY = OBJECT_CATALOG_REGISTRY;
@@ -12088,6 +12100,21 @@ window.addEventListener('pointermove', (e) => {
         if (!item.obj) return;
         item.obj.position.x = nextX + item.dx;
         item.obj.position.z = nextZ + item.dz;
+        if (item.obj.userData && item.obj.userData.isBulldozer) {
+          const bSurfY = (typeof getAnimalSurfaceY === 'function')
+            ? getAnimalSurfaceY(item.obj.position.x, item.obj.position.z, item.obj)
+            : item.obj.position.y;
+          item.obj.position.y = bSurfY;
+          const bst = item.obj.userData.bulldozerState;
+          if (bst) {
+            bst.homeX = item.obj.position.x;
+            bst.homeZ = item.obj.position.z;
+            bst.homeY = bSurfY;
+            bst.targetX = bst.homeX;
+            bst.targetZ = bst.homeZ;
+            if (typeof rebuildBulldozerWorkZone === 'function') rebuildBulldozerWorkZone(bst);
+          }
+        }
       });
     } else {
       selectedObject.position.x = nextX;
@@ -12127,9 +12154,10 @@ window.addEventListener('pointermove', (e) => {
           while (diff > Math.PI) diff -= Math.PI * 2;
           while (diff < -Math.PI) diff += Math.PI * 2;
           selectedObject.rotation.y += diff * 0.28;
-          if (typeof advanceBulldozerGradingEffects === 'function') {
-            advanceBulldozerGradingEffects(st, prevX, prevZ, nextX, nextZ, Math.min(0.05, dragStep / 1.15));
-          }
+        }
+        // Relocate the bulldozer's dirt clumps ("tanah2 gumpalan") & leveled trails so the old area is cleared ("ikut hilang") and they appear in the new dotted circle area ("muncul d area baru")
+        if (typeof rebuildBulldozerWorkZone === 'function') {
+          rebuildBulldozerWorkZone(st);
         }
       }
       if (typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
@@ -12348,6 +12376,9 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
   if (entry.isAnimal && entry.animalType) {
     return deployAnimal(entry.animalType, customOpts || null);
   }
+  if ((entry.isTractor || entry.key === 'David Brown 25D Tractor + PTO Land Crusher') && typeof window.deployBulldozer === 'function') {
+    return window.deployBulldozer(Object.assign({}, customOpts || {}, { isTractor: true, machineType: 'tractor' }));
+  }
   if ((entry.isBulldozer || entry.key === 'Heavy Construction Bulldozer') && typeof window.deployBulldozer === 'function') {
     return window.deployBulldozer(customOpts || {});
   }
@@ -12516,9 +12547,11 @@ function copySelectedObject() {
           isAnimal: !!oud.isAnimal,
           animalType: oud.animalType || 'chicken',
           isBulldozer: !!oud.isBulldozer,
+          isTractor: !!oud.isTractor,
+          machineType: oud.machineType || (oud.isTractor ? 'tractor' : 'bulldozer'),
           paintColor: oud.paintColor || '#E5A01D',
           paused: !!(bst && bst.paused),
-          key: oud.isBulldozer ? 'Heavy Construction Bulldozer' : oud.labelEn,
+          key: oud.isTractor ? 'David Brown 25D Tractor + PTO Land Crusher' : (oud.isBulldozer ? 'Heavy Construction Bulldozer' : oud.labelEn),
           labelEn: oud.labelEn,
           labelAr: oud.labelAr,
           s: oud.scaleFactor || 1.0,
@@ -12563,7 +12596,9 @@ function copySelectedObject() {
         isMulti: false,
         isAnimal: false,
         isBulldozer: true,
-        key: 'Heavy Construction Bulldozer',
+        isTractor: !!ud.isTractor,
+        machineType: ud.machineType || (ud.isTractor ? 'tractor' : 'bulldozer'),
+        key: ud.isTractor ? 'David Brown 25D Tractor + PTO Land Crusher' : 'Heavy Construction Bulldozer',
         labelEn: ud.labelEn,
         labelAr: ud.labelAr,
         paintColor: ud.paintColor || '#E5A01D',
@@ -12652,6 +12687,8 @@ function pasteCopiedObject() {
           roamRadius: it.roamRadius,
           paintColor: it.paintColor,
           paused: it.paused,
+          isTractor: !!it.isTractor,
+          machineType: it.machineType,
           skipSelect: true
         });
         if (bd) spawnedList.push(bd);
@@ -12735,7 +12772,9 @@ function pasteCopiedObject() {
       s: copiedObjectBlueprint.s,
       roamRadius: copiedObjectBlueprint.roamRadius,
       paintColor: copiedObjectBlueprint.paintColor,
-      paused: copiedObjectBlueprint.paused
+      paused: copiedObjectBlueprint.paused,
+      isTractor: !!copiedObjectBlueprint.isTractor,
+      machineType: copiedObjectBlueprint.machineType
     });
   }
 
@@ -12789,7 +12828,9 @@ function deleteSelectedObject() {
       if (bIdx !== -1) {
         const bull = deployedBulldozers[bIdx];
         if (bull.mixer) bull.mixer.stopAllAction();
+        if (typeof clearBulldozerWorkZone === 'function') clearBulldozerWorkZone(bull, true);
         deployedBulldozers.splice(bIdx, 1);
+        if (typeof syncGlobalBulldozerPools === 'function') syncGlobalBulldozerPools();
       }
     }
     const dIdx = draggableObjects.indexOf(targetObj);
@@ -13690,6 +13731,8 @@ function buildCurrentLayoutPayload() {
       isAnimal: isAnim ? true : undefined,
       animalType: isAnim ? o.userData.animalType : undefined,
       isBulldozer: isBull ? true : undefined,
+      isTractor: (isBull && o.userData.isTractor) ? true : undefined,
+      machineType: (isBull && o.userData.machineType) ? o.userData.machineType : undefined,
       paintColor: isBull ? (o.userData.paintColor || '#E5A01D') : undefined,
       paused: (bullSt && bullSt.paused) ? true : undefined,
       roamRadius: bullSt ? +bullSt.roamRadius.toFixed(2) : (animSt ? +animSt.roamRadius.toFixed(2) : undefined),
@@ -17619,6 +17662,7 @@ function adjustSelectedAnimalRadius(deltaR) {
   if (selectedObject.userData.isBulldozer && selectedObject.userData.bulldozerState) {
     const bst = selectedObject.userData.bulldozerState;
     bst.roamRadius = Math.max(1.50, Math.min(14.00, bst.roamRadius + deltaR));
+    if (typeof rebuildBulldozerWorkZone === 'function') rebuildBulldozerWorkZone(bst);
     updateSelectedHudText();
     updateAnimalRoamRing();
   }
@@ -18175,7 +18219,15 @@ const bulldozerTemplate = {
   pending: []
 };
 window.bulldozerTemplate = bulldozerTemplate;
+const tractorTemplate = {
+  loaded: false,
+  scene: null,
+  clips: {},
+  pending: []
+};
+window.tractorTemplate = tractorTemplate;
 let bulldozerCounter = 0;
+let tractorCounter = 0;
 let lastActiveBulldozerRoot = null;
 let defaultBulldozerPaintHex = '#E5A01D';
 
@@ -18189,7 +18241,11 @@ const DEFAULT_BULLDOZER_SPAWNS = [
   // 4) North-West / Back-Left Yard (Behind Master Bedroom & Salon)
   { labelEn: 'Heavy Construction Bulldozer #4', x: -3.50, y: -0.50, z: -13.50, ry: 1.57, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#E5A01D' },
   // 5) East / North-East Flank (East of Livestock Paddock & Villa)
-  { labelEn: 'Heavy Construction Bulldozer #5', x: 21.50, y: -0.50, z: -4.50, ry: 0.12, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#EA580C' }
+  { labelEn: 'Heavy Construction Bulldozer #5', x: 21.50, y: -0.50, z: -4.50, ry: 0.12, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#EA580C' },
+  // 6) David Brown 25D Tractor + PTO Land Crusher #1 (Front-South Yard)
+  { labelEn: 'David Brown 25D Tractor + PTO Land Crusher #1', x: 6.20, y: -0.50, z: 30.20, ry: 1.57, s: 1.0, isBulldozer: true, isTractor: true, machineType: 'tractor', roamRadius: 5.2, paintColor: '#E5A01D' },
+  // 7) David Brown 25D Tractor + PTO Land Crusher #2 (South-West Open Field)
+  { labelEn: 'David Brown 25D Tractor + PTO Land Crusher #2', x: -19.50, y: -0.50, z: 25.80, ry: 0.25, s: 1.0, isBulldozer: true, isTractor: true, machineType: 'tractor', roamRadius: 5.2, paintColor: '#E5A01D' }
 ];
 
 // --- 1. Procedural PBR Leveled & Tracked Ground Trail Material ---
@@ -18339,35 +18395,169 @@ const matBulldozerGradedTrail = (function buildBulldozerGradedTrailMaterial() {
 
 const sharedTrailStampGeo = new THREE.PlaneGeometry(2.12, 1.18);
 sharedTrailStampGeo.rotateX(-Math.PI / 2);
+const MAX_TRAILS_PER_BULLDOZER = 48;
 
-function stampBulldozerGradedTrail(wx, surfY, wz, yaw, scaleFactor = 1.0) {
+const matTractorCrushedTrail = (function buildTractorCrushedTrailMaterial() {
+  const w = 512, h = 512;
+  const dCan = document.createElement('canvas');
+  dCan.width = w; dCan.height = h;
+  const dCtx = dCan.getContext('2d');
+
+  const nCan = document.createElement('canvas');
+  nCan.width = w; nCan.height = h;
+  const nCtx = nCan.getContext('2d');
+  nCtx.fillStyle = 'rgb(128,128,255)';
+  nCtx.fillRect(0, 0, w, h);
+
+  const imgD = dCtx.createImageData(w, h);
+  const dataD = imgD.data;
+  const imgN = nCtx.getImageData(0, 0, w, h);
+  const dataN = imgN.data;
+
+  const hash2 = (x, y) => {
+    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+
+  for (let y = 0; y < h; y++) {
+    const v = y / h;
+    const vAlpha = Math.sin(Math.min(1.0, Math.min(v / 0.28, (1.0 - v) / 0.28)) * Math.PI * 0.5);
+    for (let x = 0; x < w; x++) {
+      const u = x / w;
+      const idx = (y * w + x) * 4;
+
+      let uAlpha = 1.0;
+      if (u < 0.09) uAlpha = u / 0.09;
+      else if (u > 0.91) uAlpha = (1.0 - u) / 0.09;
+      uAlpha = uAlpha * uAlpha * (3.0 - 2.0 * uAlpha);
+
+      // Finely pulverized dark-brown tilled earth bed with crisp side-skid furrows (matching images.jpg!)
+      const fineCrumb = (hash2(x * 0.85, y * 0.85) - 0.5) * 14.0 + (hash2(x * 0.25, y * 0.25) - 0.5) * 8.0;
+      const screedGroove = Math.sin(u * 140.0) * 2.2;
+      const centerSeam = Math.exp(-Math.pow((u - 0.5) / 0.018, 2)) * 9.0;
+
+      let r = 98 + fineCrumb * 0.52 + screedGroove - centerSeam * 0.6;
+      let g = 79 + fineCrumb * 0.44 + screedGroove * 0.8 - centerSeam * 0.5;
+      let b = 59 + fineCrumb * 0.35 + screedGroove * 0.6 - centerSeam * 0.4;
+
+      let nx = Math.round(128 + Math.cos(u * 140.0) * 10.0 + (hash2(x, y) - 0.5) * 16.0);
+      let ny = Math.round(128 + (hash2(y, x) - 0.5) * 16.0);
+
+      // Sharp side-skid & silver deflector-fin border furrows at u ~ 0.11 and u ~ 0.89 (just like images.jpg!)
+      const furrowL = Math.exp(-Math.pow((u - 0.11) / 0.022, 2));
+      const furrowR = Math.exp(-Math.pow((u - 0.89) / 0.022, 2));
+      if (furrowL > 0.05 || furrowR > 0.05) {
+        const fVal = Math.max(furrowL, furrowR);
+        r -= fVal * 22;
+        g -= fVal * 18;
+        b -= fVal * 14;
+        nx += Math.round((furrowL > furrowR ? (u < 0.11 ? -42 : 42) : (u < 0.89 ? -42 : 42)) * fVal);
+      }
+
+      dataD[idx] = Math.max(0, Math.min(255, Math.round(r)));
+      dataD[idx + 1] = Math.max(0, Math.min(255, Math.round(g)));
+      dataD[idx + 2] = Math.max(0, Math.min(255, Math.round(b)));
+      dataD[idx + 3] = Math.max(0, Math.min(255, Math.round(uAlpha * vAlpha * 228)));
+
+      dataN[idx] = Math.max(0, Math.min(255, nx));
+      dataN[idx + 1] = Math.max(0, Math.min(255, ny));
+      dataN[idx + 2] = 245;
+      dataN[idx + 3] = 255;
+    }
+  }
+
+  dCtx.putImageData(imgD, 0, 0);
+  nCtx.putImageData(imgN, 0, 0);
+
+  const dTex = new THREE.CanvasTexture(dCan);
+  dTex.encoding = THREE.sRGBEncoding;
+  dTex.wrapS = THREE.ClampToEdgeWrapping;
+  dTex.wrapT = THREE.ClampToEdgeWrapping;
+  dTex.anisotropy = 8;
+
+  const nTex = new THREE.CanvasTexture(nCan);
+  nTex.wrapS = THREE.ClampToEdgeWrapping;
+  nTex.wrapT = THREE.ClampToEdgeWrapping;
+  nTex.anisotropy = 8;
+
+  return new THREE.MeshStandardMaterial({
+    map: dTex,
+    normalMap: nTex,
+    normalScale: new THREE.Vector2(1.65, 1.65),
+    roughness: 0.92,
+    metalness: 0.02,
+    transparent: true,
+    opacity: 0.97,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -3,
+    polygonOffsetUnits: -3,
+    clippingPlanes: TERRAIN_CLIP_PLANES,
+    envMapIntensity: 0.12,
+    userData: { customEnvIntensity: 0.12 }
+  });
+})();
+
+function syncGlobalBulldozerPools() {
+  tunisianSurfaceRocks.length = 0;
+  bulldozerTrailPool.length = 0;
+  for (let i = 0; i < deployedBulldozers.length; i++) {
+    const b = deployedBulldozers[i];
+    if (!b) continue;
+    if (Array.isArray(b.zoneClumps)) {
+      for (let c = 0; c < b.zoneClumps.length; c++) {
+        tunisianSurfaceRocks.push(b.zoneClumps[c]);
+      }
+    }
+    if (Array.isArray(b.zoneTrails)) {
+      for (let t = 0; t < b.zoneTrails.length; t++) {
+        if (b.zoneTrails[t].visible) bulldozerTrailPool.push(b.zoneTrails[t]);
+      }
+    }
+  }
+}
+window.syncGlobalBulldozerPools = syncGlobalBulldozerPools;
+
+function stampBulldozerGradedTrail(bull, wx, surfY, wz, yaw, scaleFactor = 1.0) {
+  if (!bull || !bull.zoneTrailsGroup) return;
   // Only stamp on exterior soil/yard ground (-0.55 .. -0.42) so indoor floors/pool stay clean
   if (surfY > -0.35) return;
   if (wx < -31.2 || wx > 31.2 || wz < -26.8 || wz > 35.8) return;
 
+  const sf = Math.max(0.5, Math.min(2.5, scaleFactor || 1.0));
+  // Strictly keep every graded trail stamp inside the bulldozer's dotted circle (roamRadius)
+  const maxTrailR = Math.max(0.45, (bull.roamRadius || 5.0) - 0.55 * sf);
+  const dHome = Math.hypot(wx - bull.homeX, wz - bull.homeZ);
+  if (dHome > maxTrailR) return;
+
   let segMesh = null;
-  if (bulldozerTrailPool.length < MAX_BULLDOZER_TRAIL_SEGMENTS) {
-    segMesh = new THREE.Mesh(sharedTrailStampGeo, matBulldozerGradedTrail);
+  const trailMat = (bull.root && bull.root.userData && bull.root.userData.isTractor)
+    ? matTractorCrushedTrail
+    : matBulldozerGradedTrail;
+  if (bull.zoneTrails.length < MAX_TRAILS_PER_BULLDOZER) {
+    segMesh = new THREE.Mesh(sharedTrailStampGeo, trailMat);
     segMesh.receiveShadow = true;
     segMesh.castShadow = false;
     segMesh.raycast = function() {};
-    bulldozerTrailGroup.add(segMesh);
-    bulldozerTrailPool.push(segMesh);
+    bull.zoneTrailsGroup.add(segMesh);
+    bull.zoneTrails.push(segMesh);
   } else {
-    segMesh = bulldozerTrailPool[bulldozerTrailCursor];
-    bulldozerTrailCursor = (bulldozerTrailCursor + 1) % MAX_BULLDOZER_TRAIL_SEGMENTS;
+    segMesh = bull.zoneTrails[bull.trailCursor];
+    segMesh.material = trailMat;
+    bull.trailCursor = (bull.trailCursor + 1) % MAX_TRAILS_PER_BULLDOZER;
   }
 
-  const sf = Math.max(0.5, Math.min(2.5, scaleFactor || 1.0));
+  bulldozerTrailCursor = (bulldozerTrailCursor + 1) % 1000;
   // Slight micro-elevation step per index to prevent coplanar alpha shimmer
   const yJitter = (bulldozerTrailCursor % 7) * 0.00018;
   segMesh.position.set(wx, surfY + 0.0045 + yJitter, wz);
   segMesh.rotation.set(0, yaw, 0);
   segMesh.scale.set(sf, 1.0, sf);
   segMesh.visible = true;
+  syncGlobalBulldozerPools();
 }
 
-// --- 2. Scattered 3D Tunisian Exterior Surface Rocks ("tanah rata tapi banyak bebatuan") ---
+// --- 2. Per-Bulldozer Work-Zone Dirt Clumps ("tanah2 gumpalan hanya di area bulldozer, dalam lingkaran area titik2 itu") ---
 const tunisianSurfaceRocksGroup = new THREE.Group();
 scene.add(tunisianSurfaceRocksGroup);
 const tunisianSurfaceRocks = [];
@@ -18379,61 +18569,177 @@ const rockMaterials = [
   new THREE.MeshStandardMaterial({ color: 0x87745d, map: soilDiffTex, normalMap: soilNorTex, roughness: 0.90, metalness: 0.02, envMapIntensity: 0.16, userData: { customEnvIntensity: 0.16 } })
 ];
 
-function buildExteriorTunisianSurfaceRocks() {
-  if (tunisianSurfaceRocks.length > 0) return;
-  const baseGeos = [0, 1, 2].map((gIdx) => {
-    const geo = new THREE.DodecahedronGeometry(0.14, 0);
-    const pos = geo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const vx = pos.getX(i), vy = pos.getY(i), vz = pos.getZ(i);
-      const n = 0.82 + 0.34 * Math.abs(Math.sin(vx * 19.3 + vy * 11.7 + vz * 23.1 + gIdx * 4.7));
-      pos.setXYZ(i, vx * n * 1.25, vy * n * 0.62, vz * n * 1.15);
-    }
-    geo.computeVertexNormals();
-    return geo;
-  });
-
-  // Deterministic scatter across all 4 sides of the exterior Tunisian ground
-  let seed = 1337;
-  const rand = () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-
-  for (let i = 0; i < 210; i++) {
-    const wx = -29.5 + rand() * 59.0;
-    const wz = -25.0 + rand() * 58.0;
-    // Skip main house + terraces + pool + livestock paddock interior + gravel road strip
-    if (wx >= -11.5 && wx <= 18.6 && wz >= -6.2 && wz <= 16.8) continue;
-    if (Math.abs(wx - (-14.1)) < 2.4) continue;
-    // Skip L-shaped entrance walkway area
-    if (wx >= -6.8 && wx <= 5.5 && wz >= 6.8 && wz <= 14.5) continue;
-
-    const clusterGrp = new THREE.Group();
-    const stoneCount = 2 + (i % 3);
-    for (let s = 0; s < stoneCount; s++) {
-      const m = new THREE.Mesh(baseGeos[(i + s) % baseGeos.length], rockMaterials[(i + s) % rockMaterials.length]);
-      const sc = (s === 0) ? (0.75 + rand() * 0.85) : (0.38 + rand() * 0.52);
-      m.scale.set(sc * (0.9 + rand() * 0.3), sc * (0.65 + rand() * 0.35), sc * (0.9 + rand() * 0.3));
-      const ang = rand() * Math.PI * 2;
-      const dist = (s === 0) ? 0.0 : (0.14 + rand() * 0.22);
-      m.position.set(Math.cos(ang) * dist, 0.03 * sc, Math.sin(ang) * dist);
-      m.rotation.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);
-      m.castShadow = true;
-      m.receiveShadow = true;
-      m.raycast = function() {};
-      clusterGrp.add(m);
-    }
-    clusterGrp.position.set(wx, -0.50, wz);
-    tunisianSurfaceRocksGroup.add(clusterGrp);
-    tunisianSurfaceRocks.push({
-      grp: clusterGrp,
-      wx,
-      wz,
-      flattened: 0.0,
-      recoverTimer: 0.0
-    });
+const bulldozerClumpGeos = [0, 1, 2].map((gIdx) => {
+  const geo = new THREE.DodecahedronGeometry(0.14, 0);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const vx = pos.getX(i), vy = pos.getY(i), vz = pos.getZ(i);
+    const n = 0.82 + 0.34 * Math.abs(Math.sin(vx * 19.3 + vy * 11.7 + vz * 23.1 + gIdx * 4.7));
+    pos.setXYZ(i, vx * n * 1.25, vy * n * 0.62, vz * n * 1.15);
   }
+  geo.computeVertexNormals();
+  return geo;
+});
+
+function clearBulldozerWorkZone(bull, removeGroups = false) {
+  if (!bull) return;
+  if (bull.zoneClumpsGroup) {
+    while (bull.zoneClumpsGroup.children.length > 0) {
+      bull.zoneClumpsGroup.remove(bull.zoneClumpsGroup.children[0]);
+    }
+    if (removeGroups && bull.zoneClumpsGroup.parent) {
+      bull.zoneClumpsGroup.parent.remove(bull.zoneClumpsGroup);
+    }
+  }
+  if (bull.zoneClumps) bull.zoneClumps.length = 0;
+
+  if (bull.zoneTrailsGroup) {
+    while (bull.zoneTrailsGroup.children.length > 0) {
+      bull.zoneTrailsGroup.remove(bull.zoneTrailsGroup.children[0]);
+    }
+    if (removeGroups && bull.zoneTrailsGroup.parent) {
+      bull.zoneTrailsGroup.parent.remove(bull.zoneTrailsGroup);
+    }
+  }
+  if (bull.zoneTrails) bull.zoneTrails.length = 0;
+  bull.trailCursor = 0;
+
+  // Also clear any flying pebbles or dust puffs belonging to this bulldozer from its old location
+  for (let i = 0; i < bulldozerGravelPool.length; i++) {
+    const p = bulldozerGravelPool[i];
+    if (p.active && p.ownerBull === bull) {
+      p.active = false;
+      p.mesh.visible = false;
+    }
+  }
+  for (let i = 0; i < bulldozerDustPool.length; i++) {
+    const d = bulldozerDustPool[i];
+    if (d.active && d.ownerBull === bull) {
+      d.active = false;
+      d.mesh.visible = false;
+    }
+  }
+  syncGlobalBulldozerPools();
+}
+window.clearBulldozerWorkZone = clearBulldozerWorkZone;
+
+function rebuildBulldozerWorkZone(bull) {
+  if (!bull || !bull.root) return;
+  // 1) Immediately remove dirt clumps ("tanah2 gumpalan") & trails from the old area ("ikut hilang")
+  clearBulldozerWorkZone(bull, false);
+
+  if (!bull.zoneClumpsGroup) {
+    bull.zoneClumpsGroup = new THREE.Group();
+    tunisianSurfaceRocksGroup.add(bull.zoneClumpsGroup);
+  } else if (!bull.zoneClumpsGroup.parent) {
+    tunisianSurfaceRocksGroup.add(bull.zoneClumpsGroup);
+  }
+  if (!bull.zoneTrailsGroup) {
+    bull.zoneTrailsGroup = new THREE.Group();
+    bulldozerTrailGroup.add(bull.zoneTrailsGroup);
+  } else if (!bull.zoneTrailsGroup.parent) {
+    bulldozerTrailGroup.add(bull.zoneTrailsGroup);
+  }
+  if (!Array.isArray(bull.zoneClumps)) bull.zoneClumps = [];
+  if (!Array.isArray(bull.zoneTrails)) bull.zoneTrails = [];
+
+  const sf = Math.max(0.5, Math.min(2.2, bull.root.userData.scaleFactor || 1.0));
+  const homeX = bull.homeX;
+  const homeY = bull.homeY;
+  const homeZ = bull.homeZ;
+  const roamR = bull.roamRadius || 5.0;
+
+  // 2) Spawn dirt/stone clumps ("tanah2 gumpalan") strictly inside this bulldozer's dotted circle ("muncul d area baru")
+  if (homeY <= -0.35) {
+    const maxClumpR = Math.max(0.75, roamR - 0.38);
+    const targetClumps = Math.max(10, Math.min(26, Math.round(roamR * 3.8)));
+    let seed = ((bull.idx || 1) * 1999 + 1337) % 2147483647;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+
+    for (let i = 0; i < targetClumps * 2 && bull.zoneClumps.length < targetClumps; i++) {
+      const u = (bull.zoneClumps.length + 0.25 + rand() * 0.65) / targetClumps;
+      const r = Math.min(maxClumpR, (0.16 + 0.82 * Math.sqrt(Math.min(1.0, u))) * maxClumpR);
+      const theta = i * 2.3999632 + (rand() - 0.5) * 0.42;
+      const wx = homeX + Math.cos(theta) * r;
+      const wz = homeZ + Math.sin(theta) * r;
+
+      if (wx < -33.5 || wx > 33.5 || wz < -28.5 || wz > 37.5) continue;
+      // Never place dirt clumps inside the Villa, Terraces, Swimming Pool, or Livestock Paddock
+      if (wx >= -11.4 && wx <= 18.8 && wz >= -6.2 && wz <= 14.2) continue;
+      if (wx >= 11.4 && wx <= 18.8 && wz >= 9.0 && wz <= 17.0) continue;
+      const cy = getAnimalSurfaceY(wx, wz, bull.root, homeY);
+      if (Math.abs(cy - homeY) > 0.08) continue;
+
+      const clusterGrp = new THREE.Group();
+      const stoneCount = 2 + (i % 3);
+      for (let s = 0; s < stoneCount; s++) {
+        const m = new THREE.Mesh(
+          bulldozerClumpGeos[(i + s) % bulldozerClumpGeos.length],
+          rockMaterials[(i + s) % rockMaterials.length]
+        );
+        const sc = (s === 0) ? (0.72 + rand() * 0.80) : (0.36 + rand() * 0.48);
+        m.scale.set(sc * (0.9 + rand() * 0.3), sc * (0.65 + rand() * 0.35), sc * (0.9 + rand() * 0.3));
+        const ang = rand() * Math.PI * 2;
+        const dist = (s === 0) ? 0.0 : (0.13 + rand() * 0.20);
+        m.position.set(Math.cos(ang) * dist, 0.03 * sc, Math.sin(ang) * dist);
+        m.rotation.set(rand() * 0.4, rand() * Math.PI * 2, rand() * 0.4);
+        m.castShadow = true;
+        m.receiveShadow = true;
+        m.raycast = function() {};
+        clusterGrp.add(m);
+      }
+      clusterGrp.position.set(wx, homeY, wz);
+      bull.zoneClumpsGroup.add(clusterGrp);
+      bull.zoneClumps.push({
+        grp: clusterGrp,
+        wx,
+        wz,
+        x: wx,
+        z: wz,
+        flattened: 0.0,
+        recoverTimer: 0.0,
+        ownerBull: bull
+      });
+    }
+  }
+
+  // 3) Pre-stamp an initial neat leveled & tracked ground trail directly behind the bulldozer inside the new circle
+  const curX = bull.root.position.x;
+  const curZ = bull.root.position.z;
+  const yaw = bull.root.rotation.y;
+  const fwdX = Math.sin(yaw);
+  const fwdZ = Math.cos(yaw);
+  const maxTrailR = Math.max(0.45, roamR - 0.55 * sf);
+
+  for (let s = 9; s >= 0; s--) {
+    const distBack = (0.65 + s * 0.36) * sf;
+    const sx = curX - fwdX * distBack;
+    const sz = curZ - fwdZ * distBack;
+    if (Math.hypot(sx - homeX, sz - homeZ) > maxTrailR) continue;
+    stampBulldozerGradedTrail(bull, sx, homeY, sz, yaw, sf);
+    for (let r = 0; r < bull.zoneClumps.length; r++) {
+      const rk = bull.zoneClumps[r];
+      if (Math.hypot(rk.wx - sx, rk.wz - sz) < 1.15 * sf) {
+        rk.flattened = 1.0;
+        rk.recoverTimer = 48.0;
+        rk.grp.scale.y = 0.14;
+        rk.grp.position.y = homeY - 0.005;
+      }
+    }
+  }
+
+  bull.lastTrailX = curX;
+  bull.lastTrailZ = curZ;
+  syncGlobalBulldozerPools();
+}
+window.rebuildBulldozerWorkZone = rebuildBulldozerWorkZone;
+
+function buildExteriorTunisianSurfaceRocks() {
+  // Dirt clumps ("tanah2 gumpalan") are strictly scoped per-bulldozer inside each bulldozer's dotted circle (roamRadius).
+  syncGlobalBulldozerPools();
 }
 
 // --- 3. 3D Flying Pebbles/Gravel ("bebatuan2 kecil atau kerikil terlempar ke belakangnya") & Dust Pool ---
@@ -18473,7 +18779,8 @@ window.bulldozerDustPool = bulldozerDustPool;
       rvx: 0, rvy: 0, rvz: 0,
       groundY: -0.48,
       baseScale: 1.0,
-      bounced: false
+      bounced: false,
+      ownerBull: null
     });
   }
 
@@ -18495,7 +18802,8 @@ window.bulldozerDustPool = bulldozerDustPool;
       age: 0,
       maxAge: 0.9,
       vx: 0, vy: 0, vz: 0,
-      startScale: 0.45
+      startScale: 0.45,
+      ownerBull: null
     });
   }
 })();
@@ -18503,7 +18811,8 @@ window.bulldozerDustPool = bulldozerDustPool;
 let _gravelSpawnCursor = 0;
 let _dustSpawnCursor = 0;
 
-function spawnBulldozerFlyingPebble(wx, wy, wz, backDirX, backDirZ, rightDirX, rightDirZ, scaleFactor = 1.0, burstBoost = 1.0) {
+function spawnBulldozerFlyingPebble(wx, wy, wz, backDirX, backDirZ, rightDirX, rightDirZ, scaleFactor = 1.0, burstBoost = 1.0, ownerBull = null) {
+  if (ownerBull && Math.hypot(wx - ownerBull.homeX, wz - ownerBull.homeZ) > (ownerBull.roamRadius || 5.0) - 0.15) return;
   const p = bulldozerGravelPool[_gravelSpawnCursor];
   _gravelSpawnCursor = (_gravelSpawnCursor + 1) % bulldozerGravelPool.length;
 
@@ -18512,6 +18821,7 @@ function spawnBulldozerFlyingPebble(wx, wy, wz, backDirX, backDirZ, rightDirX, r
   const sideJitter = (Math.random() - 0.5) * 1.35 * Math.sqrt(sf);
 
   p.active = true;
+  p.ownerBull = ownerBull || null;
   p.age = 0.0;
   p.maxAge = 0.58 + Math.random() * 0.36;
   p.bounced = false;
@@ -18532,12 +18842,14 @@ function spawnBulldozerFlyingPebble(wx, wy, wz, backDirX, backDirZ, rightDirX, r
   p.rvz = (Math.random() - 0.5) * 22.0;
 }
 
-function spawnBulldozerDustPuff(wx, wy, wz, backDirX, backDirZ, scaleFactor = 1.0) {
+function spawnBulldozerDustPuff(wx, wy, wz, backDirX, backDirZ, scaleFactor = 1.0, ownerBull = null) {
+  if (ownerBull && Math.hypot(wx - ownerBull.homeX, wz - ownerBull.homeZ) > (ownerBull.roamRadius || 5.0) - 0.15) return;
   const d = bulldozerDustPool[_dustSpawnCursor];
   _dustSpawnCursor = (_dustSpawnCursor + 1) % bulldozerDustPool.length;
 
   const sf = Math.max(0.6, Math.min(2.0, scaleFactor || 1.0));
   d.active = true;
+  d.ownerBull = ownerBull || null;
   d.age = 0.0;
   d.maxAge = 0.65 + Math.random() * 0.40;
   d.startScale = (0.42 + Math.random() * 0.35) * sf;
@@ -18812,6 +19124,82 @@ function loadBulldozerTemplate() {
   loadFromUrl();
 }
 
+function loadTractorTemplate() {
+  const onGltfReady = (gltf) => {
+    const root = gltf.scene;
+    root.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.frustumCulled = false;
+        ch.raycast = function() {};
+        const mats = Array.isArray(ch.material) ? ch.material : [ch.material];
+        mats.forEach((m) => {
+          if (!m) return;
+          m.skinning = true;
+          const mName = (m.name || '').toLowerCase();
+          if (mName.includes('crusher')) {
+            m.roughness = 0.44;
+            m.metalness = 0.35;
+            m.envMapIntensity = 0.65;
+            m.userData = { customEnvIntensity: 0.65, isBodyMat: true };
+          } else {
+            m.roughness = 0.56;
+            m.metalness = 0.22;
+            m.envMapIntensity = 0.58;
+            m.userData = { customEnvIntensity: 0.58, isTractorBodyMat: true };
+          }
+          if (m.map) m.map.encoding = THREE.sRGBEncoding;
+          m.needsUpdate = true;
+        });
+      }
+    });
+
+    root.updateMatrixWorld(true);
+    (gltf.animations || []).forEach((clip) => {
+      const nm = clip.name.toLowerCase();
+      if (nm.includes('work') || nm.includes('drive')) tractorTemplate.clips.work = clip;
+    });
+    if (!tractorTemplate.clips.work && gltf.animations && gltf.animations.length > 0) {
+      tractorTemplate.clips.work = gltf.animations[0];
+    }
+
+    tractorTemplate.scene = root;
+    tractorTemplate.loaded = true;
+    while (tractorTemplate.pending.length > 0) {
+      const req = tractorTemplate.pending.shift();
+      deployBulldozer(req);
+    }
+    requestShadowUpdate();
+  };
+
+  const localUrl = './tractor_pto_crusher.glb';
+  const ghUrl = 'https://raw.githubusercontent.com/Laksma123/maitremaherhouse/main/tractor_pto_crusher.glb';
+  const loadFromUrl = () => {
+    const firstUrl = (window.location.protocol === 'file:') ? ghUrl : localUrl;
+    gltfLoader.load(firstUrl, onGltfReady, undefined, () => {
+      gltfLoader.load(ghUrl, onGltfReady, undefined, (err) => {
+        console.warn('Could not load tractor_pto_crusher GLB:', err);
+      });
+    });
+  };
+
+  if (window.TRACTOR_PTO_GLB_B64 && typeof window.TRACTOR_PTO_GLB_B64 === 'string') {
+    try {
+      const binStr = window.atob(window.TRACTOR_PTO_GLB_B64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+      gltfLoader.parse(bytes.buffer, '', onGltfReady, () => loadFromUrl());
+      return;
+    } catch (e) {
+      console.warn('Tractor Base64 decode fallback:', e);
+    }
+  }
+  loadFromUrl();
+}
+window.loadTractorTemplate = loadTractorTemplate;
+
 function isValidBulldozerPosition(bull, wx, wz, expectedY) {
   if (wx < -29.8 || wx > 29.8 || wz < -25.2 || wz > 33.8) return false;
   // Never drive into the Villa, Terraces, Swimming Pool, or Livestock Paddock
@@ -18962,51 +19350,54 @@ function advanceBulldozerGradingEffects(bull, prevX, prevZ, curX, curZ, dt) {
     }
   }
 
-  // 3) Flatten any 3D Tunisian surface rocks under the front blade & burst extra flying gravel backward!
-  const bladeWX = curX + fwdX * (1.85 * sf);
-  const bladeWZ = curZ + fwdZ * (1.85 * sf);
+  // 3) Flatten any 3D work-zone dirt clumps ("tanah2 gumpalan") under the front blade (or rear PTO Land Crusher for tractors) & burst extra flying gravel backward!
+  const isTractor = !!(root.userData && root.userData.isTractor);
+  const crushLonOff = isTractor ? (-1.95 * sf) : (1.85 * sf);
+  const bladeWX = curX + fwdX * crushLonOff;
+  const bladeWZ = curZ + fwdZ * crushLonOff;
   const bladeRadius = 1.25 * sf;
-  for (let i = 0; i < tunisianSurfaceRocks.length; i++) {
-    const rk = tunisianSurfaceRocks[i];
+  const clumps = bull.zoneClumps || [];
+  for (let i = 0; i < clumps.length; i++) {
+    const rk = clumps[i];
     if (rk.flattened > 0.85) continue;
     if (Math.hypot(rk.wx - bladeWX, rk.wz - bladeWZ) <= bladeRadius) {
       rk.flattened = 1.0;
       rk.recoverTimer = 48.0;
       rk.grp.scale.y = 0.14;
-      rk.grp.position.y = -0.505;
-      // Burst 5 crushed rock pebbles flying backward from the blade!
+      rk.grp.position.y = bull.homeY - 0.005;
+      // Burst 5 crushed rock pebbles flying backward from the blade or rear PTO Land Crusher!
+      const ejectBackOff = isTractor ? (2.42 * sf) : (0.95 * sf);
       for (let b = 0; b < 5; b++) {
         const lat = (Math.random() - 0.5) * 1.55 * sf;
         spawnBulldozerFlyingPebble(
-          curX - fwdX * (0.95 * sf) + rightX * lat,
+          curX - fwdX * ejectBackOff + rightX * lat,
           root.position.y,
-          curZ - fwdZ * (0.95 * sf) + rightZ * lat,
-          -fwdX, -fwdZ, rightX, rightZ, sf, 1.25
+          curZ - fwdZ * ejectBackOff + rightZ * lat,
+          -fwdX, -fwdZ, rightX, rightZ, sf, 1.25, bull
         );
       }
     }
   }
 
-  // 4) Stamp neat, flat, leveled & tracked ground trail decals ("terlihat berjejak tapi rapi dan rata")
+  // 4) Stamp neat, flat, leveled & tracked/pulverized ground trail decals strictly inside this vehicle's dotted circle ("dalam lingkaran area titik2 itu")
   const distFromLastStamp = Math.hypot(curX - bull.lastTrailX, curZ - bull.lastTrailZ);
   if (distFromLastStamp >= 0.34 * sf) {
-    // Stamp behind the center of the tracks so the leveled trail emerges cleanly from the rear of the bulldozer
-    const stampX = curX - fwdX * (0.65 * sf);
-    const stampZ = curZ - fwdZ * (0.65 * sf);
-    stampBulldozerGradedTrail(stampX, root.position.y, stampZ, yaw, sf);
+    const trailBackOff = isTractor ? (2.05 * sf) : (0.65 * sf);
+    const stampX = curX - fwdX * trailBackOff;
+    const stampZ = curZ - fwdZ * trailBackOff;
+    stampBulldozerGradedTrail(bull, stampX, root.position.y, stampZ, yaw, sf);
     bull.lastTrailX = curX;
     bull.lastTrailZ = curZ;
   }
 
-  // 5) Continuously throw small pebbles/gravel ("bebatuan2 kecil atau kerikil") backward behind tracks & blade
+  // 5) Continuously throw small pebbles/gravel ("bebatuan2 kecil atau kerikil") backward behind tracks/blade or rear PTO Land Crusher
   bull.pebbleAccum = (bull.pebbleAccum || 0) + stepDist * 22.0 + dt * 14.0;
   while (bull.pebbleAccum >= 1.0) {
     bull.pebbleAccum -= 1.0;
     const isLeft = (Math.random() < 0.5);
     const trackLat = (isLeft ? -0.66 : 0.66) * sf + (Math.random() - 0.5) * 0.38 * sf;
-    // Eject from rear of tracks (z = -1.25m) or under rear of blade (z = +0.85m), always thrown backward (-fwd)
     const fromRear = (Math.random() < 0.82);
-    const lonOff = (fromRear ? -1.28 : 0.85) * sf;
+    const lonOff = isTractor ? (-2.42 * sf) : ((fromRear ? -1.28 : 0.85) * sf);
     const px = curX + fwdX * lonOff + rightX * trackLat;
     const pz = curZ + fwdZ * lonOff + rightZ * trackLat;
     spawnBulldozerFlyingPebble(
@@ -19016,37 +19407,49 @@ function advanceBulldozerGradingEffects(bull, prevX, prevZ, curX, curZ, dt) {
       -fwdX, -fwdZ,
       rightX, rightZ,
       sf,
-      fromRear ? 1.15 : 0.90
+      fromRear ? 1.15 : 0.90,
+      bull
     );
   }
 
-  // 6) Emit warm dry-earth dust puffs behind the tracks
+  // 6) Emit warm dry-earth dust puffs behind the tracks or rear PTO Land Crusher
   bull.dustAccum = (bull.dustAccum || 0) + stepDist * 4.2 + dt * 2.5;
   if (bull.dustAccum >= 1.0) {
     bull.dustAccum -= 1.0;
     const side = (Math.random() < 0.5 ? -0.64 : 0.64) * sf;
-    const dx = curX - fwdX * (1.28 * sf) + rightX * side;
-    const dz = curZ - fwdZ * (1.28 * sf) + rightZ * side;
-    spawnBulldozerDustPuff(dx, root.position.y, dz, -fwdX, -fwdZ, sf);
+    const dustBackOff = isTractor ? (2.40 * sf) : (1.28 * sf);
+    const dx = curX - fwdX * dustBackOff + rightX * side;
+    const dz = curZ - fwdZ * dustBackOff + rightZ * side;
+    spawnBulldozerDustPuff(dx, root.position.y, dz, -fwdX, -fwdZ, sf, bull);
   }
 }
 
 function deployBulldozer(customOpts = {}) {
-  if (!bulldozerTemplate.loaded || !bulldozerTemplate.scene) {
-    bulldozerTemplate.pending.push(customOpts || {});
+  const isTractor = !!(
+    customOpts &&
+    (customOpts.isTractor || customOpts.machineType === 'tractor' || (customOpts.labelEn && customOpts.labelEn.includes('Tractor')))
+  );
+  const activeTemplate = isTractor ? tractorTemplate : bulldozerTemplate;
+  if (!activeTemplate.loaded || !activeTemplate.scene) {
+    activeTemplate.pending.push(Object.assign({}, customOpts || {}, isTractor ? { isTractor: true, machineType: 'tractor' } : {}));
     return null;
   }
 
-  buildExteriorTunisianSurfaceRocks();
-
-  bulldozerCounter++;
-  const idx = bulldozerCounter;
+  let idx = 1;
+  if (isTractor) {
+    tractorCounter++;
+    idx = tractorCounter;
+  } else {
+    bulldozerCounter++;
+    idx = bulldozerCounter;
+  }
   const bulldozerRoot = new THREE.Group();
   bulldozerRoot.userData.noAutoRecenter = true;
   bulldozerRoot.userData.isBulldozer = true;
+  bulldozerRoot.userData.isTractor = isTractor;
+  bulldozerRoot.userData.machineType = isTractor ? 'tractor' : 'bulldozer';
 
-  const clonedModel = cloneSkinnedHierarchy(bulldozerTemplate.scene);
-  // Native bulldozer.glb has the front hydraulic blade at +Z and rear radiator/exhaust at -Z
+  const clonedModel = cloneSkinnedHierarchy(activeTemplate.scene);
   clonedModel.rotation.y = 0;
   bulldozerRoot.add(clonedModel);
 
@@ -19094,17 +19497,20 @@ function deployBulldozer(customOpts = {}) {
   bulldozerRoot.userData.paintColor = initialColor;
   bodyMaterials.forEach(m => attachBulldozerPaintShader(m, initialColor));
 
-  // Attach active 3D soil/gravel wave at the front blade
+  // Attach active 3D soil/gravel wave at the front blade (for bulldozers) or under the rear PTO Land Crusher screed (for tractors, z = -2.42m)
   const bladeWaveGroup = createBladeGradingWaveGroup();
+  if (isTractor) {
+    bladeWaveGroup.position.set(0, 0.02, -2.42);
+  }
   bulldozerRoot.add(bladeWaveGroup);
 
-  // Soft contact shadow under tracks & blade
+  // Soft contact shadow under tracks/wheels & blade/crusher
   if (typeof addContactShadow === 'function') {
-    addContactShadow(bulldozerRoot, 2.05, 3.65, 0.007, 0.44);
+    addContactShadow(bulldozerRoot, isTractor ? 2.15 : 2.05, isTractor ? 4.10 : 3.65, 0.007, 0.44);
   }
 
-  // Fast invisible hit-box proxy so clicking/selecting/dragging the bulldozer is instant
-  const hitGeo = new THREE.BoxGeometry(2.10, 2.35, 3.90);
+  // Fast invisible hit-box proxy so clicking/selecting/dragging the vehicle is instant
+  const hitGeo = new THREE.BoxGeometry(2.10, 2.35, isTractor ? 4.30 : 3.90);
   const hitMat = new THREE.MeshBasicMaterial({
     transparent: true,
     opacity: 0.0,
@@ -19112,7 +19518,7 @@ function deployBulldozer(customOpts = {}) {
     colorWrite: false
   });
   const hitBox = new THREE.Mesh(hitGeo, hitMat);
-  hitBox.position.set(0, 1.18, 0.32);
+  hitBox.position.set(0, 1.18, isTractor ? -0.45 : 0.32);
   hitBox.userData.isAODecal = true;
   bulldozerRoot.add(hitBox);
 
@@ -19130,8 +19536,12 @@ function deployBulldozer(customOpts = {}) {
     : (Math.random() * Math.PI * 2);
   bulldozerRoot.rotation.y = initYaw;
 
-  const labelEn = `Heavy Construction Bulldozer #${idx}`;
-  const labelAr = `جرافة بناء ثقيلة (بلدوزر) #${idx}`;
+  const labelEn = isTractor
+    ? `David Brown 25D Tractor + PTO Land Crusher #${idx}`
+    : `Heavy Construction Bulldozer #${idx}`;
+  const labelAr = isTractor
+    ? `جرار ديفيد براون 25D مع كسارة التربة #${idx}`
+    : `جرافة بناء ثقيلة (بلدوزر) #${idx}`;
   registerDraggable(bulldozerRoot, labelEn, labelAr);
 
   const sf = (customOpts && typeof customOpts.s === 'number' && customOpts.s > 0.1) ? customOpts.s : 1.0;
@@ -19139,21 +19549,22 @@ function deployBulldozer(customOpts = {}) {
   bulldozerRoot.scale.setScalar(sf);
 
   // Register template in OBJECT_CATALOG_REGISTRY if not yet populated
-  if (OBJECT_CATALOG_REGISTRY.has('Heavy Construction Bulldozer')) {
-    const regEntry = OBJECT_CATALOG_REGISTRY.get('Heavy Construction Bulldozer');
+  const catKey = isTractor ? 'David Brown 25D Tractor + PTO Land Crusher' : 'Heavy Construction Bulldozer';
+  if (OBJECT_CATALOG_REGISTRY.has(catKey)) {
+    const regEntry = OBJECT_CATALOG_REGISTRY.get(catKey);
     if (!regEntry.template) regEntry.template = bulldozerRoot;
   }
 
   deployedBulldozersGroup.add(bulldozerRoot);
 
-  // Set up AnimationMixer playing Bulldozer_Work_Drive (low grading blade + spinning wheels + chassis rumble)
+  // Set up AnimationMixer playing Work_Drive
   const mixer = new THREE.AnimationMixer(clonedModel);
   const actions = {};
-  if (bulldozerTemplate.clips.work) {
-    actions.work = mixer.clipAction(bulldozerTemplate.clips.work);
-    actions.work.timeScale = 1.15;
+  if (activeTemplate.clips.work) {
+    actions.work = mixer.clipAction(activeTemplate.clips.work);
+    actions.work.timeScale = isTractor ? 1.25 : 1.15;
     actions.work.play();
-    actions.work.time = (idx * 0.47) % 2.4;
+    actions.work.time = (idx * 0.47) % 2.0;
     mixer.update(0.01);
   }
 
@@ -19165,6 +19576,7 @@ function deployBulldozer(customOpts = {}) {
   const fwdZ = Math.cos(initYaw);
 
   const bullState = {
+    idx,
     root: bulldozerRoot,
     model: clonedModel,
     mixer,
@@ -19177,6 +19589,11 @@ function deployBulldozer(customOpts = {}) {
     homeY: spawn.y,
     homeZ: spawn.z,
     roamRadius,
+    zoneClumpsGroup: null,
+    zoneClumps: [],
+    zoneTrailsGroup: null,
+    zoneTrails: [],
+    trailCursor: 0,
     paused: !!(customOpts && customOpts.paused),
     state: 'GRADE_DRIVE',
     stateTimer: 0.2,
@@ -19200,27 +19617,12 @@ function deployBulldozer(customOpts = {}) {
     }
   }
 
-  // Pre-stamp an initial 3.6m neat leveled & tracked ground path directly behind the bulldozer at spawn
-  // so it immediately looks like it has already been leveling the rocky Tunisian terrain!
-  for (let s = 9; s >= 0; s--) {
-    const distBack = (0.65 + s * 0.36) * sf;
-    const sx = spawn.x - fwdX * distBack;
-    const sz = spawn.z - fwdZ * distBack;
-    stampBulldozerGradedTrail(sx, spawn.y, sz, initYaw, sf);
-    for (let r = 0; r < tunisianSurfaceRocks.length; r++) {
-      const rk = tunisianSurfaceRocks[r];
-      if (Math.hypot(rk.wx - sx, rk.wz - sz) < 1.20 * sf) {
-        rk.flattened = 1.0;
-        rk.recoverTimer = 48.0;
-        rk.grp.scale.y = 0.14;
-        rk.grp.position.y = -0.505;
-      }
-    }
-  }
-
   bulldozerRoot.userData.bulldozerState = bullState;
   deployedBulldozers.push(bullState);
   lastActiveBulldozerRoot = bulldozerRoot;
+
+  // Populate work-zone dirt clumps ("tanah2 gumpalan") & initial leveled trail strictly inside this bulldozer's dotted circle!
+  rebuildBulldozerWorkZone(bullState);
 
   if (!customOpts || !customOpts.skipSelect) {
     selectObject(bulldozerRoot);
@@ -19236,9 +19638,13 @@ function deleteSelectedBulldozer() {
   const st = targetObj.userData.bulldozerState;
   deselectObject();
 
-  if (st && st.mixer) st.mixer.stopAllAction();
+  if (st) {
+    if (st.mixer) st.mixer.stopAllAction();
+    clearBulldozerWorkZone(st, true);
+  }
   const bIdx = deployedBulldozers.indexOf(st);
   if (bIdx !== -1) deployedBulldozers.splice(bIdx, 1);
+  syncGlobalBulldozerPools();
 
   const dIdx = draggableObjects.indexOf(targetObj);
   if (dIdx !== -1) draggableObjects.splice(dIdx, 1);
@@ -19250,7 +19656,7 @@ function deleteSelectedBulldozer() {
 window.deleteSelectedBulldozer = deleteSelectedBulldozer;
 
 function updateDeployedBulldozers(dt) {
-  // 1) Update 3D flying pebbles/gravel physics (parabolic arc + ground bounce + spin)
+  // 1) Update 3D flying pebbles/gravel physics (parabolic arc + ground bounce + spin), strictly confined inside owner bulldozer's dotted circle
   for (let i = 0; i < bulldozerGravelPool.length; i++) {
     const p = bulldozerGravelPool[i];
     if (!p.active) continue;
@@ -19264,6 +19670,11 @@ function updateDeployedBulldozers(dt) {
     p.mesh.position.x += p.vx * dt;
     p.mesh.position.y += p.vy * dt;
     p.mesh.position.z += p.vz * dt;
+    if (p.ownerBull && Math.hypot(p.mesh.position.x - p.ownerBull.homeX, p.mesh.position.z - p.ownerBull.homeZ) > (p.ownerBull.roamRadius || 5.0) - 0.12) {
+      p.active = false;
+      p.mesh.visible = false;
+      continue;
+    }
     p.mesh.rotation.x += p.rvx * dt;
     p.mesh.rotation.y += p.rvy * dt;
     p.mesh.rotation.z += p.rvz * dt;
@@ -19288,7 +19699,7 @@ function updateDeployedBulldozers(dt) {
     }
   }
 
-  // 2) Update warm dry-earth dust clouds behind tracks
+  // 2) Update warm dry-earth dust clouds behind tracks, strictly confined inside owner bulldozer's dotted circle
   for (let i = 0; i < bulldozerDustPool.length; i++) {
     const d = bulldozerDustPool[i];
     if (!d.active) continue;
@@ -19302,11 +19713,16 @@ function updateDeployedBulldozers(dt) {
     d.mesh.position.x += d.vx * dt;
     d.mesh.position.y += d.vy * dt;
     d.mesh.position.z += d.vz * dt;
+    if (d.ownerBull && Math.hypot(d.mesh.position.x - d.ownerBull.homeX, d.mesh.position.z - d.ownerBull.homeZ) > (d.ownerBull.roamRadius || 5.0) - 0.12) {
+      d.active = false;
+      d.mesh.visible = false;
+      continue;
+    }
     d.mesh.scale.setScalar(d.startScale * (1.0 + f * 1.85));
     d.mesh.material.opacity = 0.30 * (1.0 - f) * (1.0 - f);
   }
 
-  // 3) Slowly recover flattened surface rocks far from any bulldozer after ~48s
+  // 3) Slowly recover flattened surface rocks inside each bulldozer's work zone after ~48s
   for (let i = 0; i < tunisianSurfaceRocks.length; i++) {
     const rk = tunisianSurfaceRocks[i];
     if (rk.flattened > 0.0) {
@@ -19314,7 +19730,8 @@ function updateDeployedBulldozers(dt) {
       if (rk.recoverTimer <= 0) {
         rk.flattened = Math.max(0.0, rk.flattened - dt * 0.25);
         rk.grp.scale.y = 1.0 - 0.86 * rk.flattened;
-        rk.grp.position.y = -0.50 - 0.005 * rk.flattened;
+        const baseY = (rk.ownerBull && typeof rk.ownerBull.homeY === 'number') ? rk.ownerBull.homeY : -0.50;
+        rk.grp.position.y = baseY - 0.005 * rk.flattened;
       }
     }
   }
@@ -19327,11 +19744,27 @@ function updateDeployedBulldozers(dt) {
     const root = bull.root;
     if (!root) continue;
 
+    // If a bulldozer was relocated outside its dotted circle (e.g. programmatically or via layout apply),
+    // automatically move its work-zone center, dirt clumps ("tanah2 gumpalan"), and trails to the new location!
+    if (Math.hypot(root.position.x - bull.homeX, root.position.z - bull.homeZ) > bull.roamRadius + 0.20) {
+      bull.homeX = root.position.x;
+      bull.homeZ = root.position.z;
+      bull.homeY = root.position.y;
+      bull.targetX = bull.homeX;
+      bull.targetZ = bull.homeZ;
+      rebuildBulldozerWorkZone(bull);
+      if (selectedObject === root && typeof updateAnimalRoamRing === 'function') updateAnimalRoamRing();
+    }
+
     if (root.position.y > 2.2 && (viewMode === 'top1' || !state.roofVisible)) {
       root.visible = false;
+      if (bull.zoneClumpsGroup) bull.zoneClumpsGroup.visible = false;
+      if (bull.zoneTrailsGroup) bull.zoneTrailsGroup.visible = false;
       continue;
     } else {
       root.visible = true;
+      if (bull.zoneClumpsGroup) bull.zoneClumpsGroup.visible = true;
+      if (bull.zoneTrailsGroup) bull.zoneTrailsGroup.visible = true;
     }
 
     // If user is actively dragging this bulldozer or it is paused, keep blade animation gentle
@@ -19513,19 +19946,24 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.772,"y":-0.5,"z":25.749,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.097,"y":-0.5,"z":25.899,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.237,"y":-0.5,"z":26.083,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Heavy Construction Bulldozer #1","x":6.8,"y":-0.5,"z":15.4,"ry":-1.2,"s":1,"isBulldozer":true,"roamRadius":4.4,"paintColor":"#E5A01D"},
-  {"labelEn":"Heavy Construction Bulldozer #2","x":-19.2,"y":-0.5,"z":15.2,"ry":0.65,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#F59E0B"},
+  {"labelEn":"Heavy Construction Bulldozer #1","x":7.5,"y":-0.5,"z":21.5,"ry":0.42,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#E5A01D"},
+  {"labelEn":"Heavy Construction Bulldozer #2","x":-20.2,"y":-0.5,"z":14.8,"ry":-0.22,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#F59E0B"},
   {"labelEn":"Heavy Construction Bulldozer #3","x":-19.5,"y":-0.5,"z":-2.5,"ry":0.15,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#D97706"},
   {"labelEn":"Heavy Construction Bulldozer #4","x":-3.5,"y":-0.5,"z":-13.5,"ry":1.57,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#E5A01D"},
-  {"labelEn":"Heavy Construction Bulldozer #5","x":13.5,"y":-0.5,"z":-13.5,"ry":-1.57,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#EA580C"}
+  {"labelEn":"Heavy Construction Bulldozer #5","x":21.5,"y":-0.5,"z":-4.5,"ry":0.12,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#EA580C"},
+  {"labelEn":"David Brown 25D Tractor + PTO Land Crusher #1","x":6.2,"y":-0.5,"z":30.2,"ry":1.57,"s":1,"isBulldozer":true,"isTractor":true,"machineType":"tractor","roamRadius":5.2,"paintColor":"#E5A01D"},
+  {"labelEn":"David Brown 25D Tractor + PTO Land Crusher #2","x":-19.5,"y":-0.5,"z":25.8,"ry":0.25,"s":1,"isBulldozer":true,"isTractor":true,"machineType":"tractor","roamRadius":5.2,"paintColor":"#E5A01D"}
 ];
 
 function spawnInitialAnimalsAndBulldozers(layoutList) {
   if (!layoutList || !Array.isArray(layoutList)) return;
   let hasSavedBulldozer = false;
+  let hasSavedTractor = false;
   layoutList.forEach((sp) => {
-    if (sp && (sp.isBulldozer || (sp.labelEn && sp.labelEn.startsWith('Heavy Construction Bulldozer')))) {
-      hasSavedBulldozer = true;
+    if (sp && (sp.isBulldozer || sp.isTractor || (sp.labelEn && (sp.labelEn.startsWith('Heavy Construction Bulldozer') || sp.labelEn.startsWith('David Brown 25D Tractor'))))) {
+      const isTr = !!(sp.isTractor || sp.machineType === 'tractor' || (sp.labelEn && sp.labelEn.includes('Tractor')));
+      if (isTr) hasSavedTractor = true;
+      else hasSavedBulldozer = true;
       deployBulldozer({
         x: sp.x,
         y: sp.y,
@@ -19535,6 +19973,8 @@ function spawnInitialAnimalsAndBulldozers(layoutList) {
         roamRadius: sp.roamRadius,
         paintColor: sp.paintColor,
         paused: sp.paused,
+        isTractor: isTr,
+        machineType: isTr ? 'tractor' : 'bulldozer',
         skipSelect: true
       });
       return;
@@ -19551,8 +19991,11 @@ function spawnInitialAnimalsAndBulldozers(layoutList) {
       });
     }
   });
-  if (!hasSavedBulldozer && typeof DEFAULT_BULLDOZER_SPAWNS !== 'undefined') {
+  if (typeof DEFAULT_BULLDOZER_SPAWNS !== 'undefined') {
     DEFAULT_BULLDOZER_SPAWNS.forEach((bd) => {
+      const isTr = !!(bd.isTractor || bd.machineType === 'tractor');
+      if (isTr && hasSavedTractor) return;
+      if (!isTr && hasSavedBulldozer) return;
       deployBulldozer({
         x: bd.x,
         y: bd.y,
@@ -19561,6 +20004,8 @@ function spawnInitialAnimalsAndBulldozers(layoutList) {
         s: bd.s,
         roamRadius: bd.roamRadius,
         paintColor: bd.paintColor,
+        isTractor: isTr,
+        machineType: isTr ? 'tractor' : 'bulldozer',
         skipSelect: true
       });
     });
@@ -19572,8 +20017,9 @@ function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
   const usedObjs = new Set();
   let hasSavedBulldozer = false;
   layoutList.forEach((sp) => {
-    if (sp && (sp.isBulldozer || (sp.labelEn && sp.labelEn.startsWith('Heavy Construction Bulldozer')))) {
+    if (sp && (sp.isBulldozer || sp.isTractor || (sp.labelEn && (sp.labelEn.startsWith('Heavy Construction Bulldozer') || sp.labelEn.startsWith('David Brown 25D Tractor'))))) {
       hasSavedBulldozer = true;
+      const isTr = !!(sp.isTractor || sp.machineType === 'tractor' || (sp.labelEn && sp.labelEn.includes('Tractor')));
       if (!skipAnimalsAndBulldozers) {
         deployBulldozer({
           x: sp.x,
@@ -19584,6 +20030,8 @@ function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
           roamRadius: sp.roamRadius,
           paintColor: sp.paintColor,
           paused: sp.paused,
+          isTractor: isTr,
+          machineType: isTr ? 'tractor' : 'bulldozer',
           skipSelect: true
         });
       }
@@ -19782,6 +20230,7 @@ async function initApp() {
   // so all 5 exterior bulldozers, surface rocks & animals appear and animate in <0.5s without waiting on external CDN!
   buildExteriorTunisianSurfaceRocks();
   loadBulldozerTemplate();
+  loadTractorTemplate();
   loadAnimalTemplates();
   loadMaitreMaherNPC();
   loadMaherWifeNPC();
