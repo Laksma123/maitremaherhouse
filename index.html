@@ -571,8 +571,8 @@
 
   <div id="design-color-panel">
     <span class="design-color-title" id="ui-design-color-title">🎨 Design Color:</span>
-    <button class="color-tpl-btn active" id="btn-color-tpl-default" onclick="setDesignColorTemplate('default')">🏛️ Default Template</button>
-    <button class="color-tpl-btn" id="btn-color-tpl-sidibou" onclick="setDesignColorTemplate('sidibou')">🇹🇳 Sidi Bou Template</button>
+    <button class="color-tpl-btn" id="btn-color-tpl-default" onclick="setDesignColorTemplate('default')">🏛️ Default Template</button>
+    <button class="color-tpl-btn active" id="btn-color-tpl-sidibou" onclick="setDesignColorTemplate('sidibou')">🇹🇳 Sidi Bou Template</button>
     <button class="color-tpl-btn" id="btn-color-tpl-custom" onclick="setDesignColorTemplate('custom')">🎨 Custom</button>
     <button class="color-stair-btn" id="btn-stair-color-mode" onclick="toggleStairColorMode()" title="Toggle whether the exterior staircase shares the wall color or contrasts with the accent color">🪜 Stairs: Accent Color</button>
     <div id="custom-color-controls">
@@ -588,9 +588,9 @@
       </button>
     </div>
     <button class="color-combo-input-btn" id="btn-pick-bulldozer-color" onclick="openColorPalettePopover('bulldozer', this)" title="Click to open complete Color Palette for the Selected Bulldozer">
-      <span class="color-combo-swatch" id="swatch-bulldozer-color" style="background:#e5a01d;forced-color-adjust:none;"></span>
+      <span class="color-combo-swatch" id="swatch-bulldozer-color" style="background:#0ea5e9;forced-color-adjust:none;"></span>
       <span id="lbl-pick-bulldozer-color">🚜 Bulldozer Color</span>
-      <span id="hex-bulldozer-color" style="opacity:0.8;font-size:10px;">#E5A01D</span>
+      <span id="hex-bulldozer-color" style="opacity:0.8;font-size:10px;">#0EA5E9</span>
     </button>
     <button class="btn-pill" id="btn-close-design-color" onclick="toggleDesignColorPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
   </div>
@@ -1011,7 +1011,7 @@ const state = {
     bath_kitchen: 'alabaster_pearl'
   },
   designColor: {
-    mode: 'default', // 'default' | 'sidibou' | 'custom'
+    mode: 'sidibou', // 'default' | 'sidibou' | 'custom'
     wallColor: '#f8fbff',
     accentColor: '#1677e6',
     stairSameAsWall: false
@@ -13759,7 +13759,7 @@ function saveDesign() {
     designColor: state.designColor,
     customPositions
   });
-  localStorage.setItem('tunisia_modern_arabic_villa_v10', payloadStr);
+  localStorage.setItem('tunisia_modern_arabic_villa_v11', payloadStr);
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(JSON.stringify(customPositions)).catch(() => {});
   }
@@ -13769,7 +13769,7 @@ function saveDesign() {
 function exportLayoutToClipboard() {
   const customPositions = buildCurrentLayoutPayload();
   const jsonStr = JSON.stringify(customPositions);
-  localStorage.setItem('tunisia_modern_arabic_villa_v10', JSON.stringify({
+  localStorage.setItem('tunisia_modern_arabic_villa_v11', JSON.stringify({
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     designColor: state.designColor,
@@ -13787,6 +13787,7 @@ function exportLayoutToClipboard() {
 }
 
 function resetDesign() {
+  localStorage.removeItem('tunisia_modern_arabic_villa_v11');
   localStorage.removeItem('tunisia_modern_arabic_villa_v10');
   localStorage.removeItem('tunisia_modern_arabic_villa_v9');
   localStorage.removeItem('tunisia_modern_arabic_villa_v8');
@@ -18229,23 +18230,13 @@ window.tractorTemplate = tractorTemplate;
 let bulldozerCounter = 0;
 let tractorCounter = 0;
 let lastActiveBulldozerRoot = null;
-let defaultBulldozerPaintHex = '#E5A01D';
+let defaultBulldozerPaintHex = '#0EA5E9';
 
 const DEFAULT_BULLDOZER_SPAWNS = [
-  // 1) Front-East / South-East Yard (Open rocky ground South-East of Courtyard Terrace)
-  { labelEn: 'Heavy Construction Bulldozer #1', x: 7.50, y: -0.50, z: 21.50, ry: 0.42, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#E5A01D' },
-  // 2) Front-West / South-West Yard (West of Country Gravel Road)
-  { labelEn: 'Heavy Construction Bulldozer #2', x: -20.20, y: -0.50, z: 14.80, ry: -0.22, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#F59E0B' },
-  // 3) West Flank (Left of Swimming Pool & Villa)
-  { labelEn: 'Heavy Construction Bulldozer #3', x: -19.50, y: -0.50, z: -2.50, ry: 0.15, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#D97706' },
-  // 4) North-West / Back-Left Yard (Behind Master Bedroom & Salon)
-  { labelEn: 'Heavy Construction Bulldozer #4', x: -3.50, y: -0.50, z: -13.50, ry: 1.57, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#E5A01D' },
-  // 5) East / North-East Flank (East of Livestock Paddock & Villa)
-  { labelEn: 'Heavy Construction Bulldozer #5', x: 21.50, y: -0.50, z: -4.50, ry: 0.12, s: 1.0, isBulldozer: true, roamRadius: 5.5, paintColor: '#EA580C' },
-  // 6) David Brown 25D Tractor + PTO Land Crusher #1 (Front-South Yard)
-  { labelEn: 'David Brown 25D Tractor + PTO Land Crusher #1', x: 6.20, y: -0.50, z: 30.20, ry: 1.57, s: 1.0, isBulldozer: true, isTractor: true, machineType: 'tractor', roamRadius: 5.2, paintColor: '#E5A01D' },
-  // 7) David Brown 25D Tractor + PTO Land Crusher #2 (South-West Open Field)
-  { labelEn: 'David Brown 25D Tractor + PTO Land Crusher #2', x: -19.50, y: -0.50, z: 25.80, ry: 0.25, s: 1.0, isBulldozer: true, isTractor: true, machineType: 'tractor', roamRadius: 5.2, paintColor: '#E5A01D' }
+  // 1) North-West / Back-Left Yard (Behind Master Bedroom & Salon — Sidi Bou Blue)
+  { labelEn: 'Heavy Construction Bulldozer #4', x: -3.50, y: -0.50, z: -13.50, ry: -435.4653, s: 1.0, isBulldozer: true, machineType: 'bulldozer', roamRadius: 5.5, paintColor: '#0EA5E9' },
+  // 2) David Brown 25D Tractor + PTO Land Crusher #1 (Front-South Yard — Sidi Bou Blue)
+  { labelEn: 'David Brown 25D Tractor + PTO Land Crusher #1', x: 6.20, y: -0.50, z: 30.20, ry: -341.3778, s: 1.0, isBulldozer: true, isTractor: true, machineType: 'tractor', roamRadius: 5.2, paintColor: '#0EA5E9' }
 ];
 
 // --- 1. Procedural PBR Leveled & Tracked Ground Trail Material ---
@@ -19837,7 +19828,7 @@ function updateDeployedBulldozers(dt) {
 }
 
 // ============================================================================
-// BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (106 OBJECTS)
+// BOOTSTRAP SCENE & LOCKED CUSTOM DEFAULT LAYOUT (121 OBJECTS — SIDI BOU SAID + 3 FENCES + 26 SMALL OLIVES)
 // ============================================================================
 const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Tunisian Post-Swim Floor Lounge","x":-2.45,"y":-0.25,"z":5.92,"ry":0,"s":1},
@@ -19862,50 +19853,39 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Luxury Espresso & Arabic Coffee Machine","x":-0.75,"y":0.91,"z":4.501,"ry":0,"s":1},
   {"labelEn":"Chef's L-Shaped Kitchen Counter & Sink","x":0.105,"y":0,"z":3.53,"ry":0,"s":1},
   {"labelEn":"L-Shaped Green & White Entrance Walkway (Anchored at Terrace)","x":0,"y":0,"z":0,"ry":0,"s":1,"endBx":-5.318,"walkBy":-13.48},
-  {"labelEn":"Peugeot 308 Orange Hatchback","x":-8.011,"y":-0.47,"z":17.193,"ry":3.1416,"s":1},
-  {"labelEn":"Ornate Gilded Hammam Mirror","x":-3.15,"y":1.02,"z":4.82,"ry":0,"s":1},
-  {"labelEn":"Carved Mahogany Heritage King Bed","x":-4.55,"y":0.02,"z":-2.5,"ry":0,"s":1},
+  {"labelEn":"Peugeot 308 Orange Hatchback","x":-13.895,"y":-0.47,"z":12.454,"ry":3.1416,"s":1},
+  {"labelEn":"Heavy Construction Bulldozer #4","x":-3.5,"y":-0.5,"z":-13.5,"ry":-435.4653,"s":1,"isBulldozer":true,"machineType":"bulldozer","paintColor":"#0EA5E9","roamRadius":5.5},
+  {"labelEn":"David Brown 25D Tractor + PTO Land Crusher #1","x":6.2,"y":-0.5,"z":30.2,"ry":-341.3778,"s":1,"isBulldozer":true,"isTractor":true,"machineType":"tractor","paintColor":"#0EA5E9","roamRadius":5.2},
+  {"labelEn":"White Farm Chicken #1","x":8.554,"y":-0.5,"z":-1.621,"ry":140.1762,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"White Farm Chicken #2","x":9.448,"y":-0.5,"z":-1.561,"ry":42.6804,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"White Farm Chicken #3","x":8.597,"y":-0.5,"z":2.327,"ry":38.2146,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
+  {"labelEn":"Farm Rabbit #1","x":8.571,"y":-0.5,"z":1.849,"ry":-26.8469,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"Farm Rabbit #2","x":8.529,"y":-0.5,"z":1.573,"ry":-42.5527,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"Farm Rabbit #3","x":8.519,"y":-0.5,"z":-2.184,"ry":-52.1488,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
+  {"labelEn":"Tunisian Farm Goat #1","x":8.575,"y":-0.5,"z":0.676,"ry":30.0554,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
+  {"labelEn":"Tunisian Farm Goat #2","x":9.097,"y":-0.5,"z":-0.935,"ry":100.4944,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
+  {"labelEn":"Slatted Walnut Cabinet + 85\" OLED TV","x":3.6,"y":0.02,"z":-4.513,"ry":0,"s":1},
   {"labelEn":"Royal Carved Salon L-Sofa (South)","x":3.711,"y":0.02,"z":2.152,"ry":0,"s":1},
   {"labelEn":"Royal Carved Salon L-Sofa (East)","x":5.408,"y":0.02,"z":0.468,"ry":0,"s":1},
-  {"labelEn":"Living Salon Chandelier","x":3.4,"y":2.38,"z":-1.75,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":5.357,"y":0.02,"z":-4.453,"ry":0,"s":1},
-  {"labelEn":"Carved Bedside Nightstand","x":-5.5,"y":0.02,"z":-1.12,"ry":0,"s":1},
-  {"labelEn":"King Bedroom Chandelier","x":-4.1,"y":2.42,"z":-2.5,"ry":0,"s":1},
-  {"labelEn":"Slatted Walnut Cabinet + 85\" OLED TV","x":3.6,"y":0.02,"z":-4.513,"ry":0,"s":1},
-  {"labelEn":"4-Burner Electric Range Stove","x":0.92,"y":0.02,"z":2.5,"ry":0,"s":1},
   {"labelEn":"Majlis Salon Armchair","x":2.413,"y":0.02,"z":-3.131,"ry":0,"s":1},
-  {"labelEn":"Tunisian Vintage Carved Daybed","x":5.389,"y":0.02,"z":-2.781,"ry":3.1416,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":5.462,"y":0.02,"z":-1.347,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":-4.8,"y":3.79,"z":4.25,"ry":0,"s":1},
   {"labelEn":"Carved Majlis Coffee Table","x":3.525,"y":0.02,"z":0.16,"ry":0,"s":1},
-  {"labelEn":"Center Daybed Chandelier","x":0.55,"y":2.52,"z":-1.85,"ry":0,"s":1},
-  {"labelEn":"Hammered Brass Cooking Pot","x":0.98,"y":0.92,"z":2.65,"ry":0,"s":1},
   {"labelEn":"Tunisian Brass Coffee Pot","x":3.61,"y":0.5,"z":-2.94,"ry":0,"s":1},
-  {"labelEn":"Bedside Brass Diya Lantern","x":-5.5,"y":0.68,"z":-1.12,"ry":0,"s":1},
-  {"labelEn":"Carved Bedside Nightstand","x":-5.5,"y":0.02,"z":-3.88,"ry":0,"s":1},
-  {"labelEn":"Bedside Brass Diya Lantern","x":-5.5,"y":0.68,"z":-3.88,"ry":0,"s":1},
-  {"labelEn":"Marble Center Tea Table","x":3.576,"y":0.02,"z":-2.97,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":-3.2,"y":3.79,"z":4.25,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":-1.6,"y":3.79,"z":4.25,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":0,"y":3.79,"z":4.25,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":1.6,"y":3.79,"z":4.25,"ry":0,"s":1},
-  {"labelEn":"Mediterranean Potted Plant","x":3.2,"y":3.79,"z":4.25,"ry":0,"s":1},
-  {"labelEn":"Artisan Ceramic Kitchen Jar","x":0.42,"y":0.91,"z":4.55,"ry":0,"s":1},
   {"labelEn":"Nabeul Ceramic Table Vase","x":3.51,"y":0.5,"z":0.292,"ry":0,"s":1},
-  {"labelEn":"Engraved Brass Center Vase","x":4.742,"y":0.52,"z":-3.828,"ry":0,"s":1},
-  {"labelEn":"Tunisian Brass Olive Oil Pitcher","x":0.94,"y":0.91,"z":3.35,"ry":0,"s":1},
-  {"labelEn":"Chef Kitchen Pendant","x":-0.25,"y":2.55,"z":3.5,"ry":0,"s":1},
   {"labelEn":"Leather Ottoman Pouf","x":5.445,"y":0.02,"z":2.107,"ry":0,"s":1},
-  {"labelEn":"Hammam Bathroom Chandelier","x":-3.85,"y":2.58,"z":2.85,"ry":0,"s":1},
+  {"labelEn":"Tunisian Vintage Carved Daybed","x":5.389,"y":0.02,"z":-2.781,"ry":3.1416,"s":1},
+  {"labelEn":"Marble Center Tea Table","x":3.576,"y":0.02,"z":-2.97,"ry":0,"s":1},
+  {"labelEn":"Engraved Brass Center Vase","x":4.742,"y":0.52,"z":-3.828,"ry":0,"s":1},
+  {"labelEn":"4-Burner Electric Range Stove","x":0.92,"y":0.02,"z":2.5,"ry":0,"s":1},
+  {"labelEn":"Hammered Brass Cooking Pot","x":0.98,"y":0.92,"z":2.65,"ry":0,"s":1},
+  {"labelEn":"Artisan Ceramic Kitchen Jar","x":0.42,"y":0.91,"z":4.55,"ry":0,"s":1},
+  {"labelEn":"Tunisian Brass Olive Oil Pitcher","x":0.94,"y":0.91,"z":3.35,"ry":0,"s":1},
   {"labelEn":"Kitchen Breakfast Barstool","x":0.18,"y":0.02,"z":3.3,"ry":0,"s":1},
   {"labelEn":"Kitchen Breakfast Barstool","x":0.18,"y":0.02,"z":4.05,"ry":0,"s":1},
-  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-0.016,"y":-0.564,"z":8.039,"ry":0,"s":1},
-  {"labelEn":"Giant Mediterranean Shade Tree (6.8m)","x":-9.355,"y":-0.596,"z":9.081,"ry":0,"s":1},
-  {"labelEn":"Detailed Mediterranean Orange Tree (4.4m)","x":11.197,"y":-0.5,"z":9.382,"ry":0,"s":0.797},
-  {"labelEn":"Tunisian Stone & Brick Bonfire Pit","x":15.144,"y":-0.5,"z":18.638,"ry":0,"s":1},
-  {"labelEn":"Poolside Low Floor Table with Bottles & Glasses","x":-9.2,"y":0.04,"z":6.38,"ry":0,"s":1},
-  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":-5.752,"y":-0.5,"z":14.896,"ry":4.7124,"s":1.254,"leftPanels":3,"rightPanels":2,"gateOffsetX":-1.092962452202313},
-  {"labelEn":"Livestock Wrap-Around Wooden Fence & 2-Leaf Gate","x":9,"y":-0.5,"z":0,"ry":0,"s":1,"leftPanels":6,"rightPanels":4,"gateOffsetX":12.111169053750112},
+  {"labelEn":"Living Salon Chandelier","x":3.4,"y":2.38,"z":-1.75,"ry":0,"s":1},
+  {"labelEn":"King Bedroom Chandelier","x":-4.1,"y":2.42,"z":-2.5,"ry":0,"s":1},
+  {"labelEn":"Center Daybed Chandelier","x":0.55,"y":2.52,"z":-1.85,"ry":0,"s":1},
+  {"labelEn":"Chef Kitchen Pendant","x":-0.25,"y":2.55,"z":3.5,"ry":0,"s":1},
+  {"labelEn":"Hammam Bathroom Chandelier","x":-3.85,"y":2.58,"z":2.85,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":-0.98,"y":2.05,"z":-4.78,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":2.07,"y":2.05,"z":-4.78,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":5.78,"y":2.05,"z":-1.85,"ry":0,"s":1},
@@ -19913,46 +19893,62 @@ const DEFAULT_CUSTOM_POSITIONS = [
   {"labelEn":"Moroccan Brass Wall Lantern","x":1.82,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":3.38,"y":2.05,"z":5.18,"ry":0,"s":1},
   {"labelEn":"Moroccan Brass Wall Lantern","x":5.52,"y":2.05,"z":5.18,"ry":0,"s":1},
+  {"labelEn":"Carved Mahogany Heritage King Bed","x":-4.55,"y":0.02,"z":-2.5,"ry":0,"s":1},
+  {"labelEn":"Carved Bedside Nightstand","x":-5.5,"y":0.02,"z":-1.12,"ry":0,"s":1},
+  {"labelEn":"Bedside Brass Diya Lantern","x":-5.5,"y":0.68,"z":-1.12,"ry":0,"s":1},
+  {"labelEn":"Carved Bedside Nightstand","x":-5.5,"y":0.02,"z":-3.88,"ry":0,"s":1},
+  {"labelEn":"Bedside Brass Diya Lantern","x":-5.5,"y":0.68,"z":-3.88,"ry":0,"s":1},
+  {"labelEn":"Ornate Gilded Hammam Mirror","x":-3.15,"y":1.02,"z":4.82,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":5.357,"y":0.02,"z":-4.453,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":5.462,"y":0.02,"z":-1.347,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":-4.8,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":-3.2,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":-1.6,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":0,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":1.6,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Mediterranean Potted Plant","x":3.2,"y":3.79,"z":4.25,"ry":0,"s":1},
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-0.016,"y":-0.564,"z":8.039,"ry":0,"s":1},
+  {"labelEn":"Giant Mediterranean Shade Tree (6.8m)","x":-9.355,"y":-0.596,"z":9.081,"ry":0,"s":1},
+  {"labelEn":"Detailed Mediterranean Orange Tree (4.4m)","x":11.197,"y":-0.5,"z":9.382,"ry":0,"s":0.797},
+  {"labelEn":"Tunisian Stone & Brick Bonfire Pit","x":15.144,"y":-0.5,"z":18.638,"ry":0,"s":1},
+  {"labelEn":"Poolside Low Floor Table with Bottles & Glasses","x":-9.2,"y":0.04,"z":6.38,"ry":0,"s":1},
+  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":-5.752,"y":-0.5,"z":14.896,"ry":4.7124,"s":1.254,"leftPanels":3,"rightPanels":2,"gateOffsetX":-1.092962452202313,"hasGate":true},
+  {"labelEn":"Livestock Wrap-Around Wooden Fence & 2-Leaf Gate","x":9,"y":-0.5,"z":0,"ry":0,"s":1,"leftPanels":6,"rightPanels":4,"gateOffsetX":12.111169053750112,"hasGate":true},
   {"labelEn":"Stone BBQ Grill & Fire Pit","x":-4.65,"y":4.72,"z":-2.65,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-0.95,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-1.95,"ry":0,"s":1},
   {"labelEn":"Rooftop BBQ Barstool","x":-3.65,"y":3.78,"z":-2.95,"ry":0,"s":1},
-  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-1.856,"y":-0.468,"z":32.308,"ry":0,"s":1.254},
+  {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":-1.856,"y":-0.468,"z":32.308,"ry":0,"s":1.404},
   {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":15.964,"y":-0.5,"z":32.218,"ry":0,"s":1.12},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.333,"y":-0.25,"z":21.589,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":28.04,"y":-0.25,"z":19.625,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Ancient Mediterranean Olive Tree (3m)","x":16.926,"y":-0.5,"z":2.948,"ry":0,"s":1.254},
-  {"labelEn":"Tunisian Farm Goat #1","x":8.575,"y":-0.5,"z":0.676,"ry":83.4682,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
-  {"labelEn":"Farm Rabbit #1","x":8.571,"y":-0.5,"z":1.849,"ry":-34.0234,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
-  {"labelEn":"Farm Rabbit #2","x":8.529,"y":-0.5,"z":1.573,"ry":42.6475,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
-  {"labelEn":"White Farm Chicken #1","x":8.554,"y":-0.5,"z":-1.621,"ry":134.6879,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
-  {"labelEn":"White Farm Chicken #2","x":9.448,"y":-0.5,"z":-1.561,"ry":43.467,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
-  {"labelEn":"White Farm Chicken #3","x":8.597,"y":-0.5,"z":2.327,"ry":66.795,"s":1,"isAnimal":true,"animalType":"chicken","roamRadius":2},
-  {"labelEn":"Farm Rabbit #3","x":8.519,"y":-0.5,"z":-2.184,"ry":-40.4116,"s":1,"isAnimal":true,"animalType":"rabbit","roamRadius":2},
-  {"labelEn":"Tunisian Farm Goat #2","x":9.097,"y":-0.5,"z":-0.935,"ry":166.8936,"s":1,"isAnimal":true,"animalType":"goat","roamRadius":2.4},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.914,"y":-0.5,"z":12.22,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.734,"y":-0.5,"z":-8.306,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.793,"y":-0.5,"z":-9.345,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.852,"y":-0.5,"z":5.609,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":28.102,"y":-0.5,"z":-0.662,"ry":0,"s":1.12,"hasPot":false},
   {"labelEn":"Small Olive Tree (Single — Without Pot)","x":22.312,"y":-0.5,"z":-1.59,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.734,"y":-0.5,"z":20.738,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.99,"y":-0.5,"z":20.622,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.238,"y":-0.5,"z":20.657,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":1.805,"y":-0.5,"z":20.787,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-4.941,"y":-0.5,"z":20.565,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-5.072,"y":-0.5,"z":25.139,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":2.104,"y":-0.5,"z":25.29,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.715,"y":-0.5,"z":25.344,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":14.772,"y":-0.5,"z":25.749,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":21.097,"y":-0.5,"z":25.899,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.237,"y":-0.5,"z":26.083,"ry":0,"s":1.12,"hasPot":false},
-  {"labelEn":"Heavy Construction Bulldozer #1","x":7.5,"y":-0.5,"z":21.5,"ry":0.42,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#E5A01D"},
-  {"labelEn":"Heavy Construction Bulldozer #2","x":-20.2,"y":-0.5,"z":14.8,"ry":-0.22,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#F59E0B"},
-  {"labelEn":"Heavy Construction Bulldozer #3","x":-19.5,"y":-0.5,"z":-2.5,"ry":0.15,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#D97706"},
-  {"labelEn":"Heavy Construction Bulldozer #4","x":-3.5,"y":-0.5,"z":-13.5,"ry":1.57,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#E5A01D"},
-  {"labelEn":"Heavy Construction Bulldozer #5","x":21.5,"y":-0.5,"z":-4.5,"ry":0.12,"s":1,"isBulldozer":true,"roamRadius":5.5,"paintColor":"#EA580C"},
-  {"labelEn":"David Brown 25D Tractor + PTO Land Crusher #1","x":6.2,"y":-0.5,"z":30.2,"ry":1.57,"s":1,"isBulldozer":true,"isTractor":true,"machineType":"tractor","roamRadius":5.2,"paintColor":"#E5A01D"},
-  {"labelEn":"David Brown 25D Tractor + PTO Land Crusher #2","x":-19.5,"y":-0.5,"z":25.8,"ry":0.25,"s":1,"isBulldozer":true,"isTractor":true,"machineType":"tractor","roamRadius":5.2,"paintColor":"#E5A01D"}
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.012,"y":-0.5,"z":18.512,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":12.314,"y":-0.5,"z":18.77,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":17.269,"y":-0.5,"z":18.627,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":2.733,"y":-0.5,"z":18.286,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-2.712,"y":-0.5,"z":18.44,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-2.804,"y":-0.5,"z":23.391,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":2.689,"y":-0.5,"z":23.324,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":8.113,"y":-0.5,"z":23.522,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":12.62,"y":-0.5,"z":23.597,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":17.316,"y":-0.5,"z":23.336,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":27.95,"y":-0.5,"z":23.458,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":1.919,"y":-0.5,"z":20.413,"ry":6.2832,"s":1.254,"leftPanels":3,"rightPanels":7,"gateOffsetX":-1.092962452202313,"hasGate":false},
+  {"labelEn":"Wooden Diamond-Lattice Fence & Arched Garden Gate","x":18.703,"y":-0.5,"z":17.204,"ry":7.854,"s":1.254,"leftPanels":1,"rightPanels":2,"gateOffsetX":-1.092962452202313,"hasGate":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-10.332,"y":-0.5,"z":18.293,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":12.444,"y":-0.5,"z":27.749,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":7.937,"y":-0.5,"z":27.674,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":2.514,"y":-0.5,"z":27.477,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-2.98,"y":-0.5,"z":27.544,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":17.14,"y":-0.5,"z":27.488,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-10.243,"y":-0.5,"z":23.2,"ry":0,"s":1.12,"hasPot":false},
+  {"labelEn":"Small Olive Tree (Single — Without Pot)","x":-10.416,"y":-0.5,"z":27.596,"ry":0,"s":1.12,"hasPot":false}
 ];
 
 function spawnInitialAnimalsAndBulldozers(layoutList) {
@@ -20180,7 +20176,7 @@ function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
 }
 
 async function initApp() {
-  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v10');
+  const savedRaw = localStorage.getItem('tunisia_modern_arabic_villa_v11');
   let savedPositions = null;
   if (savedRaw) {
     try {
@@ -20189,7 +20185,7 @@ async function initApp() {
       if (parsed.timeOfDay) state.timeOfDay = parsed.timeOfDay;
       if (parsed.designColor && typeof parsed.designColor === 'object') {
         state.designColor = {
-          mode: parsed.designColor.mode || 'default',
+          mode: parsed.designColor.mode || 'sidibou',
           wallColor: parsed.designColor.wallColor || '#f8fbff',
           accentColor: parsed.designColor.accentColor || '#1677e6',
           stairSameAsWall: !!parsed.designColor.stairSameAsWall
