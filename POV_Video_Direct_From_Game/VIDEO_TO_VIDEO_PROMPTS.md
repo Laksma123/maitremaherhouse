@@ -22,10 +22,18 @@ Folder ini berisi rekaman **First-Person POV Walkthrough (`1920×1080`, `30 FPS`
 
 ---
 
-## Prompt Universal (Bisa Dipakai untuk Semua Klip Sekaligus)
+## Prompt Global Universal (Bekerja untuk SEMUA Klip Sekaligus — Indoor & Outdoor)
 
+Gunakan **1 prompt global** di bawah ini untuk **seluruh klip (`01` s/d `10`)** tanpa perlu mengganti-ganti teks per klip. Rumusan kalimatnya dirancang secara adaptif (*reference-conditioned*) agar AI **hanya menerjemahkan objek dan ruangan yang sedang tampil pada video referensi** menjadi rekaman kamera dunia nyata tanpa menambah atau mengarang objek dari adegan lain:
+
+### Opsi A — Prompt Global Lengkap (Runway Gen-4 / Luma Ray 2 / Kling / Gemini / Veo)
 ```text
-Photorealistic live-action 4K architectural walkthrough video shot on Sony FX3 24mm f/2.8 gimbal camera, real-world luxury Sidi Bou Said Tunisian villa under bright natural Mediterranean daylight. Transform all surfaces into authentic real-world physical materials: weathered lime-plastered whitewashed masonry walls, painted cobalt-blue cedar wood fences, doors and pergolas, real sun-dappled silver-green olive tree leaves, natural crushed limestone gravel and dry Mediterranean soil, crystal-clear turquoise swimming pool water with real sunlight caustics, genuine polished Carthage marble floors, carved dark walnut furniture, handwoven Tunisian textiles, and real farm animals. Zero 3D CGI look, natural sun shadows, realistic lens exposure and micro-textures, strictly preserving the exact camera motion, room geometry, and object layout of the input video.
+Transform this 3D reference video into an ultra-realistic, live-action real-world first-person walkthrough video filmed on a Sony FX3 24mm f/2.8 gimbal camera under natural Mediterranean daylight. Strictly lock and preserve 100% of the reference video's exact camera movement, perspective, room geometry, object placement, door motion, and Sidi Bou Said white-and-blue color palette — do not add, remove, or invent any objects. Replace all synthetic 3D CGI textures with authentic real-world physical materials wherever they appear in frame: weathered lime-plastered whitewashed masonry walls, painted cobalt-blue timber doors, fences, stairs, and pergolas, genuine polished Carthage marble and glazed Zellige ceramic tiles, rich carved walnut wood, woven rugs and fabric cushions, realistic metallic car paint and glass, natural crushed limestone gravel and dry pebble soil, organic sun-dappled olive and broadleaf tree foliage, crystal-clear rippling pool water with sunlight caustics, natural wood smoke, and real living farm animals. True optical lens exposure, natural global illumination, soft sun shadows, micro-surface imperfections, photorealistic documentary cinematography, zero 3D render or video-game look.
+```
+
+### Opsi B — Prompt Global Ringkas (Untuk Platform dengan Batas Karakter Pendek seperti DomoAI / Pika)
+```text
+Convert this 3D reference video into a photorealistic real-world live-action POV video shot on Sony FX3 24mm under natural Mediterranean daylight. Strictly preserve exact camera motion, geometry, colors, and object layout from the reference video while transforming every visible indoor and outdoor surface into authentic real-world materials, real foliage, real water, real stone, wood, fabric, and natural sun shadows. Zero CGI look.
 ```
 
 ---
