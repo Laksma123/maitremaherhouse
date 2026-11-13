@@ -437,9 +437,22 @@
   .hud-btn {
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
     color: #fff; border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 600;
-    cursor: pointer; transition: 0.15s;
+    cursor: pointer; transition: 0.15s; min-inline-size: 24px; min-block-size: 24px;
   }
   .hud-btn:hover { background: var(--gold); color: #111; }
+  .hud-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .btn-version-toggle[aria-pressed="true"] {
+    background: linear-gradient(135deg, #d4a853, #b88428);
+    border-color: #fde68a;
+    color: #111;
+    font-weight: 800;
+    box-shadow: 0 0 0 1px rgba(253,230,138,0.45);
+  }
+  .btn-version-toggle[aria-pressed="false"] {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.24);
+    color: #e5e7eb;
+  }
   .hud-btn.btn-open-toggle {
     background: linear-gradient(135deg, #10b981, #047857);
     border-color: #6ee7b7; color: #fff; font-weight: 700; display: none;
@@ -669,6 +682,10 @@
 <div id="selection-hud">
   <span class="hud-title" id="sel-name">📌 Click once on any 3D object to select • Drag = Move • ↑/↓ = Resize</span>
   <button class="hud-btn btn-open-toggle" id="btn-hud-open" onclick="toggleSelectedOpening()">🚪 Open / Close</button>
+  <span id="version-hud-controls" class="version-hud-controls" role="group" aria-label="Object Version" style="display:none;align-items:center;gap:4px;">
+    <button type="button" class="hud-btn btn-version-toggle" id="btn-hud-ver-1" aria-pressed="true" onclick="setSelectedObjectVersion(1)">Version 1</button>
+    <button type="button" class="hud-btn btn-version-toggle" id="btn-hud-ver-2" aria-pressed="false" onclick="setSelectedObjectVersion(2)">Version 2</button>
+  </span>
   <span id="fence-hud-controls" style="display:none; gap:4px; align-items:center; flex-wrap:wrap;">
     <button class="hud-btn" id="btn-fence-left-dec" onclick="adjustWoodenFencePanels('left', -1)" title="Reduce Left Fence Panels">◀➖ Left Fence</button>
     <button class="hud-btn" id="btn-fence-left-inc" onclick="adjustWoodenFencePanels('left', 1)" title="Extend Left Fence Panels">◀➕ Left Fence</button>
@@ -877,7 +894,10 @@ const I18N = {
     btnBulldozerResume: '▶️ Grade Soil',
     popSwatchesLabel: 'Curated Palette Swatches',
     btnGateRemove: '🚪🗑️ Remove Gate',
-    btnGateAdd: '🚪➕ Add Gate'
+    btnGateAdd: '🚪➕ Add Gate',
+    versionGroupLabel: 'Version Switch',
+    btnVersion1: 'Version 1',
+    btnVersion2: 'Version 2'
   },
   ar: {
     appTitle: 'فيلا تونسية وعربية عصرية 3D',
@@ -974,7 +994,10 @@ const I18N = {
     btnBulldozerResume: '▶️ تسوية الأرض',
     popSwatchesLabel: 'لوحة الألوان المختارة',
     btnGateRemove: '🚪🗑️ إزالة البوابة',
-    btnGateAdd: '🚪➕ إضافة بوابة'
+    btnGateAdd: '🚪➕ إضافة بوابة',
+    versionGroupLabel: 'تبديل الإصدار',
+    btnVersion1: 'الإصدار 1',
+    btnVersion2: 'الإصدار 2'
   }
 };
 
@@ -1030,7 +1053,11 @@ const state = {
     bathroom: true, led_borders: true, exterior: true
   },
   roofVisible: true,
-  timeOfDay: 'sunset'
+  timeOfDay: 'sunset',
+  objectVersions: {
+    kitchen: 1,
+    cabinTerrace: 1
+  }
 };
 
 function t(key) {
@@ -2709,6 +2736,18 @@ function snapOpeningToNearestWall(opObj, targetBx, targetBy) {
   }
   opObj.rotation.y = bestWall.rotY;
   rebuildDynamicWalls();
+}
+
+function makeCanvasTexture(w, h, drawFn) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+  drawFn(ctx, w, h);
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  tex.needsUpdate = true;
+  return tex;
 }
 
 function buildStaticArchitecture() {
@@ -4398,11 +4437,14 @@ function buildStaticArchitecture() {
   //   - Sits at bz = -0.25m (matching the Right Arched Terrace & Left Concrete Terrace)
   //   - Features a full Tunisian Sofa Lesehan without canopy ("hapus semua kanopi di sofa lantai terrace kiri dan terrace baru")!
   // ==========================================================================
-  addBoxMesh(6.00, 0.24, 3.10, cabCenterX, -14.95, -0.37, matCourtyardFloor, archRoot, true);
-  addBoxMesh(6.10, 0.04, 3.18, cabCenterX, -14.95, -0.295, matArchTrim, archRoot, true);
+  const cabinTerraceV1SlabGroup = new THREE.Group();
+  archRoot.add(cabinTerraceV1SlabGroup);
+  window.cabinTerraceV1SlabObj = cabinTerraceV1SlabGroup;
+  addBoxMesh(6.00, 0.24, 3.10, cabCenterX, -14.95, -0.37, matCourtyardFloor, cabinTerraceV1SlabGroup, true);
+  addBoxMesh(6.10, 0.04, 3.18, cabCenterX, -14.95, -0.295, matArchTrim, cabinTerraceV1SlabGroup, true);
   // Front & West Travertine Steps from New Cabin Terrace (-0.25m) down to Exterior Soil (-0.50m)
-  addBoxMesh(2.40, 0.125, 0.38, cabCenterX, -16.66, -0.4375, matMainFloor, archRoot, true);
-  addBoxMesh(0.36, 0.125, 1.38, 11.84, -14.95, -0.4375, matMainFloor, archRoot, true);
+  addBoxMesh(2.40, 0.125, 0.38, cabCenterX, -16.66, -0.4375, matMainFloor, cabinTerraceV1SlabGroup, true);
+  addBoxMesh(0.36, 0.125, 1.38, 11.84, -14.95, -0.4375, matMainFloor, cabinTerraceV1SlabGroup, true);
 
   // TUNISIAN SOFA LESEHAN ON THE NEW CABIN FRONT TERRACE (NO CANOPY)
   const cabinTerraceLesehanGroup = new THREE.Group();
@@ -4497,6 +4539,8 @@ function buildStaticArchitecture() {
     bPos(cabCenterX, -15.05, -0.215)
   );
   cabinTerraceLesehanGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
+  cabinTerraceLesehanGroup.userData.versionSet = 'cabinTerrace';
+  cabinTerraceLesehanGroup.userData.cabinTerraceVersion = 1;
   window.cabinTerraceLesehanObj = cabinTerraceLesehanGroup;
   registerDraggable(cabinTerraceLesehanGroup, 'Cabin Terrace Tunisian Floor Sofa', 'جلسة أرضية تونسية في شرفة المقصورة');
 
@@ -4774,9 +4818,350 @@ function buildStaticArchitecture() {
     cabinTerracePergolaGroup.add(bunchGrp);
   });
 
+  cabinTerracePergolaGroup.userData.versionSet = 'cabinTerrace';
+  cabinTerracePergolaGroup.userData.cabinTerraceVersion = 1;
   archRoot.add(cabinTerracePergolaGroup);
   window.cabinTerracePergolaObj = cabinTerracePergolaGroup;
   registerDraggable(cabinTerracePergolaGroup, 'Cabin Terrace Walnut Canopy & Grape Vines', 'مظلة خشب الجوز وكروم العنب في شرفة المقصورة');
+
+  // ==========================================================================
+  // RIGHT CABIN TERRACE SET VERSION 2 (UNIFIED THEME-IMMUNE SET)
+  // (Ref: WhatsApp Image 2026-11-13 at 15.19.26 (1).jpeg)
+  // - CRITICAL: Dedicated materials with ZERO userData.designRole so Default,
+  //   Sidi Bou & Custom Design Color themes NEVER alter Version 2 colors!
+  // ==========================================================================
+  const cabinTerraceV2SetGroup = new THREE.Group();
+
+  // Procedural Irregular Grey Flagstone Crazy-Paving Texture + Normal Map
+  const texV2FlagstoneDiff = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#c8c5bc'; // Pale mortar joints
+    ctx.fillRect(0, 0, w, h);
+    const stoneTones = ['#9ea19e', '#8e9290', '#aca9a0', '#7f8382', '#979892', '#868a89'];
+    const cols = 6, rows = 6;
+    const cw = w / cols, ch = h / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cx = (c + 0.5) * cw + Math.sin(r * 3.1 + c * 1.7) * 8;
+        const cy = (r + 0.5) * ch + Math.cos(c * 2.7 + r * 1.3) * 8;
+        ctx.fillStyle = stoneTones[(r * 7 + c * 5) % stoneTones.length];
+        ctx.beginPath();
+        const verts = 6;
+        for (let vi = 0; vi < verts; vi++) {
+          const va = (vi / verts) * Math.PI * 2 + ((r + c) % 3) * 0.25;
+          const vr = (cw * 0.44) * (0.82 + ((vi * 3 + r + c) % 4) * 0.08);
+          const vx = cx + Math.cos(va) * vr;
+          const vy = cy + Math.sin(va) * vr;
+          if (vi === 0) ctx.moveTo(vx, vy);
+          else ctx.lineTo(vx, vy);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#6f6c66';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+    // Scattered fallen pink & golden-yellow petals on the paving stones
+    for (let pi = 0; pi < 52; pi++) {
+      ctx.fillStyle = (pi % 2 === 0) ? '#e83e75' : '#f5be18';
+      ctx.beginPath();
+      ctx.ellipse((pi * 83.7) % w, (pi * 139.3) % h, 4.2, 2.4, pi * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  texV2FlagstoneDiff.wrapS = texV2FlagstoneDiff.wrapT = THREE.RepeatWrapping;
+  texV2FlagstoneDiff.repeat.set(3.2, 1.8);
+
+  // Striped Blue & White Moroccan Throw Pillow Texture
+  const texV2StripedPillow = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#f8f9fc';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#1558cc';
+    for (let x = 0; x < w; x += 32) {
+      ctx.fillRect(x, 0, 15, h);
+    }
+  });
+
+  // Hand-Painted Nabeul Sunny-Yellow & Cobalt-Blue Floral Ceramic Urn Texture
+  const texV2NabeulUrn = makeCanvasTexture(512, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#f3b718';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#1550ba';
+    ctx.fillRect(0, 18, w, 16);
+    ctx.fillRect(0, h - 34, w, 18);
+    for (let x = 28; x < w; x += 64) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(x, h * 0.5, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1550ba';
+      for (let p = 0; p < 6; p++) {
+        const pa = (p / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.ellipse(x + Math.cos(pa) * 14, h * 0.5 + Math.sin(pa) * 14, 7, 4, pa, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#e85d04';
+      ctx.beginPath(); ctx.arc(x, h * 0.5, 5, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+
+  // Theme-immune PBR Materials (NO userData.designRole!)
+  const matTerrV2Flagstone = new THREE.MeshStandardMaterial({
+    map: texV2FlagstoneDiff,
+    normalMap: courtyardNorTex || plasterNorTex,
+    normalScale: new THREE.Vector2(1.2, 1.2),
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.42,
+    userData: { customEnvIntensity: 0.42 }
+  });
+  const matTerrV2Whitewash = new THREE.MeshStandardMaterial({
+    color: 0xf7f8fa,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.85, 0.85),
+    roughness: 0.72,
+    metalness: 0.01,
+    envMapIntensity: 0.46,
+    userData: { customEnvIntensity: 0.46 }
+  });
+  const matTerrV2Cobalt = new THREE.MeshStandardMaterial({
+    color: 0x1558cc,
+    map: woodDiffTex,
+    normalMap: woodNorTex,
+    normalScale: new THREE.Vector2(0.95, 0.95),
+    roughness: 0.46,
+    metalness: 0.04,
+    envMapIntensity: 0.55,
+    userData: { customEnvIntensity: 0.55 }
+  });
+  const matTerrV2Mustard = new THREE.MeshStandardMaterial({
+    color: 0xe3a21a,
+    roughness: 0.74,
+    metalness: 0.02,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matTerrV2CobaltFabric = new THREE.MeshStandardMaterial({
+    color: 0x1652c0,
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matTerrV2StripeFabric = new THREE.MeshStandardMaterial({
+    map: texV2StripedPillow,
+    roughness: 0.76,
+    metalness: 0.02,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matTerrV2NabeulUrn = new THREE.MeshStandardMaterial({
+    map: texV2NabeulUrn,
+    roughness: 0.24,
+    metalness: 0.08,
+    envMapIntensity: 0.68,
+    userData: { customEnvIntensity: 0.68 }
+  });
+  const matTerrV2Brass = new THREE.MeshStandardMaterial({
+    color: 0xc89942,
+    roughness: 0.28,
+    metalness: 0.84,
+    envMapIntensity: 0.74,
+    userData: { customEnvIntensity: 0.74 }
+  });
+  const matTerrV2BougPink = new THREE.MeshStandardMaterial({
+    color: 0xe02868,
+    roughness: 0.56,
+    metalness: 0.02,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matTerrV2BougGold = new THREE.MeshStandardMaterial({
+    color: 0xf7bd18,
+    roughness: 0.54,
+    metalness: 0.02,
+    envMapIntensity: 0.42,
+    userData: { customEnvIntensity: 0.42 }
+  });
+  const matTerrV2Leaf = new THREE.MeshStandardMaterial({
+    color: 0x2c6820,
+    roughness: 0.60,
+    metalness: 0.02,
+    envMapIntensity: 0.38,
+    userData: { customEnvIntensity: 0.38 }
+  });
+  const matTerrV2WoodStem = new THREE.MeshStandardMaterial({
+    color: 0x5c422c,
+    map: woodDiffTex,
+    normalMap: woodNorTex,
+    roughness: 0.88
+  });
+
+  // 1) Grey Flagstone Crazy-Paving Terrace Slab + Steps
+  addBoxMesh(6.04, 0.245, 3.14, cabCenterX, -14.95, -0.37, matTerrV2Flagstone, cabinTerraceV2SetGroup, true);
+  addBoxMesh(6.14, 0.042, 3.22, cabCenterX, -14.95, -0.27, matTerrV2Flagstone, cabinTerraceV2SetGroup, true);
+  addBoxMesh(2.50, 0.125, 0.40, cabCenterX, -16.67, -0.4375, matTerrV2Flagstone, cabinTerraceV2SetGroup, true);
+  addBoxMesh(0.38, 0.125, 1.44, 11.83, -14.95, -0.4375, matTerrV2Flagstone, cabinTerraceV2SetGroup, true);
+
+  // 2) Crisp Whitewashed Masonry Wall Flanking Piers & 4 Arched Floral Niches (keeping center door unobstructed)
+  [12.56, 13.38, 16.62, 17.44].forEach((nx, ni) => {
+    addBoxMesh(0.76, 2.72, 0.12, nx, -13.47, 1.11, matTerrV2Whitewash, cabinTerraceV2SetGroup, true);
+    const nicheDark = new THREE.Mesh(
+      new THREE.BoxGeometry(0.42, 0.74, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0xe4e8ef, roughness: 0.80 })
+    );
+    nicheDark.position.copy(bPos(nx, -13.52, 1.38));
+    cabinTerraceV2SetGroup.add(nicheDark);
+    const archTop = new THREE.Mesh(new THREE.TorusGeometry(0.20, 0.032, 10, 20, Math.PI), matTerrV2Cobalt);
+    archTop.position.copy(bPos(nx, -13.53, 1.74));
+    cabinTerraceV2SetGroup.add(archTop);
+    const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.18, 14), matTerrV2CobaltFabric);
+    vase.position.copy(bPos(nx, -13.56, 1.11));
+    cabinTerraceV2SetGroup.add(vase);
+    const flDome = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.095, 0),
+      ni % 2 === 0 ? matTerrV2BougPink : matTerrV2BougGold
+    );
+    flDome.position.copy(bPos(nx, -13.56, 1.24));
+    cabinTerraceV2SetGroup.add(flDome);
+  });
+
+  // 3) Built-In Whitewashed Masonry U-Banquette Sofa + Golden-Mustard Cushions + Blue/Striped Pillows
+  addBoxMesh(3.84, 0.36, 0.74, cabCenterX, -13.90, -0.07, matTerrV2Whitewash, cabinTerraceV2SetGroup);
+  addBoxMesh(0.72, 0.36, 1.34, cabCenterX - 1.56, -14.94, -0.07, matTerrV2Whitewash, cabinTerraceV2SetGroup);
+  addBoxMesh(0.72, 0.36, 1.34, cabCenterX + 1.56, -14.94, -0.07, matTerrV2Whitewash, cabinTerraceV2SetGroup);
+  // Mustard seat cushions
+  addBoxMesh(3.78, 0.12, 0.70, cabCenterX, -13.90, 0.17, matTerrV2Mustard, cabinTerraceV2SetGroup);
+  addBoxMesh(0.68, 0.12, 1.30, cabCenterX - 1.56, -14.94, 0.17, matTerrV2Mustard, cabinTerraceV2SetGroup);
+  addBoxMesh(0.68, 0.12, 1.30, cabCenterX + 1.56, -14.94, 0.17, matTerrV2Mustard, cabinTerraceV2SetGroup);
+  // Backrest cushion bolsters + alternating cobalt, striped & mustard throw pillows
+  [-1.36, -0.82, -0.28, 0.28, 0.82, 1.36].forEach((px, pi) => {
+    const pMat = (pi % 3 === 0) ? matTerrV2CobaltFabric : (pi % 3 === 1 ? matTerrV2StripeFabric : matTerrV2Mustard);
+    const pil = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.36, 0.15), pMat);
+    pil.position.copy(bPos(cabCenterX + px, -13.66, 0.40));
+    pil.rotation.x = 0.20;
+    pil.castShadow = true;
+    cabinTerraceV2SetGroup.add(pil);
+  });
+  [-14.55, -15.15].forEach((wy, wi) => {
+    [-1.72, 1.72].forEach((wx, si) => {
+      const pMat = ((wi + si) % 2 === 0) ? matTerrV2StripeFabric : matTerrV2CobaltFabric;
+      const pil = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.36, 0.44), pMat);
+      pil.position.copy(bPos(cabCenterX + wx, wy, 0.40));
+      pil.rotation.z = (wx < 0 ? -1 : 1) * 0.20;
+      pil.castShadow = true;
+      cabinTerraceV2SetGroup.add(pil);
+    });
+  });
+
+  // 4) Round Royal Cobalt-Blue Bistro Table with Tea Cups
+  const tblTop = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.045, 28), matTerrV2Cobalt);
+  tblTop.position.copy(bPos(cabCenterX, -14.95, 0.23));
+  tblTop.castShadow = true; tblTop.receiveShadow = true;
+  cabinTerraceV2SetGroup.add(tblTop);
+  const tblCol = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.46, 16), matTerrV2Cobalt);
+  tblCol.position.copy(bPos(cabCenterX, -14.95, -0.02));
+  tblCol.castShadow = true;
+  cabinTerraceV2SetGroup.add(tblCol);
+  const tblFoot = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.26, 0.04, 20), matTerrV2Cobalt);
+  tblFoot.position.copy(bPos(cabCenterX, -14.95, -0.23));
+  cabinTerraceV2SetGroup.add(tblFoot);
+  const bTray = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.17, 0.014, 20), matTerrV2Brass);
+  bTray.position.copy(bPos(cabCenterX, -14.95, 0.26));
+  cabinTerraceV2SetGroup.add(bTray);
+
+  // 5) Royal Cobalt-Blue Timber Pergola Canopy + 4 Hanging Stained-Glass Moroccan Lanterns
+  const postH2 = 2.72, postZ2 = -0.25 + postH2 * 0.5;
+  [[12.16, -16.34], [14.08, -16.34], [15.92, -16.34], [17.84, -16.34], [12.16, -13.52], [17.84, -13.52]].forEach(([px, py]) => {
+    addBoxMesh(0.13, postH2, 0.13, px, py, postZ2, matTerrV2Cobalt, cabinTerraceV2SetGroup);
+  });
+  addBoxMesh(5.86, 0.14, 0.14, cabCenterX, -16.34, 2.52, matTerrV2Cobalt, cabinTerraceV2SetGroup);
+  addBoxMesh(5.86, 0.14, 0.14, cabCenterX, -13.52, 2.52, matTerrV2Cobalt, cabinTerraceV2SetGroup);
+  for (let ri = 0; ri < 15; ri++) {
+    const rx = 12.14 + ri * ((17.86 - 12.14) / 14);
+    addBoxMesh(0.065, 0.11, 3.16, rx, -14.94, 2.63, matTerrV2Cobalt, cabinTerraceV2SetGroup);
+  }
+
+  // 4 Hanging Stained-Glass Moroccan Lanterns
+  const glassCols = [0xff4466, 0xffaa22, 0x22cc88, 0x2299ff];
+  [[13.10, -15.40], [14.35, -14.65], [15.65, -14.65], [16.90, -15.40]].forEach(([lx, ly], li) => {
+    const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.52, 8), matTerrV2Brass);
+    chain.position.copy(bPos(lx, ly, 2.34));
+    cabinTerraceV2SetGroup.add(chain);
+    const lMat = new THREE.MeshStandardMaterial({
+      color: glassCols[li],
+      emissive: glassCols[li],
+      emissiveIntensity: 1.45,
+      roughness: 0.20,
+      metalness: 0.15
+    });
+    const lBody = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), lMat);
+    lBody.scale.set(0.85, 1.35, 0.85);
+    lBody.position.copy(bPos(lx, ly, 2.02));
+    cabinTerraceV2SetGroup.add(lBody);
+    const lCap = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.10, 8), matTerrV2Brass);
+    lCap.position.copy(bPos(lx, ly, 2.15));
+    cabinTerraceV2SetGroup.add(lCap);
+  });
+
+  // 6) Lush Cascading Golden-Yellow & Magenta-Pink Bougainvillea Vines across Pergola Posts & Roof
+  [[12.16, -16.22], [17.84, -16.22]].forEach(([vx, vy]) => {
+    addBoxMesh(0.06, 2.55, 0.06, vx + (vx < 15 ? 0.08 : -0.08), vy, 1.05, matTerrV2WoodStem, cabinTerraceV2SetGroup);
+  });
+  for (let bi = 0; bi < 46; bi++) {
+    const t = bi / 45;
+    const bxB = 12.05 + t * 5.90;
+    const byB = (bi % 3 === 0) ? -16.36 : (-14.10 - (bi % 4) * 0.65);
+    const bzB = (bi % 3 === 0) ? (2.32 + Math.sin(bi * 1.4) * 0.24) : 2.74;
+    const fLeaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22 + (bi % 3) * 0.05, 0), matTerrV2Leaf);
+    fLeaf.position.copy(bPos(bxB, byB, bzB));
+    fLeaf.castShadow = true;
+    cabinTerraceV2SetGroup.add(fLeaf);
+    const bClust = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.18 + (bi % 4) * 0.045, 1),
+      (bi % 2 === 0) ? matTerrV2BougPink : matTerrV2BougGold
+    );
+    bClust.position.copy(bPos(bxB + 0.06, byB - 0.08, bzB + (bi % 3 === 0 ? -0.08 : 0.08)));
+    bClust.castShadow = true;
+    cabinTerraceV2SetGroup.add(bClust);
+  }
+
+  // 7) 4 Large Hand-Painted Nabeul Yellow-and-Cobalt Ceramic Urns with Blooms
+  [[12.50, -16.18], [13.78, -16.56], [16.22, -16.56], [17.50, -16.18]].forEach(([ux, uy], ui) => {
+    const uzBase = (uy < -16.45) ? -0.50 : -0.25;
+    const uBody = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.16, 0.44, 20), matTerrV2NabeulUrn);
+    uBody.position.copy(bPos(ux, uy, uzBase + 0.22));
+    uBody.castShadow = true; uBody.receiveShadow = true;
+    cabinTerraceV2SetGroup.add(uBody);
+    const uBush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24, 1), matTerrV2Leaf);
+    uBush.position.copy(bPos(ux, uy, uzBase + 0.50));
+    uBush.castShadow = true;
+    cabinTerraceV2SetGroup.add(uBush);
+    for (let fl = 0; fl < 5; fl++) {
+      const fa = (fl / 5) * Math.PI * 2;
+      const uFl = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.085, 0),
+        (fl + ui) % 2 === 0 ? matTerrV2BougGold : matTerrV2BougPink
+      );
+      uFl.position.copy(bPos(ux + Math.cos(fa) * 0.14, uy + Math.sin(fa) * 0.14, uzBase + 0.60));
+      uFl.castShadow = true;
+      cabinTerraceV2SetGroup.add(uFl);
+    }
+  });
+
+  attachNpcTargetWorld(
+    cabinTerraceV2SetGroup,
+    bPos(cabCenterX, -14.05, -0.215),
+    bPos(cabCenterX, -15.05, -0.215)
+  );
+  cabinTerraceV2SetGroup.userData.skipCatalog = true;
+  cabinTerraceV2SetGroup.userData.versionSet = 'cabinTerrace';
+  cabinTerraceV2SetGroup.userData.cabinTerraceVersion = 2;
+  cabinTerraceV2SetGroup.userData.npcActivityId = 'RELAX_FLOOR_SOFA';
+  cabinTerraceV2SetGroup.visible = false;
+  archRoot.add(cabinTerraceV2SetGroup);
+  window.cabinTerraceV2SetObj = cabinTerraceV2SetGroup;
+  registerDraggable(cabinTerraceV2SetGroup, 'Mediterranean Blue Pergola & Bougainvillea Terrace Set (V2)', 'شرفة البرغولا الزرقاء والجهنمية (الإصدار 2)');
 
   const welcomeArch = createModernArabicArchGroup(1.95, 2.85, 0.32, { infillMode: 'none', hasLed: true, isOpening: true, pointed: 0.18, frameMat: matArchTrim });
   welcomeArch.position.copy(bPos(2.38, -9.20, -0.25));
@@ -5518,8 +5903,16 @@ function registerDraggable(obj, labelEn, labelAr) {
   if (obj.children && obj.children.length > 0 && !obj.userData.noAutoRecenter) {
     obj.updateMatrixWorld(true);
     const box = new THREE.Box3();
+    const isExcludedFromPivot = (node) => {
+      let cur = node;
+      while (cur && cur !== obj) {
+        if (cur.userData && (cur.userData.isAODecal || cur.userData.excludeFromAutoPivot)) return true;
+        cur = cur.parent;
+      }
+      return false;
+    };
     obj.traverse((ch) => {
-      if (ch.isMesh && (!ch.userData || !ch.userData.isAODecal)) {
+      if (ch.isMesh && !isExcludedFromPivot(ch)) {
         box.expandByObject(ch);
       }
     });
@@ -5550,7 +5943,7 @@ function registerDraggable(obj, labelEn, labelAr) {
   draggableObjects.push(obj);
 
   // Automatically register a clean master template in OBJECT_CATALOG_REGISTRY for Object Catalog spawning & Copy/Paste
-  if (!obj.userData.isAnimal && !obj.userData.isBulldozer && labelEn && !OBJECT_CATALOG_REGISTRY.has(labelEn)) {
+  if (!obj.userData.isAnimal && !obj.userData.isBulldozer && !obj.userData.skipCatalog && labelEn && !OBJECT_CATALOG_REGISTRY.has(labelEn)) {
     const meta = classifyCatalogItem(labelEn);
     const rawY = obj.position.y;
     let deltaH = 0.0;
@@ -5736,6 +6129,10 @@ async function buildDetailedKitchenAndFridge() {
   touchScr.position.set(0.23, 1.45, 0.40);
   fridgeGroup.add(touchScr);
 
+  fridgeGroup.userData.noRotate = true;
+  fridgeGroup.userData.versionSet = 'kitchen';
+  fridgeGroup.userData.kitchenVersion = 1;
+  fridgeGroup.userData.kitchenRole = 'fridge';
   registerDraggable(fridgeGroup, 'French-Door Smart Refrigerator', 'الفريجيدير الذكي ببابين');
   g.add(fridgeGroup);
 
@@ -5820,6 +6217,10 @@ async function buildDetailedKitchenAndFridge() {
     cup.position.set(cx, 0.04, -0.18);
     espGroup.add(cup);
   });
+  espGroup.userData.noRotate = false;
+  espGroup.userData.versionSet = 'kitchen';
+  espGroup.userData.kitchenVersion = 1;
+  espGroup.userData.kitchenRole = 'espresso';
   registerDraggable(espGroup, 'Luxury Espresso & Arabic Coffee Machine', 'ماكينة قهوة وإسبريسو احترافية');
   g.add(espGroup);
 
@@ -5846,8 +6247,16 @@ async function buildDetailedKitchenAndFridge() {
     bPos(0.85, -2.35, 0.99)
   );
   kGroup.userData.npcActivityId = 'COOK_KITCHEN';
+  kGroup.userData.noRotate = true;
+  kGroup.userData.versionSet = 'kitchen';
+  kGroup.userData.kitchenVersion = 1;
+  kGroup.userData.kitchenRole = 'counter';
   window.kitchenCounterObj = kGroup;
   registerDraggable(kGroup, "Chef's L-Shaped Kitchen Counter & Sink", 'خزائن ورخام الكوجينة على شكل L');
+
+  const kV1Objs = [fridgeGroup, kGroup, espGroup];
+  const kV1ByRole = { fridge: fridgeGroup, counter: kGroup, espresso: espGroup };
+  let swRefV1 = null;
 
   // Real Poly Haven 3D Electric Stove & Kitchen Props loaded in parallel
   const [stv, pot, jar, pitcher] = await Promise.all([
@@ -5893,10 +6302,17 @@ async function buildDetailedKitchenAndFridge() {
       bPos(0.92, -2.50, 0.96)
     );
     sw.userData.npcActivityId = 'COOK_KITCHEN';
+    sw.userData.noRotate = true;
+    sw.userData.versionSet = 'kitchen';
+    sw.userData.kitchenVersion = 1;
+    sw.userData.kitchenRole = 'stove';
     window.kitchenStoveObj = sw;
     window.activeKitchenObj = sw;
+    swRefV1 = sw;
     registerDraggable(sw, '4-Burner Electric Range Stove', 'فرن وغاز كهربائي عصري');
     g.add(sw);
+    kV1Objs.push(sw);
+    kV1ByRole.stove = sw;
   }
   if (pot) {
     const pw = fitAndPlaceModel(pot, null, 0.22, 0.4);
@@ -5907,21 +6323,39 @@ async function buildDetailedKitchenAndFridge() {
       bPos(0.98, -2.65, 0.00),
       bPos(0.98, -2.65, 1.03)
     );
+    pw.userData.noRotate = false;
+    pw.userData.versionSet = 'kitchen';
+    pw.userData.kitchenVersion = 1;
+    pw.userData.kitchenRole = 'pot';
     window.kitchenPotObj = pw;
     registerDraggable(pw, 'Hammered Brass Cooking Pot', 'طنجرة نحاس تقليدية');
     g.add(pw);
+    kV1Objs.push(pw);
+    kV1ByRole.pot = pw;
   }
   if (jar) {
     const jw = fitAndPlaceModel(jar, null, 0.26, 0.2);
     jw.position.copy(bPos(0.42, -4.55, 0.91));
+    jw.userData.noRotate = false;
+    jw.userData.versionSet = 'kitchen';
+    jw.userData.kitchenVersion = 1;
+    jw.userData.kitchenRole = 'jar';
     registerDraggable(jw, 'Artisan Ceramic Kitchen Jar', 'جرة خزفية للكوجينة');
     g.add(jw);
+    kV1Objs.push(jw);
+    kV1ByRole.jar = jw;
   }
   if (pitcher) {
     const oilW = fitAndPlaceModel(pitcher, null, 0.25, 0);
     oilW.position.copy(bPos(0.94, -3.35, 0.91));
+    oilW.userData.noRotate = false;
+    oilW.userData.versionSet = 'kitchen';
+    oilW.userData.kitchenVersion = 1;
+    oilW.userData.kitchenRole = 'pitcher';
     registerDraggable(oilW, 'Tunisian Brass Olive Oil Pitcher', 'إبريق زيت زيتون نحاسي');
     g.add(oilW);
+    kV1Objs.push(oilW);
+    kV1ByRole.pitcher = oilW;
   }
 
   // Optional Breakfast Barstools if Island/Bar style selected
@@ -5931,10 +6365,496 @@ async function buildDetailedKitchenAndFridge() {
       if (bs) {
         const bsw = fitAndPlaceModel(bs, null, 0.74, 0);
         bsw.position.copy(bPos(0.18, sy, 0.02));
+        bsw.userData.noRotate = false;
+        bsw.userData.versionSet = 'kitchen';
+        bsw.userData.kitchenVersion = 1;
+        bsw.userData.kitchenRole = 'stool';
         registerDraggable(bsw, 'Kitchen Breakfast Barstool', 'كرسي بار الكوجينة');
         g.add(bsw);
+        kV1Objs.push(bsw);
       }
     }
+  }
+
+  // ==========================================================================
+  // KITCHEN SET VERSION 2 — GLOSSY WHITE, HONEY TEAK & CALACATTA GOLD MARBLE
+  // (Ref: WhatsApp Image 2026-11-13 at 15.19.26.jpeg)
+  // - Structural counter/cabinets & fridge: NO ROTATION (noRotate = true)
+  // - Small objects on top of counter: MOVABLE & ROTATABLE (noRotate = false)
+  // ==========================================================================
+  const texCalacattaGoldMarble = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+    bgGrad.addColorStop(0.0, '#fbfaf7');
+    bgGrad.addColorStop(0.5, '#f4f1ea');
+    bgGrad.addColorStop(1.0, '#f8f6f0');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle warm grey-taupe marble clouding
+    for (let i = 0; i < 18; i++) {
+      const cx = (i * 97) % w;
+      const cy = (i * 149) % h;
+      const rg = ctx.createRadialGradient(cx, cy, 8, cx, cy, 110);
+      rg.addColorStop(0, 'rgba(182, 170, 152, 0.14)');
+      rg.addColorStop(1, 'rgba(182, 170, 152, 0.0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Dramatic diagonal Calacatta Gold & Bronze mineral veins
+    const drawVein = (x0, y0, x1, y1, width, color, alpha) => {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      const segments = 14;
+      for (let s = 1; s <= segments; s++) {
+        const t = s / segments;
+        const jx = Math.sin(t * 9.0 + x0 * 0.03) * 24 + Math.cos(t * 15.0 + y0 * 0.02) * 10;
+        const jy = Math.cos(t * 7.5 + y0 * 0.03) * 18;
+        ctx.lineTo(x0 + (x1 - x0) * t + jx, y0 + (y1 - y0) * t + jy);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
+    drawVein(-30, h * 0.85, w + 30, h * 0.14, 14, '#b88b4a', 0.42);
+    drawVein(-20, h * 0.88, w + 20, h * 0.18, 4.5, '#8c6230', 0.68);
+    drawVein(w * 0.12, h + 20, w * 0.92, -20, 10, '#c89e5a', 0.36);
+    drawVein(w * 0.15, h + 10, w * 0.88, -10, 3.0, '#785a3a', 0.58);
+    drawVein(-20, h * 0.36, w * 0.62, -20, 6.5, '#9d7c54', 0.44);
+    drawVein(w * 0.42, h + 20, w + 20, h * 0.48, 5.5, '#a88148', 0.45);
+  });
+  texCalacattaGoldMarble.wrapS = texCalacattaGoldMarble.wrapT = THREE.RepeatWrapping;
+  texCalacattaGoldMarble.repeat.set(1.3, 1.0);
+
+  const texV2JuteRunner = makeCanvasTexture(512, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#c8aa82';
+    ctx.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 6) {
+      ctx.fillStyle = (y % 12 === 0) ? 'rgba(138, 106, 68, 0.28)' : 'rgba(232, 212, 182, 0.24)';
+      ctx.fillRect(0, y, w, 3);
+    }
+    for (let x = 0; x < w; x += 8) {
+      ctx.fillStyle = (x % 16 === 0) ? 'rgba(110, 82, 50, 0.18)' : 'rgba(245, 228, 200, 0.14)';
+      ctx.fillRect(x, 0, 4, h);
+    }
+    ctx.strokeStyle = '#92704a';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(5, 5, w - 10, h - 10);
+  });
+
+  const matV2Calacatta = new THREE.MeshStandardMaterial({
+    map: texCalacattaGoldMarble,
+    normalMap: marbleNorTex,
+    normalScale: new THREE.Vector2(0.85, 0.85),
+    roughnessMap: marbleArmTex,
+    roughness: 0.18,
+    metalness: 0.04,
+    envMapIntensity: 0.72,
+    userData: { customEnvIntensity: 0.72 }
+  });
+  const matV2GlossWhite = new THREE.MeshStandardMaterial({
+    color: 0xf4f6f9,
+    roughness: 0.14,
+    metalness: 0.04,
+    envMapIntensity: 0.70,
+    userData: { customEnvIntensity: 0.70 }
+  });
+  const matV2HoneyTeak = new THREE.MeshStandardMaterial({
+    color: 0xc27f44,
+    map: woodDiffTex,
+    normalMap: woodNorTex,
+    normalScale: new THREE.Vector2(1.05, 1.05),
+    roughnessMap: woodArmTex,
+    roughness: 0.36,
+    metalness: 0.03,
+    envMapIntensity: 0.56,
+    userData: { customEnvIntensity: 0.56 }
+  });
+  const matV2WhiteQuartz = new THREE.MeshStandardMaterial({
+    color: 0xf2f0ea,
+    normalMap: marbleNorTex,
+    normalScale: new THREE.Vector2(0.55, 0.55),
+    roughnessMap: marbleArmTex,
+    roughness: 0.20,
+    metalness: 0.03,
+    envMapIntensity: 0.62,
+    userData: { customEnvIntensity: 0.62 }
+  });
+  const matV2BrushedInox = new THREE.MeshStandardMaterial({
+    color: 0xc7cdd4,
+    roughness: 0.24,
+    metalness: 0.86,
+    envMapIntensity: 0.82,
+    userData: { customEnvIntensity: 0.82 }
+  });
+  const matV2MatteBlack = new THREE.MeshStandardMaterial({
+    color: 0x1a1c20,
+    roughness: 0.32,
+    metalness: 0.70,
+    envMapIntensity: 0.55,
+    userData: { customEnvIntensity: 0.55 }
+  });
+  const matV2JuteMat = new THREE.MeshStandardMaterial({
+    map: texV2JuteRunner,
+    roughness: 0.88,
+    metalness: 0.01,
+    envMapIntensity: 0.32,
+    userData: { customEnvIntensity: 0.32 }
+  });
+  const matV2WarmLed = new THREE.MeshStandardMaterial({
+    color: 0xffe4b8,
+    emissive: 0xffb85c,
+    emissiveIntensity: 1.55,
+    roughness: 0.2
+  });
+
+  // 2A. V2 Tall Stainless Double-Door LG-Style Fridge in Honey-Teak Housing + Gloss-White Top Cabinet (NO ROTATE)
+  const fridgeGroupV2 = new THREE.Group();
+  fridgeGroupV2.position.copy(bPos(-1.55, -4.50, 0.0));
+  const fV2Housing = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.40, 0.78), matV2HoneyTeak);
+  fV2Housing.position.set(0, 1.20, -0.02);
+  fV2Housing.castShadow = true; fV2Housing.receiveShadow = true;
+  fridgeGroupV2.add(fV2Housing);
+  const fV2Recess = new THREE.Mesh(new THREE.BoxGeometry(0.90, 1.94, 0.72), matV2MatteBlack);
+  fV2Recess.position.set(0, 0.99, 0.01);
+  fridgeGroupV2.add(fV2Recess);
+  // Top freezer stainless door + tall lower fresh-food stainless door
+  const fV2TopDoor = new THREE.Mesh(new THREE.BoxGeometry(0.87, 0.52, 0.06), matV2BrushedInox);
+  fV2TopDoor.position.set(0, 1.66, 0.38);
+  fV2TopDoor.castShadow = true;
+  fridgeGroupV2.add(fV2TopDoor);
+  const fV2BotDoor = new THREE.Mesh(new THREE.BoxGeometry(0.87, 1.32, 0.06), matV2BrushedInox);
+  fV2BotDoor.position.set(0, 0.72, 0.38);
+  fV2BotDoor.castShadow = true;
+  fridgeGroupV2.add(fV2BotDoor);
+  // Recessed dark horizontal pocket handle + silver badge + blue LED temperature strip
+  const fV2Pocket = new THREE.Mesh(new THREE.BoxGeometry(0.87, 0.036, 0.045), matV2MatteBlack);
+  fV2Pocket.position.set(0, 1.39, 0.39);
+  fridgeGroupV2.add(fV2Pocket);
+  const fV2Badge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.035, 0.012), dispLedMat);
+  fV2Badge.position.set(-0.24, 1.80, 0.415);
+  fridgeGroupV2.add(fV2Badge);
+  // Glossy white twin cabinet doors directly above fridge
+  [-0.22, 0.22].forEach((ox) => {
+    const oCab = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.40, 0.035), matV2GlossWhite);
+    oCab.position.set(ox, 2.18, 0.37);
+    oCab.castShadow = true;
+    fridgeGroupV2.add(oCab);
+    const oPull = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.14, 0.018), matV2MatteBlack);
+    oPull.position.set(ox > 0 ? ox - 0.16 : ox + 0.16, 2.08, 0.395);
+    fridgeGroupV2.add(oPull);
+  });
+  fridgeGroupV2.userData.skipCatalog = true;
+  fridgeGroupV2.userData.noRotate = true;
+  fridgeGroupV2.userData.versionSet = 'kitchen';
+  fridgeGroupV2.userData.kitchenVersion = 2;
+  fridgeGroupV2.userData.kitchenRole = 'fridge';
+  fridgeGroupV2.visible = false;
+  registerDraggable(fridgeGroupV2, 'Modern Stainless Double-Door Refrigerator (V2)', 'ثلاجة ستانلس عصرية ببابين (الإصدار 2)');
+  g.add(fridgeGroupV2);
+
+  // 2B. V2 L-Shaped Glossy-White & Honey-Teak Kitchen Counter, Calacatta Gold Backsplash, Chimney Hood & Lit Open Shelves (NO ROTATE)
+  const kGroupV2 = new THREE.Group();
+  g.add(kGroupV2);
+
+  // South Sink Wing Base & Glossy-White Flat Doors
+  addBoxMesh(1.86, 0.86, 0.68, -0.13, -4.54, 0.43, matV2HoneyTeak, kGroupV2);
+  addBoxMesh(1.90, 0.05, 0.74, -0.13, -4.54, 0.885, matV2WhiteQuartz, kGroupV2);
+  addBoxMesh(1.82, 0.025, 0.025, -0.13, -4.22, 0.04, matV2WarmLed, kGroupV2);
+  [-0.84, -0.38, 0.08, 0.54].forEach((dx) => {
+    addBoxMesh(0.43, 0.74, 0.028, dx, -4.19, 0.46, matV2GlossWhite, kGroupV2);
+    addBoxMesh(0.16, 0.014, 0.018, dx, -4.17, 0.79, matV2MatteBlack, kGroupV2);
+  });
+
+  // East Cooking Wing Base: 3 Wide Horizontal Drawers + Side Door + Curved 3-Tier Open Honey-Teak Corner Shelf
+  addBoxMesh(0.68, 0.86, 2.24, 0.94, -3.76, 0.43, matV2HoneyTeak, kGroupV2);
+  addBoxMesh(0.74, 0.05, 2.28, 0.94, -3.76, 0.885, matV2WhiteQuartz, kGroupV2);
+  addBoxMesh(0.025, 0.025, 2.18, 0.62, -3.76, 0.04, matV2WarmLed, kGroupV2);
+  // 3 Wide horizontal glossy-white drawers under gas hob (by = -2.92)
+  [0.21, 0.47, 0.72].forEach((dz, di) => {
+    addBoxMesh(0.028, di === 2 ? 0.19 : 0.24, 0.92, 0.59, -3.02, dz, matV2GlossWhite, kGroupV2);
+    addBoxMesh(0.020, 0.014, 0.24, 0.57, -3.02, dz + 0.07, matV2MatteBlack, kGroupV2);
+  });
+  // Lower side cabinet doors adjacent to south return
+  [-3.82, -4.34].forEach((dy) => {
+    addBoxMesh(0.028, 0.74, 0.48, 0.59, dy, 0.46, matV2GlossWhite, kGroupV2);
+    addBoxMesh(0.020, 0.014, 0.16, 0.57, dy, 0.78, matV2MatteBlack, kGroupV2);
+  });
+
+  // Curved 3-Tier Open Honey-Teak End-Cap Shelf Unit at South/East Front End (bx = 0.94, by = -2.28)
+  const endShelfBack = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.86, 0.56), matV2HoneyTeak);
+  endShelfBack.position.copy(bPos(1.24, -2.28, 0.43));
+  endShelfBack.castShadow = true;
+  kGroupV2.add(endShelfBack);
+  [0.10, 0.36, 0.62, 0.885].forEach((sz, si) => {
+    const shelfCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, si === 3 ? 0.048 : 0.032, 24), si === 3 ? matV2WhiteQuartz : matV2HoneyTeak);
+    shelfCyl.position.copy(bPos(0.94, -2.26, sz));
+    shelfCyl.castShadow = true; shelfCyl.receiveShadow = true;
+    kGroupV2.add(shelfCyl);
+    if (si < 3) {
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.06, 0.07, 16), matV2GlossWhite);
+      bowl.position.copy(bPos(0.92, -2.20, sz + 0.05));
+      kGroupV2.add(bowl);
+    }
+  });
+
+  // Dramatic Calacatta Gold Marble Backsplash Slabs (South Wall + East Wall)
+  addBoxMesh(1.94, 0.78, 0.032, -0.10, -4.87, 1.29, matV2Calacatta, kGroupV2);
+  addBoxMesh(0.032, 0.78, 2.75, 1.27, -3.48, 1.29, matV2Calacatta, kGroupV2);
+
+  // South Wall Glossy-White Upper Cabinets + Warm Lit Honey-Teak Open Niche + Teak Crown
+  addBoxMesh(1.88, 0.52, 0.38, -0.12, -4.68, 2.18, matV2HoneyTeak, kGroupV2);
+  [-0.80, -0.34, 0.12, 0.58].forEach((ux) => {
+    addBoxMesh(0.43, 0.50, 0.03, ux, -4.48, 2.18, matV2GlossWhite, kGroupV2);
+    addBoxMesh(0.14, 0.014, 0.018, ux, -4.46, 1.98, matV2MatteBlack, kGroupV2);
+  });
+  // Recessed warm-lit horizontal honey-teak open cubby shelf below upper doors
+  addBoxMesh(1.88, 0.24, 0.34, -0.12, -4.70, 1.79, matV2HoneyTeak, kGroupV2);
+  addBoxMesh(1.82, 0.020, 0.022, -0.12, -4.56, 1.90, matV2WarmLed, kGroupV2);
+  addBoxMesh(1.82, 0.022, 0.024, -0.12, -4.56, 1.66, matV2WarmLed, kGroupV2);
+  [-0.55, -0.22, 0.25].forEach((jx) => {
+    const cJar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.12, 14), matV2GlossWhite);
+    cJar.position.copy(bPos(jx, -4.66, 1.74));
+    kGroupV2.add(cJar);
+  });
+
+  // Matte-Black Chimney Range Hood over the East Cooking Wing (bx = 1.00, by = -2.96)
+  addBoxMesh(0.56, 0.09, 0.84, 0.99, -2.96, 1.69, matV2MatteBlack, kGroupV2);
+  const hoodPyramid = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.24, 4), matV2MatteBlack);
+  hoodPyramid.rotation.y = Math.PI * 0.25;
+  hoodPyramid.position.copy(bPos(1.02, -2.96, 1.84));
+  hoodPyramid.castShadow = true;
+  kGroupV2.add(hoodPyramid);
+  addBoxMesh(0.26, 0.58, 0.28, 1.12, -2.96, 2.22, matV2MatteBlack, kGroupV2);
+  addBoxMesh(0.02, 0.02, 0.68, 0.98, -2.96, 1.64, matV2WarmLed, kGroupV2);
+
+  // Tall 4-Tier Illuminated Honey-Teak Open Corner Shelf beside Range Hood (bx = 1.04, by = -2.14)
+  addBoxMesh(0.036, 1.56, 0.58, 1.24, -2.14, 1.70, matV2HoneyTeak, kGroupV2);
+  addBoxMesh(0.38, 1.56, 0.036, 1.06, -1.86, 1.70, matV2HoneyTeak, kGroupV2);
+  addBoxMesh(0.018, 1.48, 0.020, 1.19, -2.40, 1.70, matV2WarmLed, kGroupV2);
+  [1.24, 1.60, 1.96, 2.34].forEach((tz, ti) => {
+    addBoxMesh(0.38, 0.032, 0.58, 1.06, -2.14, tz, matV2HoneyTeak, kGroupV2);
+    if (ti === 0) {
+      const potS = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.052, 0.11, 14), matV2GlossWhite);
+      potS.position.copy(bPos(1.02, -2.16, tz + 0.07));
+      kGroupV2.add(potS);
+      const leafBall = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), new THREE.MeshStandardMaterial({ color: 0x357a29, roughness: 0.6 }));
+      leafBall.position.copy(bPos(1.02, -2.16, tz + 0.15));
+      kGroupV2.add(leafBall);
+    } else if (ti === 1) {
+      const canister = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.14, 16), matV2GlossWhite);
+      canister.position.copy(bPos(1.02, -2.22, tz + 0.085));
+      kGroupV2.add(canister);
+    } else if (ti === 2) {
+      const goldRibbon = new THREE.Mesh(new THREE.TorusKnotGeometry(0.075, 0.018, 48, 10, 2, 3), kBrassMat);
+      goldRibbon.position.copy(bPos(1.02, -2.12, tz + 0.11));
+      kGroupV2.add(goldRibbon);
+    } else if (ti === 3) {
+      // Top-tier trailing green pothos/ivy vine cascading down left edge
+      const ivyMat = new THREE.MeshStandardMaterial({ color: 0x2d6e22, roughness: 0.55 });
+      for (let vi = 0; vi < 10; vi++) {
+        const ivy = new THREE.Mesh(new THREE.DodecahedronGeometry(0.055, 0), ivyMat);
+        ivy.position.copy(bPos(0.92 - vi * 0.01, -1.94 + Math.sin(vi) * 0.05, tz - 0.03 - vi * 0.065));
+        kGroupV2.add(ivy);
+      }
+    }
+  });
+
+  // Double-Bowl Stainless Sink + Chrome High-Arch Gooseneck Mixer Faucet (South Wing)
+  [-0.36, 0.12].forEach((sx) => {
+    addBoxMesh(0.42, 0.012, 0.40, sx, -4.54, 0.908, matV2BrushedInox, kGroupV2);
+    addBoxMesh(0.36, 0.016, 0.34, sx, -4.54, 0.911, matV2MatteBlack, kGroupV2);
+    const dr = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.010, 16), matV2BrushedInox);
+    dr.position.copy(bPos(sx, -4.54, 0.919));
+    kGroupV2.add(dr);
+  });
+  const archPts = [
+    bPos(-0.12, -4.74, 0.91),
+    bPos(-0.12, -4.74, 1.24),
+    bPos(-0.12, -4.64, 1.33),
+    bPos(-0.12, -4.54, 1.26),
+    bPos(-0.12, -4.52, 1.15)
+  ];
+  const archGeo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(archPts), 20, 0.014, 10, false);
+  const archFaucet = new THREE.Mesh(archGeo, matV2BrushedInox);
+  archFaucet.castShadow = true;
+  kGroupV2.add(archFaucet);
+
+  // Built-In Black Glass 4-Burner Gas Hob on East Cooking Wing (bx = 0.94, by = -2.96, bz = 0.914)
+  addBoxMesh(0.56, 0.018, 0.72, 0.94, -2.96, 0.914, matV2MatteBlack, kGroupV2);
+  [[0.82, -2.76], [1.06, -2.76], [0.82, -3.16], [1.06, -3.16]].forEach(([hx, hy]) => {
+    const bRing = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.072, 0.018, 16), matDarkSteel);
+    bRing.position.copy(bPos(hx, hy, 0.93));
+    kGroupV2.add(bRing);
+    const grateA = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.012, 0.018), matV2MatteBlack);
+    grateA.position.copy(bPos(hx, hy, 0.942));
+    kGroupV2.add(grateA);
+    const grateB = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.15), matV2MatteBlack);
+    grateB.position.copy(bPos(hx, hy, 0.942));
+    kGroupV2.add(grateB);
+  });
+
+  // Woven Jute Kitchen Floor Runner Rug
+  addBoxMesh(0.84, 0.012, 1.96, 0.16, -3.34, 0.008, matV2JuteMat, kGroupV2);
+
+  attachNpcTargetWorld(
+    kGroupV2,
+    bPos(0.24, -2.96, 0.00),
+    bPos(0.94, -2.96, 0.00),
+    bPos(0.94, -2.76, 1.02)
+  );
+  kGroupV2.userData.npcActivityId = 'COOK_KITCHEN';
+  kGroupV2.userData.skipCatalog = true;
+  kGroupV2.userData.noRotate = true;
+  kGroupV2.userData.versionSet = 'kitchen';
+  kGroupV2.userData.kitchenVersion = 2;
+  kGroupV2.userData.kitchenRole = 'counter';
+  kGroupV2.visible = false;
+  registerDraggable(kGroupV2, 'Modern Glossy-White & Honey-Teak L-Kitchen (V2)', 'كوجينة عصرية بيضاء وخشب تيك (الإصدار 2)');
+
+  // 2C. 5 Individually Selectable, Movable & Rotatable Small Countertop Objects (noRotate = false)
+  // (1) Stainless Steel Stockpot with Lid on Gas Hob
+  const stockPotV2 = new THREE.Group();
+  stockPotV2.position.copy(bPos(0.92, -2.76, 0.948));
+  const spBody = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.108, 0.15, 22), matV2BrushedInox);
+  spBody.position.y = 0.075; spBody.castShadow = true;
+  stockPotV2.add(spBody);
+  const spLid = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.118, 0.018, 22), matV2BrushedInox);
+  spLid.position.y = 0.158;
+  stockPotV2.add(spLid);
+  const spKnob = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.018, 0.024, 12), matV2MatteBlack);
+  spKnob.position.y = 0.178;
+  stockPotV2.add(spKnob);
+  stockPotV2.userData.skipCatalog = true;
+  stockPotV2.userData.noRotate = false;
+  stockPotV2.userData.versionSet = 'kitchen';
+  stockPotV2.userData.kitchenVersion = 2;
+  stockPotV2.userData.kitchenRole = 'pot';
+  stockPotV2.visible = false;
+  registerDraggable(stockPotV2, 'Stainless Chef Stockpot with Lid (V2)', 'طنجرة ستانلس بغطاء (الإصدار 2)');
+  g.add(stockPotV2);
+
+  // (2) White Ceramic Utensil Holder with Wooden Spatulas & Spoon
+  const utensilCrockV2 = new THREE.Group();
+  utensilCrockV2.position.copy(bPos(1.06, -3.62, 0.91));
+  const crockBody = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.064, 0.16, 18), matV2GlossWhite);
+  crockBody.position.y = 0.08; crockBody.castShadow = true;
+  utensilCrockV2.add(crockBody);
+  [[-0.025, 0.18, 0.16], [0.020, -0.15, -0.12], [0.0, 0.08, -0.18]].forEach(([ux, rx, rz]) => {
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.007, 0.24, 8), matV2HoneyTeak);
+    handle.position.set(ux, 0.17, 0);
+    handle.rotation.set(rx, 0, rz);
+    utensilCrockV2.add(handle);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.065, 0.010), matV2HoneyTeak);
+    head.position.set(ux - rz * 0.12, 0.28, rx * 0.12);
+    head.rotation.set(rx, 0, rz);
+    utensilCrockV2.add(head);
+  });
+  utensilCrockV2.userData.skipCatalog = true;
+  utensilCrockV2.userData.noRotate = false;
+  utensilCrockV2.userData.versionSet = 'kitchen';
+  utensilCrockV2.userData.kitchenVersion = 2;
+  utensilCrockV2.userData.kitchenRole = 'pitcher';
+  utensilCrockV2.visible = false;
+  registerDraggable(utensilCrockV2, 'Ceramic Utensil Holder & Spatulas (V2)', 'حامل ملاعق خشبية خزفي (الإصدار 2)');
+  g.add(utensilCrockV2);
+
+  // (3) Sleek Black Digital Countertop Microwave Oven
+  const microwaveV2 = new THREE.Group();
+  microwaveV2.position.copy(bPos(0.68, -4.48, 0.91));
+  const mwBody = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.26, 0.34), matV2MatteBlack);
+  mwBody.position.y = 0.13; mwBody.castShadow = true; mwBody.receiveShadow = true;
+  microwaveV2.add(mwBody);
+  const mwGlass = new THREE.Mesh(new THREE.BoxGeometry(0.29, 0.19, 0.015), new THREE.MeshStandardMaterial({ color: 0x0e1116, roughness: 0.08, metalness: 0.55, envMapIntensity: 0.9 }));
+  mwGlass.position.set(-0.055, 0.135, 0.172);
+  microwaveV2.add(mwGlass);
+  const mwLed = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.028, 0.012), dispLedMat);
+  mwLed.position.set(0.155, 0.19, 0.173);
+  microwaveV2.add(mwLed);
+  microwaveV2.userData.skipCatalog = true;
+  microwaveV2.userData.noRotate = false;
+  microwaveV2.userData.versionSet = 'kitchen';
+  microwaveV2.userData.kitchenVersion = 2;
+  microwaveV2.userData.kitchenRole = 'stove';
+  microwaveV2.visible = false;
+  registerDraggable(microwaveV2, 'Digital Black Countertop Microwave (V2)', 'ميكروويف رقمي أسود (الإصدار 2)');
+  g.add(microwaveV2);
+
+  // (4) Translucent Glass Vase with Crisp White Hydrangea Bouquet
+  const flowerVaseV2 = new THREE.Group();
+  flowerVaseV2.position.copy(bPos(-0.82, -4.48, 0.91));
+  const vGlassMat = new THREE.MeshStandardMaterial({ color: 0xe6f0ef, roughness: 0.10, metalness: 0.05, transparent: true, opacity: 0.72 });
+  const vCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.074, 0.18, 18), vGlassMat);
+  vCyl.position.y = 0.09; vCyl.castShadow = true;
+  flowerVaseV2.add(vCyl);
+  const vWater = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.066, 0.10, 16), new THREE.MeshStandardMaterial({ color: 0x8cc8b8, transparent: true, opacity: 0.55 }));
+  vWater.position.y = 0.055;
+  flowerVaseV2.add(vWater);
+  const petalWhiteMat = new THREE.MeshStandardMaterial({ color: 0xfafaf8, roughness: 0.52 });
+  for (let bi = 0; bi < 12; bi++) {
+    const ba = (bi / 12) * Math.PI * 2;
+    const br = (bi % 2 === 0) ? 0.075 : 0.042;
+    const fl = new THREE.Mesh(new THREE.DodecahedronGeometry(0.052, 0), petalWhiteMat);
+    fl.position.set(Math.cos(ba) * br, 0.22 + (bi % 3) * 0.025, Math.sin(ba) * br);
+    fl.castShadow = true;
+    flowerVaseV2.add(fl);
+  }
+  flowerVaseV2.userData.skipCatalog = true;
+  flowerVaseV2.userData.noRotate = false;
+  flowerVaseV2.userData.versionSet = 'kitchen';
+  flowerVaseV2.userData.kitchenVersion = 2;
+  flowerVaseV2.userData.kitchenRole = 'jar';
+  flowerVaseV2.visible = false;
+  registerDraggable(flowerVaseV2, 'Glass Vase & White Flowers (V2)', 'مزهرية زجاجية بالورود البيضاء (الإصدار 2)');
+  g.add(flowerVaseV2);
+
+  // (5) White Ceramic Potted Kitchen Herb beside Sink
+  const sinkHerbPotV2 = new THREE.Group();
+  sinkHerbPotV2.position.copy(bPos(-0.62, -4.50, 0.91));
+  const hPot = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.052, 0.11, 16), matV2GlossWhite);
+  hPot.position.y = 0.055; hPot.castShadow = true;
+  sinkHerbPotV2.add(hPot);
+  const herbMat = new THREE.MeshStandardMaterial({ color: 0x2e7424, roughness: 0.58 });
+  for (let hi = 0; hi < 8; hi++) {
+    const ha = (hi / 8) * Math.PI * 2;
+    const sprig = new THREE.Mesh(new THREE.DodecahedronGeometry(0.042, 0), herbMat);
+    sprig.scale.set(1.2, 0.75, 0.9);
+    sprig.position.set(Math.cos(ha) * 0.04, 0.13 + (hi % 2) * 0.025, Math.sin(ha) * 0.04);
+    sprig.castShadow = true;
+    sinkHerbPotV2.add(sprig);
+  }
+  sinkHerbPotV2.userData.skipCatalog = true;
+  sinkHerbPotV2.userData.noRotate = false;
+  sinkHerbPotV2.userData.versionSet = 'kitchen';
+  sinkHerbPotV2.userData.kitchenVersion = 2;
+  sinkHerbPotV2.userData.kitchenRole = 'espresso';
+  sinkHerbPotV2.visible = false;
+  registerDraggable(sinkHerbPotV2, 'White Ceramic Kitchen Herb Pot (V2)', 'أصيص أعشاب خزفي أبيض (الإصدار 2)');
+  g.add(sinkHerbPotV2);
+
+  window._kitchenVersionRegistry = {
+    v1: kV1Objs,
+    v2: [fridgeGroupV2, kGroupV2, stockPotV2, utensilCrockV2, microwaveV2, flowerVaseV2, sinkHerbPotV2],
+    kGroupV1: kGroup,
+    swV1: swRefV1,
+    kGroupV2: kGroupV2,
+    v1ByRole: kV1ByRole,
+    v2ByRole: {
+      fridge: fridgeGroupV2,
+      counter: kGroupV2,
+      pot: stockPotV2,
+      pitcher: utensilCrockV2,
+      stove: microwaveV2,
+      jar: flowerVaseV2,
+      espresso: sinkHerbPotV2
+    }
+  };
+  if (typeof window.applyKitchenSetVersion === 'function') {
+    window.applyKitchenSetVersion((state.objectVersions && state.objectVersions.kitchen) || 1, false);
   }
 }
 
@@ -7446,18 +8366,6 @@ async function buildStaticPolyHavenDecor() {
   //    - 4 wide layered horizontal umbrella cloud tiers of broad rounded-ovate deciduous leaves (NO olive needles, NO fruit)
   //    - Root-flare base with cracked soil decal & 3D spiky grass tufts
   // ==========================================================================
-  const makeCanvasTexture = (w, h, drawFn) => {
-    const c = document.createElement('canvas');
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext('2d');
-    drawFn(ctx, w, h);
-    const tex = new THREE.CanvasTexture(c);
-    tex.encoding = THREE.sRGBEncoding;
-    tex.needsUpdate = true;
-    return tex;
-  };
-
   const giantShadeTreeGroup = new THREE.Group();
   giantShadeTreeGroup.position.copy(bPos(-13.15, -3.10, -0.50));
 
@@ -7858,6 +8766,452 @@ async function buildStaticPolyHavenDecor() {
     pad.position.set(tip.x, tip.y + 0.06, tip.z);
     giantShadeTreeGroup.add(pad);
   });
+
+  // ==========================================================================
+  // 3B. GIANT SHADE TREE VERSION 2 — UNDER-TREE PEBBLE PATIO, TEAK LOUNGE & POTS
+  //     (Ref: WhatsApp Image 2026-11-13 at 15.19.26 (3).jpeg — tree untouched!)
+  // ==========================================================================
+  const shadeTreeV2LoungeGroup = new THREE.Group();
+  shadeTreeV2LoungeGroup.name = 'shadeTreeV2LoungeGroup';
+  shadeTreeV2LoungeGroup.userData.excludeFromAutoPivot = true;
+  shadeTreeV2LoungeGroup.visible = false;
+
+  // High-resolution White & Silver-Ivory River Pebble PBR Diffuse + Normal Map
+  const texRiverPebbleDiff = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#5a554e';
+    ctx.fillRect(0, 0, w, h);
+    const pebbleCols = ['#f4f1ea', '#e8e4dc', '#dcd7ce', '#f8f6f0', '#cfc9be', '#c2bcb0', '#ede9e0'];
+    for (let i = 0; i < 420; i++) {
+      const px = ((i * 137.5) % w);
+      const py = ((i * 293.3 + Math.sin(i) * 40 + h) % h);
+      const rx = 7 + (i % 6) * 2.4;
+      const ry = 5 + ((i * 3) % 5) * 2.0;
+      const rot = (i * 0.77) % Math.PI;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(rot);
+      ctx.fillStyle = 'rgba(28, 25, 22, 0.55)';
+      ctx.beginPath();
+      ctx.ellipse(1.8, 2.0, rx + 1.2, ry + 1.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      const gPeb = ctx.createRadialGradient(-rx * 0.28, -ry * 0.28, 1, 0, 0, Math.max(rx, ry));
+      gPeb.addColorStop(0, '#ffffff');
+      gPeb.addColorStop(0.55, pebbleCols[i % pebbleCols.length]);
+      gPeb.addColorStop(1, '#9e988e');
+      ctx.fillStyle = gPeb;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  });
+  texRiverPebbleDiff.wrapS = texRiverPebbleDiff.wrapT = THREE.RepeatWrapping;
+  texRiverPebbleDiff.repeat.set(1.6, 1.6);
+
+  const texRiverPebbleNor = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = 'rgb(128,128,255)';
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 260; i++) {
+      const px = (i * 73.1) % w;
+      const py = (i * 151.7) % h;
+      const r = 5 + (i % 5) * 2.0;
+      const ng = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, 1, px, py, r);
+      ng.addColorStop(0, 'rgb(168,168,255)');
+      ng.addColorStop(0.7, 'rgb(128,128,245)');
+      ng.addColorStop(1, 'rgb(92,92,210)');
+      ctx.fillStyle = ng;
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  texRiverPebbleNor.encoding = THREE.LinearEncoding;
+  texRiverPebbleNor.wrapS = texRiverPebbleNor.wrapT = THREE.RepeatWrapping;
+  texRiverPebbleNor.repeat.set(1.6, 1.6);
+
+  const matV2PebbleBed = new THREE.MeshStandardMaterial({
+    map: texRiverPebbleDiff,
+    normalMap: texRiverPebbleNor,
+    normalScale: new THREE.Vector2(1.35, 1.35),
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.42,
+    userData: { customEnvIntensity: 0.42 }
+  });
+  const matV2CurbStone = new THREE.MeshStandardMaterial({
+    color: 0xc9bfb0,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(1.25, 1.25),
+    roughness: 0.84,
+    metalness: 0.02,
+    envMapIntensity: 0.38,
+    userData: { customEnvIntensity: 0.38 }
+  });
+  const matV2Teak = new THREE.MeshStandardMaterial({
+    color: 0x9e6b40,
+    map: woodDiffTex,
+    normalMap: woodNorTex,
+    normalScale: new THREE.Vector2(1.15, 1.15),
+    roughnessMap: woodArmTex,
+    roughness: 0.46,
+    metalness: 0.04,
+    envMapIntensity: 0.52,
+    userData: { customEnvIntensity: 0.52 }
+  });
+  const matV2UrnStone = new THREE.MeshStandardMaterial({
+    color: 0xe6e0d4,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.95, 0.95),
+    roughness: 0.68,
+    metalness: 0.03,
+    envMapIntensity: 0.44,
+    userData: { customEnvIntensity: 0.44 }
+  });
+  const matV2Terracotta = new THREE.MeshStandardMaterial({
+    color: 0xc2623a,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(1.1, 1.1),
+    roughness: 0.74,
+    metalness: 0.03,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matV2DarkGlaze = new THREE.MeshStandardMaterial({
+    color: 0x2d2926,
+    roughness: 0.22,
+    metalness: 0.16,
+    envMapIntensity: 0.72,
+    userData: { customEnvIntensity: 0.72 }
+  });
+  const matV2SoilDark = new THREE.MeshStandardMaterial({
+    color: 0x3b2c20,
+    map: soilDiffTex,
+    normalMap: soilNorTex,
+    roughness: 0.92
+  });
+
+  // Kidney-curved stone-bordered river-pebble patio nestled under the front-right canopy
+  const kidneyPts = [];
+  const kCenterX = 0.82, kCenterZ = 2.08;
+  const kCount = 40;
+  for (let i = 0; i < kCount; i++) {
+    const a = (i / kCount) * Math.PI * 2;
+    const rootIndent = Math.max(0, Math.cos(a + 2.05)) * 0.44;
+    const rx = 1.98 - rootIndent + 0.16 * Math.sin(a * 2.0);
+    const rz = 1.28 - rootIndent * 0.55 + 0.14 * Math.cos(a * 3.0);
+    kidneyPts.push(new THREE.Vector2(kCenterX + Math.cos(a) * rx, kCenterZ + Math.sin(a) * rz));
+  }
+  const kidneyShape = new THREE.Shape(kidneyPts);
+  const pebbleBedGeo = new THREE.ExtrudeGeometry(kidneyShape, {
+    depth: 0.036,
+    bevelEnabled: true,
+    bevelSegments: 2,
+    steps: 1,
+    bevelSize: 0.02,
+    bevelThickness: 0.014
+  });
+  pebbleBedGeo.rotateX(Math.PI / 2);
+  const pebbleBedMesh = new THREE.Mesh(pebbleBedGeo, matV2PebbleBed);
+  pebbleBedMesh.position.y = 0.042;
+  pebbleBedMesh.receiveShadow = true;
+  pebbleBedMesh.castShadow = false;
+  shadeTreeV2LoungeGroup.add(pebbleBedMesh);
+
+  // 40 Individual Chiseled Stone Curb Blocks along the kidney perimeter
+  for (let i = 0; i < kCount; i++) {
+    const pCurr = kidneyPts[i];
+    const pNext = kidneyPts[(i + 1) % kCount];
+    const mx = (pCurr.x + pNext.x) * 0.5;
+    const mz = (pCurr.y + pNext.y) * 0.5;
+    const segLen = Math.hypot(pNext.x - pCurr.x, pNext.y - pCurr.y);
+    const yaw = Math.atan2(pNext.x - pCurr.x, pNext.y - pCurr.y);
+    const curbH = 0.072 + (i % 3) * 0.008;
+    const curb = new THREE.Mesh(
+      new THREE.BoxGeometry(0.135, curbH, Math.max(0.14, segLen * 0.96)),
+      matV2CurbStone
+    );
+    curb.position.set(mx, curbH * 0.5, mz);
+    curb.rotation.y = yaw;
+    curb.castShadow = true;
+    curb.receiveShadow = true;
+    shadeTreeV2LoungeGroup.add(curb);
+  }
+
+  // Sculpted Slatted Teak Garden Lounge Chair (reclined lounge + companion armchair)
+  function buildSlattedTeakGardenChair(reclined = false) {
+    const cg = new THREE.Group();
+    const seatW = reclined ? 0.64 : 0.60;
+    const seatD = reclined ? 0.62 : 0.56;
+    const seatH = reclined ? 0.39 : 0.42;
+    const backH = reclined ? 0.64 : 0.54;
+    const backTilt = reclined ? -0.26 : -0.18;
+
+    [-1, 1].forEach((sx) => {
+      const lx = sx * (seatW * 0.46);
+      const fLeg = new THREE.Mesh(new THREE.BoxGeometry(0.045, seatH + 0.21, 0.048), matV2Teak);
+      fLeg.position.set(lx, (seatH + 0.21) * 0.5, seatD * 0.42);
+      fLeg.castShadow = true; fLeg.receiveShadow = true;
+      cg.add(fLeg);
+
+      const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.045, seatH + 0.20, 0.052), matV2Teak);
+      rLeg.position.set(lx, (seatH + 0.20) * 0.5, -seatD * 0.42);
+      rLeg.rotation.x = -0.08;
+      rLeg.castShadow = true; rLeg.receiveShadow = true;
+      cg.add(rLeg);
+
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.055, seatD * 0.92), matV2Teak);
+      rail.position.set(lx, seatH - 0.02, 0);
+      rail.castShadow = true;
+      cg.add(rail);
+
+      const stretcher = new THREE.Mesh(new THREE.BoxGeometry(0.030, 0.032, seatD * 0.84), matV2Teak);
+      stretcher.position.set(lx, 0.14, 0);
+      cg.add(stretcher);
+
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.068, 0.028, seatD * 0.98), matV2Teak);
+      arm.position.set(lx, seatH + 0.21, 0.02);
+      arm.castShadow = true; arm.receiveShadow = true;
+      cg.add(arm);
+
+      const stile = new THREE.Mesh(new THREE.BoxGeometry(0.044, backH, 0.044), matV2Teak);
+      stile.position.set(lx, seatH + Math.cos(-backTilt) * backH * 0.48, -seatD * 0.42 - Math.sin(-backTilt) * backH * 0.48);
+      stile.rotation.x = backTilt;
+      stile.castShadow = true;
+      cg.add(stile);
+    });
+
+    const slatCount = 8;
+    for (let s = 0; s < slatCount; s++) {
+      const f = s / (slatCount - 1);
+      const sz = -seatD * 0.40 + f * (seatD * 0.84);
+      const dip = Math.sin(f * Math.PI) * -0.016;
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(seatW * 0.88, 0.020, 0.052), matV2Teak);
+      slat.position.set(0, seatH + 0.012 + dip, sz);
+      slat.castShadow = true; slat.receiveShadow = true;
+      cg.add(slat);
+    }
+
+    const backSlatCount = reclined ? 8 : 7;
+    for (let b = 0; b < backSlatCount; b++) {
+      const bf = (b + 0.6) / backSlatCount;
+      const dist = bf * (backH - 0.06);
+      const isTopCrest = (b === backSlatCount - 1);
+      const bSlat = new THREE.Mesh(
+        new THREE.BoxGeometry(seatW * 0.88, isTopCrest ? 0.065 : 0.044, 0.020),
+        matV2Teak
+      );
+      bSlat.position.set(
+        0,
+        seatH + 0.04 + Math.cos(-backTilt) * dist,
+        -seatD * 0.42 - Math.sin(-backTilt) * dist
+      );
+      bSlat.rotation.x = backTilt;
+      bSlat.castShadow = true; bSlat.receiveShadow = true;
+      cg.add(bSlat);
+    }
+    return cg;
+  }
+
+  const loungeChairLeft = buildSlattedTeakGardenChair(true);
+  loungeChairLeft.position.set(-0.22, 0.042, 1.98);
+  loungeChairLeft.rotation.y = 0.62;
+  shadeTreeV2LoungeGroup.add(loungeChairLeft);
+
+  const armChairRight = buildSlattedTeakGardenChair(false);
+  armChairRight.position.set(1.92, 0.042, 2.02);
+  armChairRight.rotation.y = -0.68;
+  shadeTreeV2LoungeGroup.add(armChairRight);
+
+  // Round Slatted Teak Garden Side/Coffee Table between the two chairs
+  const teakTableGrp = new THREE.Group();
+  teakTableGrp.position.set(0.86, 0.042, 2.06);
+  const teakTblR = 0.44, teakTblH = 0.47;
+  const tblRim = new THREE.Mesh(new THREE.TorusGeometry(teakTblR, 0.022, 12, 32), matV2Teak);
+  tblRim.rotation.x = Math.PI / 2;
+  tblRim.position.y = teakTblH;
+  tblRim.castShadow = true;
+  teakTableGrp.add(tblRim);
+  for (let ts = -4; ts <= 4; ts++) {
+    const offZ = ts * 0.088;
+    const chord = 2 * Math.sqrt(Math.max(0.02, teakTblR * teakTblR - offZ * offZ)) - 0.03;
+    const tSlat = new THREE.Mesh(new THREE.BoxGeometry(chord, 0.022, 0.072), matV2Teak);
+    tSlat.position.set(0, teakTblH, offZ);
+    tSlat.castShadow = true; tSlat.receiveShadow = true;
+    teakTableGrp.add(tSlat);
+  }
+  for (let li = 0; li < 4; li++) {
+    const la = (li / 4) * Math.PI * 2 + Math.PI * 0.25;
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.017, teakTblH, 10), matV2Teak);
+    leg.position.set(Math.cos(la) * 0.31, teakTblH * 0.5, Math.sin(la) * 0.31);
+    leg.castShadow = true;
+    teakTableGrp.add(leg);
+  }
+  const crossA = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.024, 0.028), matV2Teak);
+  crossA.position.y = 0.16; crossA.rotation.y = Math.PI * 0.25;
+  teakTableGrp.add(crossA);
+  const crossB = crossA.clone();
+  crossB.rotation.y = -Math.PI * 0.25;
+  teakTableGrp.add(crossB);
+
+  const matTeaTray = new THREE.MeshStandardMaterial({ color: 0xc89d54, roughness: 0.28, metalness: 0.84, envMapIntensity: 0.70, userData: { customEnvIntensity: 0.70 } });
+  const trayMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.16, 0.014, 24), matTeaTray);
+  trayMesh.position.set(0.02, teakTblH + 0.018, -0.02);
+  trayMesh.castShadow = true;
+  teakTableGrp.add(trayMesh);
+  const teaPotBody = new THREE.Mesh(new THREE.SphereGeometry(0.062, 16, 12), matTeaTray);
+  teaPotBody.scale.set(1, 1.18, 1);
+  teaPotBody.position.set(0.0, teakTblH + 0.085, -0.03);
+  teaPotBody.castShadow = true;
+  teakTableGrp.add(teaPotBody);
+  [-0.08, 0.09].forEach((gx, gi) => {
+    const gl = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.024, 0.020, 0.062, 12),
+      new THREE.MeshStandardMaterial({ color: 0xdff4ec, roughness: 0.12, metalness: 0.05, transparent: true, opacity: 0.82 })
+    );
+    gl.position.set(gx, teakTblH + 0.056, 0.05 - gi * 0.03);
+    teakTableGrp.add(gl);
+  });
+  shadeTreeV2LoungeGroup.add(teakTableGrp);
+
+  const matFoliageDeep = new THREE.MeshStandardMaterial({ color: 0x26591d, roughness: 0.58, metalness: 0.02, envMapIntensity: 0.38, userData: { customEnvIntensity: 0.38 } });
+  const matFoliageMid = new THREE.MeshStandardMaterial({ color: 0x3b7a28, roughness: 0.54, metalness: 0.02, envMapIntensity: 0.40, userData: { customEnvIntensity: 0.40 } });
+
+  function addHydrangeaHead(parent, x, y, z, radius, hexCol) {
+    const hMat = new THREE.MeshStandardMaterial({ color: hexCol, roughness: 0.62, metalness: 0.01, envMapIntensity: 0.42, userData: { customEnvIntensity: 0.42 } });
+    const headG = new THREE.Group();
+    headG.position.set(x, y, z);
+    for (let fi = 0; fi < 14; fi++) {
+      const fa = fi * 2.39996;
+      const fr = Math.sqrt(fi / 14) * radius * 0.78;
+      const fy = Math.cos((fi / 14) * Math.PI * 0.5) * radius * 0.58;
+      const floret = new THREE.Mesh(new THREE.DodecahedronGeometry(radius * 0.34, 0), hMat);
+      floret.position.set(Math.cos(fa) * fr, fy, Math.sin(fa) * fr);
+      floret.rotation.set(fi * 0.5, fa, fi * 0.3);
+      floret.castShadow = true;
+      headG.add(floret);
+    }
+    parent.add(headG);
+  }
+
+  // Pot 1: Classical Fluted Pedestal Urn overflowing with Blue & Crisp White Hydrangeas
+  const pedestalUrnGrp = new THREE.Group();
+  pedestalUrnGrp.position.set(-1.12, 0.0, 2.38);
+  const urnPlinth = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.10, 0.38), matV2UrnStone);
+  urnPlinth.position.y = 0.05; urnPlinth.castShadow = true; urnPlinth.receiveShadow = true;
+  pedestalUrnGrp.add(urnPlinth);
+  const urnStem = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.16, 0.22, 16), matV2UrnStone);
+  urnStem.position.y = 0.21; urnStem.castShadow = true;
+  pedestalUrnGrp.add(urnStem);
+  const urnBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.13, 0.32, 20), matV2UrnStone);
+  urnBowl.position.y = 0.47; urnBowl.castShadow = true; urnBowl.receiveShadow = true;
+  pedestalUrnGrp.add(urnBowl);
+  const urnRim = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.032, 10, 24), matV2UrnStone);
+  urnRim.rotation.x = Math.PI / 2; urnRim.position.y = 0.63; urnRim.castShadow = true;
+  pedestalUrnGrp.add(urnRim);
+  const urnSoil = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.04, 16), matV2SoilDark);
+  urnSoil.position.y = 0.61;
+  pedestalUrnGrp.add(urnSoil);
+  for (let li = 0; li < 12; li++) {
+    const la = (li / 12) * Math.PI * 2;
+    const lf = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), li % 2 === 0 ? matFoliageDeep : matFoliageMid);
+    lf.scale.set(1.25, 0.32, 0.78);
+    lf.position.set(Math.cos(la) * 0.23, 0.66 + (li % 2) * 0.04, Math.sin(la) * 0.23);
+    lf.rotation.set(0.35, -la, 0);
+    lf.castShadow = true;
+    pedestalUrnGrp.add(lf);
+  }
+  [
+    [0.0, 0.80, 0.0, 0.14, 0x4f7ee8],
+    [-0.14, 0.74, 0.10, 0.12, 0xf6f8fc],
+    [0.15, 0.75, 0.09, 0.125, 0x6996f5],
+    [-0.11, 0.73, -0.13, 0.115, 0x3f6ad8],
+    [0.13, 0.74, -0.11, 0.12, 0xf2f5fb],
+    [0.02, 0.72, 0.17, 0.11, 0x7ba7ff]
+  ].forEach(([hx, hy, hz, hr, hc]) => addHydrangeaHead(pedestalUrnGrp, hx, hy, hz, hr, hc));
+  shadeTreeV2LoungeGroup.add(pedestalUrnGrp);
+
+  // Pot 2: Warm Terracotta Planter with Golden-Orange Marigolds & Arching Fountain Grass
+  const marigoldPotGrp = new THREE.Group();
+  marigoldPotGrp.position.set(0.18, 0.042, 2.84);
+  const tcPot = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.16, 0.34, 20), matV2Terracotta);
+  tcPot.position.y = 0.17; tcPot.castShadow = true; tcPot.receiveShadow = true;
+  marigoldPotGrp.add(tcPot);
+  const tcRim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.026, 10, 22), matV2Terracotta);
+  tcRim.rotation.x = Math.PI / 2; tcRim.position.y = 0.33;
+  marigoldPotGrp.add(tcRim);
+  const tcGrass = createSpikyGrassTuft(0.36, 0.52, 64, 19.4);
+  tcGrass.position.y = 0.31;
+  marigoldPotGrp.add(tcGrass);
+  const marigoldCols = [0xffa812, 0xf57600, 0xffc424, 0xe85d04];
+  for (let mi = 0; mi < 11; mi++) {
+    const ma = (mi / 11) * Math.PI * 2 + 0.3;
+    const mr = (mi === 0) ? 0.0 : (0.09 + (mi % 3) * 0.055);
+    const mMat = new THREE.MeshStandardMaterial({ color: marigoldCols[mi % marigoldCols.length], roughness: 0.55, metalness: 0.02 });
+    const bloom = new THREE.Mesh(new THREE.DodecahedronGeometry(0.052, 1), mMat);
+    bloom.position.set(Math.cos(ma) * mr, 0.40 + (mi % 3) * 0.035, Math.sin(ma) * mr);
+    bloom.castShadow = true;
+    marigoldPotGrp.add(bloom);
+  }
+  shadeTreeV2LoungeGroup.add(marigoldPotGrp);
+
+  // Pot 3: Glossy Dark Charcoal-Bronze Ceramic Jar with Sword-Leaf Agave/Dracaena
+  const darkJarGrp = new THREE.Group();
+  darkJarGrp.position.set(2.58, 0.0, 2.24);
+  const djBody = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 16), matV2DarkGlaze);
+  djBody.scale.set(1.0, 1.28, 1.0);
+  djBody.position.y = 0.28; djBody.castShadow = true; djBody.receiveShadow = true;
+  darkJarGrp.add(djBody);
+  const djRim = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.20, 0.08, 20), matV2DarkGlaze);
+  djRim.position.y = 0.55; djRim.castShadow = true;
+  darkJarGrp.add(djRim);
+  const djFoliage = createSpikyGrassTuft(0.34, 0.54, 48, 31.7);
+  djFoliage.position.y = 0.54;
+  darkJarGrp.add(djFoliage);
+  shadeTreeV2LoungeGroup.add(darkJarGrp);
+
+  // Pots 4 & 5: Rear/Side Under-Canopy Hosta & Lavender Accent Planters
+  [[-1.02, 1.28, 0xd8cec0, 0x8b5cf6], [2.44, 1.22, 0xc2623a, 0xf59e0b]].forEach(([px, pz, potHex, flHex]) => {
+    const pg = new THREE.Group();
+    pg.position.set(px, 0.0, pz);
+    const pMat = new THREE.MeshStandardMaterial({ color: potHex, roughness: 0.72, metalness: 0.03 });
+    const pb = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.14, 0.28, 18), pMat);
+    pb.position.y = 0.14; pb.castShadow = true; pb.receiveShadow = true;
+    pg.add(pb);
+    for (let hi = 0; hi < 9; hi++) {
+      const ha = (hi / 9) * Math.PI * 2;
+      const hLeaf = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), hi % 2 === 0 ? matFoliageDeep : matFoliageMid);
+      hLeaf.scale.set(1.45, 0.24, 0.72);
+      hLeaf.position.set(Math.cos(ha) * 0.14, 0.31 + (hi % 2) * 0.03, Math.sin(ha) * 0.14);
+      hLeaf.rotation.set(0.28, -ha, 0);
+      hLeaf.castShadow = true;
+      pg.add(hLeaf);
+    }
+    addHydrangeaHead(pg, 0, 0.40, 0, 0.095, flHex);
+    shadeTreeV2LoungeGroup.add(pg);
+  });
+
+  // Enrich with Real Poly Haven 3D Potted Plants (potted_plant_01 & potted_plant_02) on the pebble border
+  Promise.all([loadPHModel('potted_plant_01'), loadPHModel('potted_plant_02')]).then(([pp1, pp2]) => {
+    if (pp1) {
+      const w1 = fitAndPlaceModel(pp1.clone(true), null, 0.56, 0.4);
+      w1.position.set(-0.56, 0.042, 2.66);
+      shadeTreeV2LoungeGroup.add(w1);
+    }
+    if (pp2) {
+      const w2 = fitAndPlaceModel(pp2.clone(true), null, 0.58, -0.5);
+      w2.position.set(1.56, 0.042, 2.74);
+      shadeTreeV2LoungeGroup.add(w2);
+    }
+    requestShadowUpdate();
+  }).catch(() => {});
+
+  giantShadeTreeGroup.add(shadeTreeV2LoungeGroup);
+  giantShadeTreeGroup.userData.versionFeature = 'shadeTree';
+  giantShadeTreeGroup.userData.objectVersion = 1;
+  giantShadeTreeGroup.userData.v2Group = shadeTreeV2LoungeGroup;
 
   window.giantPoolShadeTreeObj = giantShadeTreeGroup;
   registerDraggable(giantShadeTreeGroup, 'Giant Mediterranean Shade Tree (6.8m)', 'شجرة ظل متوسطية عملاقة وارفة');
@@ -9023,12 +10377,358 @@ async function buildStaticPolyHavenDecor() {
     window.bonfireLocalSmokeClouds.push(smokeEntry);
   }
 
+  // Wrap all V1 bonfire meshes atomically into bonfireV1Group (leaves V1 100% unchanged)
+  const bonfireV1Group = new THREE.Group();
+  bonfireV1Group.name = 'bonfireV1Group';
+  while (tunisianBonfireGroup.children.length > 0) {
+    bonfireV1Group.add(tunisianBonfireGroup.children[0]);
+  }
+  tunisianBonfireGroup.add(bonfireV1Group);
+
+  // ==========================================================================
+  // 5D. BONFIRE PIT VERSION 2 — CINDER-BLOCK & CLAY-DOME WOOD-FIRED OVEN
+  //     (Ref: WhatsApp Image 2026-11-13 at 15.19.26 (2).jpeg)
+  // ==========================================================================
+  const bonfireV2Group = new THREE.Group();
+  bonfireV2Group.name = 'bonfireV2Group';
+  bonfireV2Group.userData.excludeFromAutoPivot = true;
+  bonfireV2Group.visible = false;
+
+  // Running-bond grey concrete cinder-block texture + normal bump map
+  const texCinderBlockDiff = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#6f716e';
+    ctx.fillRect(0, 0, w, h);
+    const rows = 6, cols = 4;
+    const bh = h / rows, bw = w / cols;
+    const shades = ['#929490', '#878986', '#9a9c98', '#7d807c', '#8d8f8b'];
+    for (let r = 0; r < rows; r++) {
+      const offX = (r % 2) * (bw * 0.5);
+      for (let c = -1; c <= cols; c++) {
+        const bx = c * bw + offX + 3;
+        const by = r * bh + 3;
+        const ww = bw - 6, hh = bh - 6;
+        ctx.fillStyle = shades[(r * 5 + c * 3 + 12) % shades.length];
+        ctx.fillRect(bx, by, ww, hh);
+        // Subtle porous cinder-block grain
+        for (let g = 0; g < 18; g++) {
+          ctx.fillStyle = (g % 2 === 0) ? 'rgba(42,44,42,0.18)' : 'rgba(220,222,218,0.14)';
+          ctx.fillRect(bx + ((g * 29) % (ww - 6)), by + ((g * 17) % (hh - 6)), 4, 3);
+        }
+      }
+    }
+  });
+  texCinderBlockDiff.wrapS = texCinderBlockDiff.wrapT = THREE.RepeatWrapping;
+  texCinderBlockDiff.repeat.set(1.3, 1.0);
+
+  const texCinderBlockNor = makeCanvasTexture(256, 256, (ctx, w, h) => {
+    ctx.fillStyle = 'rgb(100,100,255)';
+    ctx.fillRect(0, 0, w, h);
+    const rows = 6, cols = 4, bh = h / rows, bw = w / cols;
+    for (let r = 0; r < rows; r++) {
+      const offX = (r % 2) * (bw * 0.5);
+      for (let c = -1; c <= cols; c++) {
+        ctx.fillStyle = 'rgb(128,128,255)';
+        ctx.fillRect(c * bw + offX + 2, r * bh + 2, bw - 4, bh - 4);
+      }
+    }
+  });
+  texCinderBlockNor.encoding = THREE.LinearEncoding;
+  texCinderBlockNor.wrapS = texCinderBlockNor.wrapT = THREE.RepeatWrapping;
+  texCinderBlockNor.repeat.set(1.3, 1.0);
+
+  // Rough weathered grey-taupe earthen cob/clay dome texture
+  const texClayDomeDiff = makeCanvasTexture(512, 512, (ctx, w, h) => {
+    const gr = ctx.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0.0, '#9b968d');
+    gr.addColorStop(0.55, '#898278');
+    gr.addColorStop(1.0, '#787166');
+    ctx.fillStyle = gr;
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 650; i++) {
+      const x = (i * 107.3) % w;
+      const y = (i * 219.7) % h;
+      const rad = 4 + (i % 7) * 3.5;
+      ctx.fillStyle = (i % 3 === 0) ? 'rgba(65,58,50,0.16)' : 'rgba(210,204,194,0.14)';
+      ctx.beginPath();
+      ctx.arc(x, y, rad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  const matOvenCinderBlock = new THREE.MeshStandardMaterial({
+    map: texCinderBlockDiff,
+    normalMap: texCinderBlockNor,
+    normalScale: new THREE.Vector2(1.4, 1.4),
+    roughness: 0.88,
+    metalness: 0.03,
+    envMapIntensity: 0.36,
+    userData: { customEnvIntensity: 0.36 }
+  });
+  const matOvenFirebrick = new THREE.MeshStandardMaterial({
+    map: texBonfireBrickWall,
+    normalMap: concreteNorTex || plasterNorTex,
+    roughness: 0.82,
+    metalness: 0.04,
+    envMapIntensity: 0.38,
+    userData: { customEnvIntensity: 0.38 }
+  });
+  const matOvenTaupeApron = new THREE.MeshStandardMaterial({
+    color: 0x9b826d,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    normalScale: new THREE.Vector2(0.9, 0.9),
+    roughness: 0.78,
+    metalness: 0.02,
+    envMapIntensity: 0.40,
+    userData: { customEnvIntensity: 0.40 }
+  });
+  const matOvenClayDome = new THREE.MeshStandardMaterial({
+    map: texClayDomeDiff,
+    normalMap: concreteNorTex || plasterNorTex,
+    normalScale: new THREE.Vector2(1.45, 1.45),
+    roughness: 0.90,
+    metalness: 0.02,
+    envMapIntensity: 0.36,
+    userData: { customEnvIntensity: 0.36 }
+  });
+  const matOvenWhiteMouth = new THREE.MeshStandardMaterial({
+    color: 0xf4f0e8,
+    map: plasterDiffTex,
+    normalMap: plasterNorTex,
+    roughness: 0.72,
+    metalness: 0.02,
+    envMapIntensity: 0.45,
+    userData: { customEnvIntensity: 0.45 }
+  });
+  const matOvenConcretePad = new THREE.MeshStandardMaterial({
+    color: 0x7c7b77,
+    map: concreteDiffTex || texBonfireStoneGrain,
+    normalMap: concreteNorTex || plasterNorTex,
+    roughness: 0.86,
+    metalness: 0.04,
+    envMapIntensity: 0.36,
+    userData: { customEnvIntensity: 0.36 }
+  });
+  const matOvenHearthGlow = new THREE.MeshStandardMaterial({
+    map: texBonfireEmbers,
+    emissiveMap: texBonfireEmbers,
+    emissive: new THREE.Color(0xff4a00),
+    emissiveIntensity: 2.15,
+    roughness: 0.55,
+    side: THREE.DoubleSide
+  });
+  if (!window.bonfireEmberMaterials) window.bonfireEmberMaterials = [];
+  window.bonfireEmberMaterials.push(matOvenHearthGlow);
+
+  // Concrete Paver Pad + Front Warm Firelight Glow Disc
+  const ovenBasePad = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.055, 1.54), matOvenConcretePad);
+  ovenBasePad.position.set(0, 0.028, 0);
+  ovenBasePad.receiveShadow = true; ovenBasePad.castShadow = true;
+  bonfireV2Group.add(ovenBasePad);
+
+  const ovenFrontGlow = new THREE.Mesh(new THREE.PlaneGeometry(2.15, 2.15), matBonfireGroundGlow);
+  ovenFrontGlow.rotation.x = -Math.PI / 2;
+  ovenFrontGlow.position.set(0, 0.015, 0.72);
+  ovenFrontGlow.raycast = () => {};
+  ovenFrontGlow.userData.isAODecal = true;
+  ovenFrontGlow.userData.isLed = true;
+  bonfireV2Group.add(ovenFrontGlow);
+
+  // Lower U-Shaped Cinder-Block Base (Left Pier, Right Pier, Back Wall -> Open Firewood Alcove in Front)
+  const lwWall = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.74, 1.24), matOvenCinderBlock);
+  lwWall.position.set(-0.56, 0.42, -0.02);
+  lwWall.castShadow = true; lwWall.receiveShadow = true;
+  bonfireV2Group.add(lwWall);
+
+  const rwWall = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.74, 1.24), matOvenCinderBlock);
+  rwWall.position.set(0.56, 0.42, -0.02);
+  rwWall.castShadow = true; rwWall.receiveShadow = true;
+  bonfireV2Group.add(rwWall);
+
+  const bkWall = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.74, 0.28), matOvenCinderBlock);
+  bkWall.position.set(0, 0.42, -0.50);
+  bkWall.castShadow = true; bkWall.receiveShadow = true;
+  bonfireV2Group.add(bkWall);
+
+  // Stacked Split Firewood Logs Stored Inside the Lower Alcove
+  const matAlcoveWood = new THREE.MeshStandardMaterial({
+    color: 0x6f4a2e,
+    map: woodDiffTex,
+    normalMap: woodNorTex,
+    roughness: 0.88,
+    metalness: 0.02
+  });
+  const alcoveLogCoords = [
+    [-0.26, 0.14], [-0.08, 0.13], [0.10, 0.14], [0.27, 0.13],
+    [-0.18, 0.25], [0.00, 0.26], [0.18, 0.25],
+    [-0.09, 0.37], [0.09, 0.36]
+  ];
+  alcoveLogCoords.forEach(([lx, ly], idx) => {
+    const aLog = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.074, 0.66, 9), matAlcoveWood);
+    aLog.rotation.x = Math.PI / 2 + ((idx % 3) - 1) * 0.03;
+    aLog.rotation.z = ((idx % 5) - 2) * 0.04;
+    aLog.position.set(lx, ly, 0.06 + (idx % 2) * 0.04);
+    aLog.castShadow = true; aLog.receiveShadow = true;
+    bonfireV2Group.add(aLog);
+  });
+
+  // Reinforced Concrete Lintel Slab & Red Firebrick Thermal Belt
+  const lintelSlab = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.08, 1.30), matOvenConcretePad);
+  lintelSlab.position.set(0, 0.83, -0.02);
+  lintelSlab.castShadow = true; lintelSlab.receiveShadow = true;
+  bonfireV2Group.add(lintelSlab);
+
+  const firebrickCourse = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.085, 1.28), matOvenFirebrick);
+  firebrickCourse.position.set(0, 0.91, -0.02);
+  firebrickCourse.castShadow = true; firebrickCourse.receiveShadow = true;
+  bonfireV2Group.add(firebrickCourse);
+
+  // Upper Cinder-Block Corner Piers Flanking Smooth Taupe Clay-Plaster Front Apron
+  [-0.55, 0.55].forEach((px) => {
+    const uPier = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.44, 0.28), matOvenCinderBlock);
+    uPier.position.set(px, 1.17, 0.34);
+    uPier.castShadow = true; uPier.receiveShadow = true;
+    bonfireV2Group.add(uPier);
+  });
+
+  // Sculpted Rough Earthen Clay Igloo Dome
+  const clayDomeGeo = new THREE.SphereGeometry(0.66, 26, 18, 0, Math.PI * 2, 0, Math.PI * 0.56);
+  const clayDome = new THREE.Mesh(clayDomeGeo, matOvenClayDome);
+  clayDome.scale.set(1.04, 1.08, 1.08);
+  clayDome.position.set(0, 0.94, -0.06);
+  clayDome.castShadow = true; clayDome.receiveShadow = true;
+  bonfireV2Group.add(clayDome);
+
+  // Front Smooth Taupe Clay Apron Arch Wall
+  const frontApron = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.48, 0.24, 24, 1, false, -Math.PI * 0.5, Math.PI), matOvenTaupeApron);
+  frontApron.rotation.x = -Math.PI / 2;
+  frontApron.position.set(0, 1.15, 0.36);
+  frontApron.scale.set(1.0, 1.0, 0.98);
+  frontApron.castShadow = true; frontApron.receiveShadow = true;
+  bonfireV2Group.add(frontApron);
+  const apronBaseRect = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.26, 0.22), matOvenTaupeApron);
+  apronBaseRect.position.set(0, 1.08, 0.36);
+  apronBaseRect.castShadow = true; apronBaseRect.receiveShadow = true;
+  bonfireV2Group.add(apronBaseRect);
+
+  // Circular Whitewashed Lime-Plaster Mouth + Deep Blazing Red-Orange Hearth Interior
+  const mouthRim = new THREE.Mesh(new THREE.TorusGeometry(0.215, 0.054, 14, 28), matOvenWhiteMouth);
+  mouthRim.position.set(0, 1.18, 0.46);
+  mouthRim.castShadow = true; mouthRim.receiveShadow = true;
+  bonfireV2Group.add(mouthRim);
+
+  const innerHearthShell = new THREE.Mesh(new THREE.CylinderGeometry(0.195, 0.20, 0.48, 22), matOvenHearthGlow);
+  innerHearthShell.rotation.x = Math.PI / 2;
+  innerHearthShell.position.set(0, 1.18, 0.22);
+  bonfireV2Group.add(innerHearthShell);
+
+  const mouthEmberCore = new THREE.Mesh(new THREE.CircleGeometry(0.19, 22), matOvenHearthGlow);
+  mouthEmberCore.position.set(0, 1.18, 0.42);
+  bonfireV2Group.add(mouthEmberCore);
+
+  // Burning Fuel Log & Animated Interior Flames inside Oven Chamber
+  const ovenBurningLog = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.046, 0.26, 8), matAlcoveWood);
+  ovenBurningLog.rotation.z = Math.PI / 2 + 0.14;
+  ovenBurningLog.rotation.y = 0.32;
+  ovenBurningLog.position.set(0, 1.05, 0.35);
+  bonfireV2Group.add(ovenBurningLog);
+
+  const ovenFlameGeo = new THREE.PlaneGeometry(0.32, 0.34);
+  for (let ofi = 0; ofi < 6; ofi++) {
+    const fMat = new THREE.MeshBasicMaterial({
+      map: texBonfireFlame,
+      transparent: true,
+      opacity: 0.90,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    const fMesh = new THREE.Mesh(ovenFlameGeo, fMat);
+    const fx = ((ofi % 3) - 1) * 0.055;
+    const fz = 0.34 + (ofi % 2) * 0.04;
+    fMesh.position.set(fx, 1.14, fz);
+    fMesh.raycast = () => {};
+    fMesh.userData.isAODecal = true;
+    fMesh.userData.isLed = true;
+    const fEntry = {
+      mesh: fMesh,
+      baseScaleX: 0.72 + (ofi % 2) * 0.18,
+      baseScaleY: 0.68 + (ofi % 3) * 0.14,
+      baseX: fx,
+      baseZ: fz,
+      yawSpread: (ofi - 2.5) * 0.16,
+      speed: 7.4 + ofi * 1.1,
+      phase: ofi * 1.25,
+      baseOpacity: 0.88,
+      isCone: false
+    };
+    fMesh.userData.bonfireAnimType = 'flame';
+    fMesh.userData.bonfireAnimParams = { ...fEntry, mesh: null };
+    bonfireV2Group.add(fMesh);
+    window.bonfireFlameMeshes.push(fEntry);
+  }
+
+  // Rising Smoke Plume Curling Out of the Whitewashed Oven Mouth
+  const ovenSmokeGeo = new THREE.PlaneGeometry(0.56, 0.56);
+  for (let osi = 0; osi < 8; osi++) {
+    const smMat = new THREE.MeshBasicMaterial({
+      map: texBonfireSmokeCloud,
+      color: 0xffd6b0,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    const smMesh = new THREE.Mesh(ovenSmokeGeo, smMat);
+    smMesh.raycast = () => {};
+    smMesh.userData.isAODecal = true;
+    smMesh.userData.isLed = true;
+    const smEntry = {
+      mesh: smMesh,
+      age: (osi / 8) * 2.4,
+      maxAge: 2.4,
+      driftAng: osi * 1.9,
+      phase: osi * 0.9,
+      baseX: 0.0,
+      baseY: 1.34,
+      baseZ: 0.48,
+      riseHeight: 1.85
+    };
+    smMesh.userData.bonfireAnimType = 'smoke';
+    smMesh.userData.bonfireAnimParams = { ...smEntry, mesh: null };
+    bonfireV2Group.add(smMesh);
+    window.bonfireLocalSmokeClouds.push(smEntry);
+  }
+
+  // Leaning Wooden-Handled Metal Ash Spade / Pizza Peel against Left Pier
+  const spadePole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.017, 1.16, 10), matAlcoveWood);
+  spadePole.position.set(-0.74, 0.62, 0.34);
+  spadePole.rotation.z = -0.14;
+  spadePole.rotation.x = 0.08;
+  spadePole.castShadow = true;
+  bonfireV2Group.add(spadePole);
+  const spadeBlade = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.22, 0.012),
+    new THREE.MeshStandardMaterial({ color: 0x3b3e42, roughness: 0.48, metalness: 0.78 })
+  );
+  spadeBlade.position.set(-0.81, 0.14, 0.29);
+  spadeBlade.rotation.z = -0.14;
+  spadeBlade.rotation.x = 0.08;
+  spadeBlade.castShadow = true;
+  bonfireV2Group.add(spadeBlade);
+
+  tunisianBonfireGroup.add(bonfireV2Group);
+
   // Smoke spawn anchor node right above the bonfire flame crown (local y = 0.96m) — moves & scales automatically with tunisianBonfireGroup!
   const bonfireSmokeNode = new THREE.Object3D();
   bonfireSmokeNode.position.set(0, 0.96, 0);
   bonfireSmokeNode.name = 'bonfireSmokeNode';
   tunisianBonfireGroup.add(bonfireSmokeNode);
   tunisianBonfireGroup.userData.bonfireSmokeNode = bonfireSmokeNode;
+  tunisianBonfireGroup.userData.versionFeature = 'bonfire';
+  tunisianBonfireGroup.userData.objectVersion = 1;
+  tunisianBonfireGroup.userData.v1Group = bonfireV1Group;
+  tunisianBonfireGroup.userData.v2Group = bonfireV2Group;
 
   window.tunisianBonfireObj = tunisianBonfireGroup;
   registerDraggable(
@@ -11727,9 +13427,126 @@ let _copyFlashActive = false;
 let _copyFlashTimer = null;
 let multiDragOffsets = [];
 
+function getObjectVersionInfo(obj) {
+  if (!obj || !obj.userData) return null;
+  const ud = obj.userData;
+  if (ud.versionFeature === 'shadeTree' || ud.versionFeature === 'bonfire') {
+    return {
+      kind: ud.versionFeature,
+      version: (ud.objectVersion === 2) ? 2 : 1
+    };
+  }
+  if (ud.versionSet === 'kitchen') {
+    return {
+      kind: 'kitchen',
+      version: (state.objectVersions && state.objectVersions.kitchen === 2) ? 2 : 1
+    };
+  }
+  if (ud.versionSet === 'cabinTerrace') {
+    return {
+      kind: 'cabinTerrace',
+      version: (state.objectVersions && state.objectVersions.cabinTerrace === 2) ? 2 : 1
+    };
+  }
+  return null;
+}
+
+function applySingleObjectVersion(obj, ver) {
+  if (!obj || !obj.userData) return;
+  const nextVer = (ver === 2) ? 2 : 1;
+  obj.userData.objectVersion = nextVer;
+  const ud = obj.userData;
+  if (ud.versionFeature === 'shadeTree') {
+    const v2g = ud.v2Group || obj.getObjectByName('shadeTreeV2LoungeGroup');
+    if (v2g) {
+      ud.v2Group = v2g;
+      v2g.visible = (nextVer === 2);
+    }
+  } else if (ud.versionFeature === 'bonfire') {
+    const v1g = ud.v1Group || obj.getObjectByName('bonfireV1Group');
+    const v2g = ud.v2Group || obj.getObjectByName('bonfireV2Group');
+    const smNode = ud.bonfireSmokeNode || obj.getObjectByName('bonfireSmokeNode');
+    if (v1g) { ud.v1Group = v1g; v1g.visible = (nextVer === 1); }
+    if (v2g) { ud.v2Group = v2g; v2g.visible = (nextVer === 2); }
+    if (smNode) {
+      ud.bonfireSmokeNode = smNode;
+      smNode.position.set(0, nextVer === 2 ? 1.38 : 0.96, nextVer === 2 ? 0.22 : 0);
+    }
+  }
+  obj.updateMatrixWorld(true);
+}
+
+window.applyKitchenSetVersion = function(ver, keepSelection = true) {
+  const nextVer = (ver === 2) ? 2 : 1;
+  if (!state.objectVersions) state.objectVersions = { kitchen: 1, cabinTerrace: 1 };
+  state.objectVersions.kitchen = nextVer;
+  const reg = window._kitchenVersionRegistry;
+  if (!reg) return;
+  (reg.v1 || []).forEach(o => { if (o) { o.visible = (nextVer === 1); o.updateMatrixWorld(true); } });
+  (reg.v2 || []).forEach(o => { if (o) { o.visible = (nextVer === 2); o.updateMatrixWorld(true); } });
+  if (nextVer === 1) {
+    if (reg.kGroupV1) { window.kitchenCounterObj = reg.kGroupV1; window.activeKitchenObj = reg.swV1 || reg.kGroupV1; }
+  } else {
+    if (reg.kGroupV2) { window.kitchenCounterObj = reg.kGroupV2; window.activeKitchenObj = reg.kGroupV2; }
+  }
+  if (keepSelection && selectedObject && selectedObject.userData && selectedObject.userData.versionSet === 'kitchen' && !selectedObject.visible) {
+    const role = selectedObject.userData.kitchenRole || 'counter';
+    const pairMap = nextVer === 2 ? reg.v2ByRole : reg.v1ByRole;
+    const replacement = (pairMap && (pairMap[role] || pairMap.counter || pairMap.fridge)) || (nextVer === 2 ? reg.v2[0] : reg.v1[0]);
+    if (replacement && replacement.visible) {
+      selectObject(replacement);
+    } else {
+      updateSelectedHudText();
+    }
+  } else if (keepSelection) {
+    if (selectedObject) setSelectionHighlight(selectedObject, true);
+    updateSelectedHudText();
+  }
+  requestShadowUpdate();
+};
+
+window.applyCabinTerraceSetVersion = function(ver, keepSelection = true) {
+  const nextVer = (ver === 2) ? 2 : 1;
+  if (!state.objectVersions) state.objectVersions = { kitchen: 1, cabinTerrace: 1 };
+  state.objectVersions.cabinTerrace = nextVer;
+  if (window.cabinTerraceV1SlabObj) window.cabinTerraceV1SlabObj.visible = (nextVer === 1);
+  if (window.cabinTerraceLesehanObj) window.cabinTerraceLesehanObj.visible = (nextVer === 1);
+  if (window.cabinTerracePergolaObj) window.cabinTerracePergolaObj.visible = (nextVer === 1);
+  if (window.cabinTerraceV2SetObj) window.cabinTerraceV2SetObj.visible = (nextVer === 2);
+  if (keepSelection && selectedObject && selectedObject.userData && selectedObject.userData.versionSet === 'cabinTerrace' && !isObjectVisibleInHierarchy(selectedObject)) {
+    const replacement = (nextVer === 2) ? window.cabinTerraceV2SetObj : (window.cabinTerraceLesehanObj || window.cabinTerracePergolaObj);
+    if (replacement) selectObject(replacement);
+    else updateSelectedHudText();
+  } else if (keepSelection) {
+    if (selectedObject) setSelectionHighlight(selectedObject, true);
+    updateSelectedHudText();
+  }
+  requestShadowUpdate();
+};
+
+window.setSelectedObjectVersion = function(ver) {
+  if (!selectedObject) return;
+  const info = getObjectVersionInfo(selectedObject);
+  if (!info) return;
+  const nextVer = (ver === 2) ? 2 : 1;
+  if (info.kind === 'shadeTree' || info.kind === 'bonfire') {
+    applySingleObjectVersion(selectedObject, nextVer);
+    setSelectionHighlight(selectedObject, true);
+    updateSelectedHudText();
+    requestShadowUpdate();
+  } else if (info.kind === 'kitchen') {
+    window.applyKitchenSetVersion(nextVer, true);
+  } else if (info.kind === 'cabinTerrace') {
+    window.applyCabinTerraceSetVersion(nextVer, true);
+  }
+};
+
 function updateSelectedHudText() {
   const el = document.getElementById('sel-name');
   const openBtn = document.getElementById('btn-hud-open');
+  const verCtrl = document.getElementById('version-hud-controls');
+  const ver1Btn = document.getElementById('btn-hud-ver-1');
+  const ver2Btn = document.getElementById('btn-hud-ver-2');
   const deselBtn = document.getElementById('btn-hud-deselect');
   const smallBtn = document.getElementById('btn-hud-smaller');
   const bigBtn = document.getElementById('btn-hud-bigger');
@@ -11785,6 +13602,7 @@ function updateSelectedHudText() {
   if (!selectedObject) {
     el.textContent = t('hudDefault');
     if (openBtn) openBtn.style.display = 'none';
+    if (verCtrl) verCtrl.style.display = 'none';
     if (deselBtn) deselBtn.style.display = 'none';
     if (fenceCtrl) fenceCtrl.style.display = 'none';
     if (animalCtrl) animalCtrl.style.display = 'none';
@@ -11893,12 +13711,28 @@ function updateSelectedHudText() {
         }
       }
     }
+    const verInfo = getObjectVersionInfo(selectedObject);
+    if (verCtrl) {
+      verCtrl.style.display = verInfo ? 'inline-flex' : 'none';
+      verCtrl.setAttribute('aria-label', t('versionGroupLabel'));
+      if (verInfo) {
+        if (ver1Btn) {
+          ver1Btn.textContent = t('btnVersion1');
+          ver1Btn.setAttribute('aria-pressed', verInfo.version === 1 ? 'true' : 'false');
+        }
+        if (ver2Btn) {
+          ver2Btn.textContent = t('btnVersion2');
+          ver2Btn.setAttribute('aria-pressed', verInfo.version === 2 ? 'true' : 'false');
+        }
+      }
+    }
     const transformDisp = isWalkway ? 'none' : 'inline-block';
+    const rotDisp = (!isWalkway && !(selectedObject.userData && selectedObject.userData.noRotate)) ? 'inline-block' : 'none';
     if (smallBtn) smallBtn.style.display = transformDisp;
     if (bigBtn) bigBtn.style.display = transformDisp;
-    if (rotLBtn) rotLBtn.style.display = transformDisp;
-    if (rotRBtn) rotRBtn.style.display = transformDisp;
-    if (rot90Btn) rot90Btn.style.display = transformDisp;
+    if (rotLBtn) rotLBtn.style.display = rotDisp;
+    if (rotRBtn) rotRBtn.style.display = rotDisp;
+    if (rot90Btn) rot90Btn.style.display = rotDisp;
     if (copyBtn) copyBtn.style.display = 'inline-block';
     if (pasteBtn) pasteBtn.style.display = copiedObjectBlueprint ? 'inline-block' : 'none';
     if (delBtn) delBtn.style.display = 'inline-block';
@@ -11956,7 +13790,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   updatePointer(e);
   raycaster.setFromCamera(pointer, activeCamera);
   const visibleDraggables = draggableObjects.filter(isObjectVisibleInHierarchy);
-  const hits = raycaster.intersectObjects(visibleDraggables, true);
+  const hits = raycaster.intersectObjects(visibleDraggables, true).filter(h => isObjectVisibleInHierarchy(h.object));
   const openHits = raycaster.intersectObjects(openingsGroup.children, true);
 
   let hitFenceGate = false;
@@ -12232,12 +14066,12 @@ window.addEventListener('pointerup', (e) => {
 
 function rotateSelected(deltaRad) {
   if (!selectedObject) return;
-  if (selectedObject.userData && selectedObject.userData.isDynamicLWalkway) return;
+  if (selectedObject.userData && (selectedObject.userData.isDynamicLWalkway || selectedObject.userData.noRotate)) return;
   const targets = (multiSelectedOlives.length > 1 && multiSelectedOlives.includes(selectedObject))
     ? multiSelectedOlives
     : [selectedObject];
   targets.forEach((obj) => {
-    if (!obj || (obj.userData && obj.userData.isDynamicLWalkway)) return;
+    if (!obj || (obj.userData && (obj.userData.isDynamicLWalkway || obj.userData.noRotate))) return;
     obj.rotation.y += deltaRad;
     if (obj.userData && obj.userData.isAnimal && obj.userData.animalState) {
       const st = obj.userData.animalState;
@@ -12508,6 +14342,14 @@ function spawnCatalogInstanceFromEntry(entry, customOpts) {
       window.tunisianBonfireObj = cloned;
     }
   }
+  if (cloned.userData && cloned.userData.versionFeature) {
+    cloned.userData.v1Group = null;
+    cloned.userData.v2Group = null;
+    cloned.userData.bonfireSmokeNode = null;
+    if (typeof applySingleObjectVersion === 'function') {
+      applySingleObjectVersion(cloned, (customOpts && customOpts.objectVersion) || 1);
+    }
+  }
 
   const parentGrp = (spawnPos.y > 2.20) ? roofGroup : furnGroups.staticDecor;
   parentGrp.add(cloned);
@@ -12562,6 +14404,7 @@ function copySelectedObject() {
           gateOffsetX: oud.gateOffsetX,
           hasGate: oud.hasGate,
           hasPot: oud.hasPot,
+          objectVersion: oud.objectVersion,
           isGravelRoad: !!oud.isGravelRoad,
           roadWidth: oud.roadWidth,
           roadSegments: oud.roadSegments ? JSON.parse(JSON.stringify(oud.roadSegments)) : undefined,
@@ -12625,6 +14468,7 @@ function copySelectedObject() {
         gateOffsetX: ud.gateOffsetX,
         hasGate: ud.hasGate,
         hasPot: ud.hasPot,
+        objectVersion: ud.objectVersion,
         isGravelRoad: !!ud.isGravelRoad,
         roadWidth: ud.roadWidth,
         roadSegments: ud.roadSegments ? JSON.parse(JSON.stringify(ud.roadSegments)) : undefined,
@@ -12706,6 +14550,7 @@ function pasteCopiedObject() {
           gateOffsetX: it.gateOffsetX,
           hasGate: it.hasGate,
           hasPot: it.hasPot,
+          objectVersion: it.objectVersion,
           roadWidth: it.roadWidth,
           roadSegments: it.roadSegments ? JSON.parse(JSON.stringify(it.roadSegments)) : undefined,
           activeEnd: it.activeEnd,
@@ -12792,6 +14637,7 @@ function pasteCopiedObject() {
     gateOffsetX: copiedObjectBlueprint.gateOffsetX,
     hasGate: copiedObjectBlueprint.hasGate,
     hasPot: copiedObjectBlueprint.hasPot,
+    objectVersion: copiedObjectBlueprint.objectVersion,
     roadWidth: copiedObjectBlueprint.roadWidth,
     roadSegments: copiedObjectBlueprint.roadSegments ? JSON.parse(JSON.stringify(copiedObjectBlueprint.roadSegments)) : undefined,
     activeEnd: copiedObjectBlueprint.activeEnd
@@ -13743,6 +15589,7 @@ function buildCurrentLayoutPayload() {
       endBx: o.userData.isDynamicLWalkway ? +o.userData.endBx.toFixed(3) : undefined,
       walkBy: o.userData.isDynamicLWalkway ? +o.userData.walkBy.toFixed(3) : undefined,
       hasPot: o.userData.isIndividualSmallOlive ? !!o.userData.hasPot : undefined,
+      objectVersion: (o.userData && o.userData.versionFeature && o.userData.objectVersion === 2) ? 2 : undefined,
       isGravelRoad: o.userData.isGravelRoad ? true : undefined,
       roadWidth: o.userData.isGravelRoad ? +(o.userData.roadWidth || 3.4).toFixed(2) : undefined,
       roadSegments: o.userData.isGravelRoad ? o.userData.roadSegments : undefined,
@@ -13757,6 +15604,7 @@ function saveDesign() {
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     designColor: state.designColor,
+    objectVersions: state.objectVersions,
     customPositions
   });
   localStorage.setItem('tunisia_modern_arabic_villa_v11', payloadStr);
@@ -13773,6 +15621,7 @@ function exportLayoutToClipboard() {
     lang: state.lang,
     timeOfDay: state.timeOfDay,
     designColor: state.designColor,
+    objectVersions: state.objectVersions,
     customPositions
   }));
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -16684,7 +18533,7 @@ function updateMaherNpcAndParticles(dt) {
     }
     for (let i = 0; i < window.bonfireFlameMeshes.length; i++) {
       const fm = window.bonfireFlameMeshes[i];
-      if (!fm || !fm.mesh) continue;
+      if (!fm || !fm.mesh || !isObjectVisibleInHierarchy(fm.mesh)) continue;
       const w1 = Math.sin(nowSec * fm.speed + fm.phase);
       const w2 = Math.cos(nowSec * (fm.speed * 1.37) + fm.phase * 1.7);
       const w3 = Math.sin(nowSec * (fm.speed * 0.73) - fm.phase * 0.9);
@@ -16722,7 +18571,7 @@ function updateMaherNpcAndParticles(dt) {
   if (window.bonfireSparkMeshes && window.bonfireSparkMeshes.length > 0) {
     for (let i = 0; i < window.bonfireSparkMeshes.length; i++) {
       const sp = window.bonfireSparkMeshes[i];
-      if (!sp || !sp.mesh) continue;
+      if (!sp || !sp.mesh || !isObjectVisibleInHierarchy(sp.mesh)) continue;
       sp.age += dt;
       if (sp.age >= sp.maxAge) sp.age -= sp.maxAge;
       const t = sp.age / sp.maxAge;
@@ -16741,13 +18590,17 @@ function updateMaherNpcAndParticles(dt) {
   if (window.bonfireLocalSmokeClouds && window.bonfireLocalSmokeClouds.length > 0) {
     for (let i = 0; i < window.bonfireLocalSmokeClouds.length; i++) {
       const sm = window.bonfireLocalSmokeClouds[i];
-      if (!sm || !sm.mesh) continue;
+      if (!sm || !sm.mesh || !isObjectVisibleInHierarchy(sm.mesh)) continue;
       sm.age += dt;
       if (sm.age >= sm.maxAge) sm.age -= sm.maxAge;
       const t = sm.age / sm.maxAge;
+      const bx = sm.baseX || 0;
+      const by = (typeof sm.baseY === 'number') ? sm.baseY : 0.82;
+      const bz = sm.baseZ || 0;
+      const rh = sm.riseHeight || 2.15;
       const swayX = Math.sin(nowSec * 1.4 + sm.phase) * (0.06 + t * 0.26) + t * 0.18;
       const swayZ = Math.cos(nowSec * 1.2 + sm.phase) * (0.06 + t * 0.22) - t * 0.10;
-      sm.mesh.position.set(swayX, 0.82 + t * 2.15, swayZ);
+      sm.mesh.position.set(bx + swayX, by + t * rh, bz + swayZ);
       sm.mesh.scale.setScalar(0.58 + t * 1.85);
       // Warm fire-lit amber smoke at base (t=0) cooling to natural gray-white smoke aloft (t=1)
       const warmMix = Math.max(0, 1.0 - t * 1.65);
@@ -20117,6 +21970,9 @@ function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
         if (typeof sp.hasGate === 'boolean') bestObj.userData.hasGate = sp.hasGate;
         if (typeof window.rebuildWoodenFencePanels === 'function') window.rebuildWoodenFencePanels(bestObj);
       }
+      if (bestObj.userData.versionFeature && (sp.objectVersion === 1 || sp.objectVersion === 2)) {
+        if (typeof applySingleObjectVersion === 'function') applySingleObjectVersion(bestObj, sp.objectVersion);
+      }
       bestObj.updateMatrixWorld(true);
     } else if (OBJECT_CATALOG_REGISTRY && OBJECT_CATALOG_REGISTRY.has(normLabel)) {
       // Spawn extra user-created objects (from Object Catalog or Copy/Paste) saved in layout
@@ -20132,6 +21988,7 @@ function applyLayoutPositions(layoutList, skipAnimalsAndBulldozers = false) {
         gateOffsetX: sp.gateOffsetX,
         hasGate: sp.hasGate,
         hasPot: sp.hasPot,
+        objectVersion: sp.objectVersion,
         skipSelect: true
       });
       if (spawned) usedObjs.add(spawned);
@@ -20189,6 +22046,12 @@ async function initApp() {
           wallColor: parsed.designColor.wallColor || '#f8fbff',
           accentColor: parsed.designColor.accentColor || '#1677e6',
           stairSameAsWall: !!parsed.designColor.stairSameAsWall
+        };
+      }
+      if (parsed.objectVersions && typeof parsed.objectVersions === 'object') {
+        state.objectVersions = {
+          kitchen: parsed.objectVersions.kitchen === 2 ? 2 : 1,
+          cabinTerrace: parsed.objectVersions.cabinTerrace === 2 ? 2 : 1
         };
       }
       if (parsed.customPositions) savedPositions = parsed.customPositions;
@@ -20251,6 +22114,12 @@ async function initApp() {
 
   // Apply the user's saved v10 layout if present, otherwise apply the locked 106-item custom default layout
   applyLayoutPositions(activeLayout, true);
+  if (typeof window.applyKitchenSetVersion === 'function') {
+    window.applyKitchenSetVersion((state.objectVersions && state.objectVersions.kitchen) || 1, false);
+  }
+  if (typeof window.applyCabinTerraceSetVersion === 'function') {
+    window.applyCabinTerraceSetVersion((state.objectVersions && state.objectVersions.cabinTerrace) || 1, false);
+  }
   if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
   if (maherNpcState.loaded && maherNpcState.currentAct) {
     startMaherActivity(maherNpcState.currentAct.id, true);
