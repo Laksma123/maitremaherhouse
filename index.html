@@ -501,18 +501,39 @@
   }
   .cam-btn:hover, .cam-btn.active { background: var(--gold); color: #111; border-color: #fff; font-weight: 700; }
   #selection-hud {
-    position: absolute; bottom: 14px; left: 12px; z-index: 10;
+    position: fixed;
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: auto;
+    z-index: 10;
     background: var(--bg-glass); backdrop-filter: blur(14px);
     border: 1px solid var(--border-gold); border-radius: 14px;
-    padding: 9px 14px; display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.55); flex-wrap: wrap;
-    max-width: calc(100vw - 24px);
+    padding: 9px 14px; display: flex; align-items: safe center;
+    row-gap: 6px; column-gap: 8px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+    flex-wrap: wrap;
+    /* Reserve 118px joystick + 18px right inset + 22px breathing gap + 12px left inset = 170px so wrapped rows never touch or go behind #walk-dpad */
+    max-inline-size: calc(100% - 170px);
+    max-inline-size: calc(100dvw - 170px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   }
-  .hud-title { font-size: 11.5px; font-weight: 700; color: var(--gold-bright); margin-right: 4px; }
+  #selection-hud > span[id$="-hud-controls"] {
+    flex-wrap: wrap;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    row-gap: 6px;
+  }
+  .hud-title {
+    font-size: 11.5px; font-weight: 700; color: var(--gold-bright);
+    margin-inline-end: 4px; min-inline-size: 0; overflow-wrap: break-word;
+  }
   .hud-btn {
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22);
     color: #fff; border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 600;
     cursor: pointer; transition: 0.15s; min-inline-size: 24px; min-block-size: 24px;
+    flex-shrink: 0;
+  }
+  @media (pointer: coarse) {
+    .hud-btn { min-inline-size: 40px; min-block-size: 40px; }
   }
   .hud-btn:hover { background: var(--gold); color: #111; }
   .hud-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
@@ -551,7 +572,10 @@
     background: var(--gold-bright); color: #111; padding: 2px 8px; border-radius: 6px; font-weight: 800;
   }
   #walk-dpad {
-    position: fixed; bottom: 18px; right: 18px; z-index: 16;
+    position: fixed;
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+    z-index: 16;
     width: 118px; height: 118px; border-radius: 50%;
     background: radial-gradient(circle, rgba(232, 185, 89, 0.14) 0%, rgba(12, 17, 26, 0.88) 72%);
     border: 2px solid rgba(232, 185, 89, 0.55);
@@ -25255,7 +25279,19 @@ function applyUrlHashInspection() {
   if (viewMode !== 'orbit') setViewMode('orbit');
   setTimeOfDay('day');
 
-  if (h.startsWith('inspect-wallv2') || h.startsWith('inspect-wallv1')) {
+  if (h.startsWith('inspect-hud-')) {
+    state.roofVisible = true;
+    if (roofGroup) roofGroup.visible = true;
+    if (h.includes('fence') && window.woodenFenceObj) {
+      selectObject(window.woodenFenceObj);
+    } else if (h.includes('road')) {
+      const rd = draggableObjects.find(o => o && o.userData && o.userData.isGravelRoad);
+      if (rd) selectObject(rd);
+    } else if (h.includes('bulldozer')) {
+      const bd = draggableObjects.find(o => o && o.userData && o.userData.isBulldozer);
+      if (bd) selectObject(bd);
+    }
+  } else if (h.startsWith('inspect-wallv2') || h.startsWith('inspect-wallv1')) {
     const isV1 = h.startsWith('inspect-wallv1');
     if (typeof window.setWallDesignVersion === 'function') window.setWallDesignVersion(isV1 ? 1 : 2);
     if (h.includes('-panel') && typeof window.toggleWallDesignPanel === 'function') window.toggleWallDesignPanel(true);
