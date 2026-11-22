@@ -96,6 +96,81 @@
     background: linear-gradient(135deg, #38bdf8, #2563eb);
     border-color: #fff; color: #fff;
   }
+  .btn-wall-design {
+    background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+    border: 1px solid #93c5fd; color: #fff; font-weight: 700;
+    box-shadow: 0 2px 12px rgba(29, 78, 216, 0.45);
+    min-inline-size: 28px; min-block-size: 28px;
+  }
+  @media (hover: hover) {
+    .btn-wall-design:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #fff; color: #fff;
+    }
+  }
+  .btn-wall-design[aria-expanded="true"] {
+    background: linear-gradient(135deg, #38bdf8, #1d4ed8);
+    border-color: #fff; color: #fff;
+  }
+  #wall-design-panel {
+    pointer-events: auto;
+    display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: rgba(10, 18, 34, 0.95); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1.5px solid #60a5fa; border-radius: 13px;
+    padding: 8px 14px; box-shadow: 0 12px 34px rgba(0,0,0,0.72);
+    width: fit-content; max-width: calc(100vw - 24px);
+    position: relative;
+  }
+  #wall-design-panel.visible {
+    display: flex;
+  }
+  .wall-design-title {
+    font-size: 11.5px; font-weight: 800; color: #93c5fd; margin-right: 2px;
+  }
+  .wall-design-group {
+    display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .wall-design-sep {
+    display: inline-block; inline-size: 0; block-size: 18px;
+    border-inline-start: 1px solid rgba(147, 197, 253, 0.35);
+    margin-inline: 2px;
+  }
+  .wall-ver-btn {
+    background: rgba(255,255,255,0.08); color: #e2e8f0;
+    border: 1.5px solid rgba(96, 165, 250, 0.42); border-radius: 99px;
+    padding: 5px 13px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+    min-inline-size: 28px; min-block-size: 28px;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .wall-ver-btn, .btn-wall-design { transition: background-color 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease; }
+  }
+  @media (hover: hover) {
+    .wall-ver-btn:hover {
+      background: rgba(56, 189, 248, 0.22); border-color: #bae6fd; color: #fff;
+    }
+  }
+  .wall-ver-btn[aria-pressed="true"] {
+    background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
+    color: #fff; border-color: #fff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.45), 0 2px 12px rgba(14, 165, 233, 0.52);
+  }
+  .btn-wall-design:focus-visible, .wall-ver-btn:focus-visible, .wall-close-btn:focus-visible {
+    outline: 2.5px solid #38bdf8;
+    outline-offset: 2px;
+  }
+  .wall-close-btn {
+    min-inline-size: 28px; min-block-size: 28px; padding: 4px 9px; font-size: 11px;
+  }
+  @media (pointer: coarse) {
+    .btn-wall-design, .wall-ver-btn, .wall-close-btn { min-inline-size: 40px; min-block-size: 40px; }
+  }
+  @media (forced-colors: active) {
+    .wall-ver-btn[aria-pressed="true"] {
+      background: Highlight; color: HighlightText; border-color: HighlightText;
+    }
+    .wall-design-sep { border-inline-start-color: ButtonText; }
+  }
   #design-color-panel {
     pointer-events: auto;
     display: none; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -560,6 +635,7 @@
 <script src="./bulldozer_data.js"></script>
 <script src="./tractor_data.js"></script>
 <script src="./v2_enhanced_assets_data.js"></script>
+<script src="./wall_ceramic_v2_data.js"></script>
 </head>
 <body>
 
@@ -570,6 +646,7 @@
     <div class="top-actions">
       <button class="btn-pill btn-photoshoot" id="btn-photoshoot" onclick="startPhotoshootRender()">📸 Photoshoot (Blender Render)</button>
       <button class="btn-pill btn-design-color" id="btn-design-color" onclick="toggleDesignColorPanel()">🎨 Design Color</button>
+      <button type="button" class="btn-pill btn-wall-design" id="btn-wall-design" aria-expanded="false" aria-controls="wall-design-panel" onclick="toggleWallDesignPanel()">🧱 Wall Design: V2</button>
       <button class="btn-pill btn-catalog" id="btn-object-catalog" onclick="toggleObjectCatalog()">📦 Object Catalog</button>
       <button class="btn-pill btn-animals" id="btn-deploy-animals" onclick="toggleAnimalDeployPanel()">🐾 Deploy Animals</button>
       <button class="btn-pill btn-lang" id="btn-lang-toggle" onclick="toggleLanguage()">🇹🇳 العربية التونسية</button>
@@ -607,6 +684,16 @@
       <span id="hex-bulldozer-color" style="opacity:0.8;font-size:10px;">#0EA5E9</span>
     </button>
     <button class="btn-pill" id="btn-close-design-color" onclick="toggleDesignColorPanel(false)" style="padding:4px 9px;font-size:11px;">✖</button>
+  </div>
+
+  <div id="wall-design-panel" role="toolbar" focusgroup="toolbar wrap" aria-label="Wall Design Controls">
+    <span class="wall-design-title" id="ui-wall-design-title">🧱 Wall Design:</span>
+    <div role="group" aria-label="Wall Design Version" class="wall-design-group">
+      <button type="button" class="wall-ver-btn" id="btn-wall-design-v1" aria-pressed="false" onclick="setWallDesignVersion(1)">🏛️ Version 1: Blue Arches</button>
+      <button type="button" class="wall-ver-btn" id="btn-wall-design-v2" aria-pressed="true" onclick="setWallDesignVersion(2)">💠 Version 2: Sidi Bou Ceramic</button>
+    </div>
+    <span role="separator" aria-orientation="vertical" class="wall-design-sep"></span>
+    <button type="button" class="btn-pill wall-close-btn" id="btn-close-wall-design" aria-label="Close Wall Design panel" title="Close" onclick="toggleWallDesignPanel(false)">✖</button>
   </div>
 
   <div id="animal-deploy-panel">
@@ -879,6 +966,11 @@ const I18N = {
     catLivestock: '🐄 Livestock & Barn',
     btnDesignColor: '🎨 Design Color',
     designColorTitle: '🎨 Design Color:',
+    btnWallDesignV1: '🧱 Wall Design: V1',
+    btnWallDesignV2: '🧱 Wall Design: V2',
+    wallDesignTitle: '🧱 Wall Design:',
+    wallDesignOpt1: '🏛️ Version 1: Blue Arches',
+    wallDesignOpt2: '💠 Version 2: Sidi Bou Ceramic',
     tplDefault: '🏛️ Default Template',
     tplSidiBou: '🇹🇳 Sidi Bou Template',
     tplCustom: '🎨 Custom',
@@ -979,6 +1071,11 @@ const I18N = {
     catLivestock: '🐄 المواشي والحظيرة',
     btnDesignColor: '🎨 ألوان التصميم',
     designColorTitle: '🎨 ألوان التصميم:',
+    btnWallDesignV1: '🧱 تصميم الجدران: V1',
+    btnWallDesignV2: '🧱 تصميم الجدران: V2',
+    wallDesignTitle: '🧱 تصميم الجدران:',
+    wallDesignOpt1: '🏛️ الإصدار 1: أقواس زرقاء',
+    wallDesignOpt2: '💠 الإصدار 2: جليز سيدي بوسعيد',
     tplDefault: '🏛️ القالب الافتراضي',
     tplSidiBou: '🇹🇳 قالب سيدي بوسعيد',
     tplCustom: '🎨 مخصص (Custom)',
@@ -1057,7 +1154,8 @@ const state = {
   timeOfDay: 'sunset',
   objectVersions: {
     kitchen: 1,
-    cabinTerrace: 1
+    cabinTerrace: 1,
+    wallDesign: 2
   }
 };
 
@@ -1438,6 +1536,14 @@ const texV2JuteRunnerDiffB64 = loadV2B64Texture(window.V2_JUTE_RUNNER_DIFF_B64, 
 const texV2JuteRunnerNorB64 = loadV2B64Texture(window.V2_JUTE_RUNNER_NOR_B64, 1.0, 1.0, false);
 const texV2BlueWhiteCeramicB64 = loadV2B64Texture(window.V2_BLUEWHITE_CERAMIC_B64, 1.5, 1.0, true, '#eef3fb');
 const texV2MoroccanLanternB64 = loadV2B64Texture(window.V2_MOROCCAN_LANTERN_B64, 2.0, 1.0, true, '#e8a824');
+
+// Wall Design Version 2: Sidi Bou Said Glazed Ceramic Tile PBR Maps (Lina Bleu + Lina Bleu Alg 20x20cm & Lina Bleu F 20x5cm)
+const texWallCeramicV2Diff = loadV2B64Texture(window.WALL_CERAMIC_V2_DIFF_B64, 1.0, 1.0, true, '#eef4fd');
+const texWallCeramicV2Nor  = loadV2B64Texture(window.WALL_CERAMIC_V2_NOR_B64, 1.0, 1.0, false);
+const texWallCeramicV2Arm  = loadV2B64Texture(window.WALL_CERAMIC_V2_ARM_B64, 1.0, 1.0, false);
+const texWallCeramicFriezeDiff = loadV2B64Texture(window.WALL_CERAMIC_FRIEZE_DIFF_B64, 1.0, 1.0, true, '#1964d6');
+const texWallCeramicFriezeNor  = loadV2B64Texture(window.WALL_CERAMIC_FRIEZE_NOR_B64, 1.0, 1.0, false);
+const texWallCeramicFriezeArm  = loadV2B64Texture(window.WALL_CERAMIC_FRIEZE_ARM_B64, 1.0, 1.0, false);
 
 // High-Resolution RGBA Botanical Bougainvillea Panicle Atlas (3-bract papery blossoms + ovate leaves, zero blocky rocks!)
 function makeBougainvilleaPanicleTexture(primaryHex, highlightHex, deepHex) {
@@ -2700,6 +2806,15 @@ scene.add(dynamicWallsGroup);
 const northWallArchGroup = new THREE.Group();
 scene.add(northWallArchGroup);
 
+const leftTerraceArchGroup = new THREE.Group();
+scene.add(leftTerraceArchGroup);
+
+const indoorWalnutBaseboardsGroup = new THREE.Group();
+scene.add(indoorWalnutBaseboardsGroup);
+
+const wallDesignV2CeramicGroup = new THREE.Group();
+scene.add(wallDesignV2CeramicGroup);
+
 const facadeDecorGroup = new THREE.Group();
 scene.add(facadeDecorGroup);
 
@@ -3495,17 +3610,18 @@ function buildStaticArchitecture() {
   const rugMajlis = addBoxMesh(3.95, 0.014, 4.20, 3.25, 1.65, 0.011, matRug, archRoot, false);
   registerDraggable(rugMajlis, 'Grand Majlis Berber Carpet', 'زربية الصالة البربرية');
 
-  // Walnut Baseboards, Dark Plinth Reveal & Ceiling Crown Moldings (creates deep architectural contrast at wall joints)
+  // Walnut Baseboards (Version 1 indoor floor trim) & Ceiling Crown Moldings (kept in both versions)
   addBoxMesh(11.8, 0.14, 0.12, 0.0, 4.84, H - 0.07, matWalnut);
   addBoxMesh(0.12, 0.14, 9.8, 5.84, 0.0, H - 0.07, matWalnut);
   addBoxMesh(0.12, 0.14, 9.8, -5.84, 0.0, H - 0.07, matWalnut);
   addBoxMesh(11.4, 0.03, 0.035, 0.0, 4.77, H - 0.14, matLedBorderArch);
-  addBoxMesh(11.8, 0.14, 0.06, 0.0, 4.85, 0.07, matWalnut);
-  addBoxMesh(0.06, 0.14, 9.8, 5.85, 0.0, 0.07, matWalnut);
-  addBoxMesh(0.06, 0.14, 9.8, -5.85, 0.0, 0.07, matWalnut);
-  addBoxMesh(7.6, 0.14, 0.06, 2.0, -4.85, 0.07, matWalnut);
-  addBoxMesh(0.06, 0.14, 3.6, -2.02, -3.05, 0.07, matWalnut);
-  addBoxMesh(3.7, 0.14, 0.06, -4.00, -1.12, 0.07, matWalnut);
+  addBoxMesh(11.8, 0.14, 0.06, 0.0, 4.85, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  addBoxMesh(0.06, 0.14, 9.8, 5.85, 0.0, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  addBoxMesh(0.06, 0.14, 9.8, -5.85, 0.0, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  addBoxMesh(7.6, 0.14, 0.06, 2.0, -4.85, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  addBoxMesh(0.06, 0.14, 3.6, -2.02, -3.05, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  addBoxMesh(3.7, 0.14, 0.06, -4.00, -1.12, 0.07, matWalnut, indoorWalnutBaseboardsGroup);
+  freezeStaticMeshes(indoorWalnutBaseboardsGroup);
 
   // Courtyard Steps (+25cm from Terrace -0.25m up to House Floor 0.00m) + Welcome Arch Steps (+25cm from Soil -0.50m up to Terrace -0.25m)
   addBoxMesh(1.65, 0.125, 0.34, 2.60, -5.20, -0.0625, matMainFloor);
@@ -3799,6 +3915,7 @@ function buildStaticArchitecture() {
   eastArch.position.copy(bPos(5.84, 1.85, 0.0));
   eastArch.rotation.y = -Math.PI / 2;
   archRoot.add(eastArch);
+  window.eastWallArchObj = eastArch;
 
   // Kitchen Interior Divider Wall
   addBoxMesh(0.22, H, 3.40, 1.40, -3.30, H/2, wallMaterials.bath_kitchen);
@@ -6545,12 +6662,211 @@ function rebuildFacadeDecor() {
   for (let i=0; i<9; i++) addBoxMesh(0.10, 0.14, 0.55, 1.85 + i*0.44, -5.32, 3.65, matExteriorCanopyWood, facadeDecorGroup);
   // Decorative Mashrabiya LED Crown along the Shifted East Guest Cabin Front Wall (by = -13.40, bx = 12.00..18.00)
   addBoxMesh(5.80, 0.035, 0.04, 15.00, -13.54, 3.76, matLedBorderOpening, facadeDecorGroup);
+  freezeStaticMeshes(facadeDecorGroup);
+
+  // Wall Design Version 1: 2 Left Terrace Blue Mashrabiya Decorative Arches (kept in dedicated group so V1/V2 toggles cleanly!)
+  while (leftTerraceArchGroup.children.length > 0) {
+    leftTerraceArchGroup.remove(leftTerraceArchGroup.children[0]);
+  }
   [-4.40, -0.80].forEach(ex => {
     const a = createModernArabicArchGroup(2.20, 3.05, 0.09, { infillMode: 'mashrabiya', hasLed: true, isOpening: true, pointed: 0.15 });
     a.position.copy(bPos(ex, -5.14, 0.15));
-    facadeDecorGroup.add(a);
+    leftTerraceArchGroup.add(a);
   });
-  freezeStaticMeshes(facadeDecorGroup);
+  freezeStaticMeshes(leftTerraceArchGroup);
+}
+
+// ============================================================================
+// WALL DESIGN VERSION 2: SIDI BOU SAID GLAZED CERAMIC TILE DADO (LINA BLEU + LINA BLEU ALG + LINA BLEU F)
+// - Runs from directly beneath the Right Terrace wall flower pots (bz = 0.85m) down to wall floor (-0.25m exterior / 0.00m indoor)
+// - Spans Right Front Terrace Wall -> Front Terrace -> Entire Left Concrete Terrace -> Full Main House Indoor Walls
+// - True 20x20cm alternating checkerboard tiles + 20x5cm cobalt floral border frieze + 3D glazed porcelain bullnose cap
+// - Ultra-glossy ceramic glaze roughnessMap + 3D pillowed ceramic bevel & grout normalMap + recessed grout AO!
+// ============================================================================
+function buildWallDesignV2Ceramic() {
+  while (wallDesignV2CeramicGroup.children.length > 0) {
+    wallDesignV2CeramicGroup.remove(wallDesignV2CeramicGroup.children[0]);
+  }
+
+  const matCeramicMainV2 = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    map: texWallCeramicV2Diff,
+    normalMap: texWallCeramicV2Nor,
+    normalScale: new THREE.Vector2(1.18, 1.18),
+    roughnessMap: texWallCeramicV2Arm,
+    roughness: 1.0,
+    aoMap: texWallCeramicV2Arm,
+    aoMapIntensity: 0.72,
+    metalness: 0.04,
+    envMapIntensity: 1.38,
+    userData: { customEnvIntensity: 1.38 }
+  });
+
+  const matCeramicFriezeV2 = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    map: texWallCeramicFriezeDiff,
+    normalMap: texWallCeramicFriezeNor,
+    normalScale: new THREE.Vector2(1.12, 1.12),
+    roughnessMap: texWallCeramicFriezeArm,
+    roughness: 1.0,
+    aoMap: texWallCeramicFriezeArm,
+    aoMapIntensity: 0.72,
+    metalness: 0.04,
+    envMapIntensity: 1.38,
+    userData: { customEnvIntensity: 1.38 }
+  });
+
+  // Glazed ceramic bullnose top cap & crisp Sidi Bou cobalt hairline molding
+  const matCeramicBullnose = new THREE.MeshStandardMaterial({
+    color: 0xeff5fe,
+    normalMap: texWallCeramicFriezeNor,
+    normalScale: new THREE.Vector2(0.28, 0.28),
+    roughness: 0.14,
+    metalness: 0.05,
+    envMapIntensity: 1.42,
+    userData: { customEnvIntensity: 1.42 }
+  });
+  const matCeramicCobaltTrim = new THREE.MeshStandardMaterial({
+    color: 0x1254c4,
+    roughness: 0.16,
+    metalness: 0.05,
+    envMapIntensity: 1.35,
+    userData: { customEnvIntensity: 1.35 }
+  });
+
+  function applyMetricCeramicUVs(geo, len, h, tileW, tileH, uPhase, isFrieze) {
+    const pos = geo.attributes.position;
+    const nor = geo.attributes.normal;
+    const uv = geo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) {
+      const vx = pos.getX(i), vy = pos.getY(i);
+      const fnx = nor.getX(i), fnz = nor.getZ(i);
+      if (Math.abs(fnz) > 0.5) {
+        const u = (vx + len * 0.5) / tileW + uPhase;
+        const v = isFrieze
+          ? (vy + h * 0.5) / h
+          : (1.0 - (h * 0.5 - vy) / tileH);
+        uv.setXY(i, u, v);
+      } else if (Math.abs(fnx) > 0.5) {
+        // Side end-caps map cleanly to glossy ceramic porcelain edge
+        uv.setXY(i, 0.53, (vy + h * 0.5) / Math.max(0.05, tileH));
+      } else {
+        uv.setXY(i, (vx + len * 0.5) / tileW + uPhase, 0.52);
+      }
+    }
+    uv.needsUpdate = true;
+    geo.setAttribute('uv2', new THREE.BufferAttribute(new Float32Array(uv.array), 2));
+  }
+
+  function addCeramicDadoSpan(bx0, by0, bx1, by1, bzBot, bzTop, nx, ny, uPhase = 0) {
+    const len = Math.hypot(bx1 - bx0, by1 - by0);
+    const totalH = bzTop - bzBot;
+    if (len < 0.04 || totalH < 0.10) return;
+
+    const midBx = (bx0 + bx1) * 0.5;
+    const midBy = (by0 + by1) * 0.5;
+    const wnx = nx, wnz = -ny;
+    const rotY = Math.atan2(wnx, wnz);
+
+    const capH = 0.012;
+    const friezeH = 0.050; // Exact 5cm Lina Bleu F horizontal ceramic border frieze
+    const tileH = Math.max(0.04, totalH - friezeH - capH);
+    const thick = 0.009;   // Real 9mm physical glazed ceramic tile depth proud of plaster wall
+
+    // 1. Main 20x20cm Alternating Checkerboard Tile Field (Lina Bleu + Lina Bleu Alg, 0.40m x 0.40m repeat)
+    const tileGeo = new THREE.BoxGeometry(len, tileH, thick);
+    applyMetricCeramicUVs(tileGeo, len, tileH, 0.40, 0.40, uPhase, false);
+    const tileMesh = new THREE.Mesh(tileGeo, matCeramicMainV2);
+    tileMesh.position.copy(bPos(midBx + nx * (thick * 0.5), midBy + ny * (thick * 0.5), bzBot + tileH * 0.5));
+    tileMesh.rotation.y = rotY;
+    tileMesh.castShadow = true;
+    tileMesh.receiveShadow = true;
+    wallDesignV2CeramicGroup.add(tileMesh);
+
+    // 2. Top 20x5cm Sidi Bou Cobalt Floral Border Frieze (Lina Bleu F, slightly proud +2mm like real ceramic listello)
+    const frThick = thick + 0.0022;
+    const frGeo = new THREE.BoxGeometry(len, friezeH, frThick);
+    applyMetricCeramicUVs(frGeo, len, friezeH, 0.20, friezeH, uPhase * 2.0, true);
+    const frMesh = new THREE.Mesh(frGeo, matCeramicFriezeV2);
+    frMesh.position.copy(bPos(midBx + nx * (frThick * 0.5), midBy + ny * (frThick * 0.5), bzBot + tileH + friezeH * 0.5));
+    frMesh.rotation.y = rotY;
+    frMesh.castShadow = true;
+    frMesh.receiveShadow = true;
+    wallDesignV2CeramicGroup.add(frMesh);
+
+    // 3. 3D Glazed Ceramic Half-Round Bullnose Cap & Fine Cobalt Bead along exact bzTop (0.85m right below pots & windows!)
+    const capThick = thick + 0.0055;
+    const capMesh = new THREE.Mesh(new THREE.BoxGeometry(len, capH * 0.65, capThick), matCeramicBullnose);
+    capMesh.position.copy(bPos(midBx + nx * (capThick * 0.5), midBy + ny * (capThick * 0.5), bzTop - capH * 0.35));
+    capMesh.rotation.y = rotY;
+    capMesh.castShadow = true;
+    capMesh.receiveShadow = true;
+    wallDesignV2CeramicGroup.add(capMesh);
+
+    const beadMesh = new THREE.Mesh(new THREE.BoxGeometry(len, capH * 0.35, capThick + 0.0015), matCeramicCobaltTrim);
+    beadMesh.position.copy(bPos(midBx + nx * ((capThick + 0.0015) * 0.5), midBy + ny * ((capThick + 0.0015) * 0.5), bzTop - capH * 0.82));
+    beadMesh.rotation.y = rotY;
+    wallDesignV2CeramicGroup.add(beadMesh);
+  }
+
+  // --------------------------------------------------------------------------
+  // A. EXTERIOR TERRACE WALLS (Right Terrace -> Front Facade -> Left Terrace)
+  //    Height: bz = -0.25m (terrace floor) up to bz = 0.850m (exact bottom of wall pots & front window!)
+  // --------------------------------------------------------------------------
+  const extBot = -0.250;
+  const extTop = 0.850;
+  const lowWallTop = 0.575; // Under matArchTrim coping cap (0.605m) on the low front & left courtyard walls
+
+  // 1) Right Front Terrace Wall — inner West face directly beneath all 17 terracotta flower pots
+  addCeramicDadoSpan(5.88, -9.08, 5.88, -5.12, extBot, extTop, -1, 0, 0.0);
+
+  // 2) Low Front Terrace Wall (inner North face) & Low Left Courtyard Wall (inner East + outer West faces)
+  addCeramicDadoSpan(3.36, -9.08, 5.88, -9.08, extBot, lowWallTop, 0, 1, 0.15);
+  addCeramicDadoSpan(1.52, -9.08, 1.52, -7.10, extBot, lowWallTop, 1, 0, 0.0);
+  addCeramicDadoSpan(1.28, -7.10, 1.28, -9.08, extBot, lowWallTop, -1, 0, 0.0);
+
+  // 3) Exterior South House Wall — Right Terrace (under sWin) & continuously across the entire Left Concrete Terrace!
+  //    Split cleanly around Main Entrance Arch Door (bx = 1.92 .. 3.28)
+  addCeramicDadoSpan(3.28, -5.12, 5.88, -5.12, extBot, extTop, 0, -1, 0.0);
+  addCeramicDadoSpan(-6.12, -5.12, 1.92, -5.12, extBot, extTop, 0, -1, 0.0);
+
+  // --------------------------------------------------------------------------
+  // B. FULL MAIN HOUSE INDOOR WALLS (Master Bedroom, Center Lounge, Grand Majlis, Kitchen & Hammam Bathroom)
+  //    Height: bz = 0.000m (interior marble floor) up to bz = 0.850m (exact bottom of sWin & wWin window sills!)
+  // --------------------------------------------------------------------------
+  const inBot = 0.000;
+  const inTop = 0.850;
+
+  // 1) Indoor North Wall (Master Bedroom -> Center Lounge -> Grand Majlis Salon & TV Wall)
+  addCeramicDadoSpan(-5.88, 4.88, 5.88, 4.88, inBot, inTop, 0, -1, 0.0);
+
+  // 2) Indoor East Wall (Grand Majlis Salon East Wall — replaces lower zone of Version 1 eastArch)
+  addCeramicDadoSpan(5.88, 4.88, 5.88, -4.88, inBot, inTop, -1, 0, 0.0);
+
+  // 3) Indoor South Wall (cleanly split around Main Entrance Door, Kitchen Divider Wall & Bathroom Partition)
+  addCeramicDadoSpan(5.88, -4.88, 3.28, -4.88, inBot, inTop, 0, 1, 0.0);
+  addCeramicDadoSpan(1.92, -4.88, 1.51, -4.88, inBot, inTop, 0, 1, 0.0);
+  addCeramicDadoSpan(1.29, -4.88, -2.01, -4.88, inBot, inTop, 0, 1, 0.0);
+  addCeramicDadoSpan(-2.19, -4.88, -5.88, -4.88, inBot, inTop, 0, 1, 0.0);
+
+  // 4) Indoor West Wall (Master Bedroom West Wall under wWin + Hammam Bathroom West Wall)
+  addCeramicDadoSpan(-5.88, -1.11, -5.88, 4.88, inBot, inTop, 1, 0, 0.0);
+  addCeramicDadoSpan(-5.88, -4.88, -5.88, -1.29, inBot, inTop, 1, 0, 0.0);
+
+  // 5) Kitchen Interior Divider Wall (bx = 1.40, thick 0.22 -> faces at 1.51 & 1.29, by = -4.88..-1.60)
+  addCeramicDadoSpan(1.51, -4.88, 1.51, -1.60, inBot, inTop, 1, 0, 0.0);
+  addCeramicDadoSpan(1.29, -1.60, 1.29, -4.88, inBot, inTop, -1, 0, 0.0);
+  addCeramicDadoSpan(1.29, -1.60, 1.51, -1.60, inBot, inTop, 0, 1, 0.0);
+
+  // 6) Bathroom Interior Partitions (bath_north at by = -1.20 & bath_east at bx = -2.10, clear of bathDoor by = -3.39..-2.31)
+  addCeramicDadoSpan(-5.88, -1.11, -2.01, -1.11, inBot, inTop, 0, 1, 0.0);
+  addCeramicDadoSpan(-2.19, -1.29, -5.88, -1.29, inBot, inTop, 0, -1, 0.0);
+  addCeramicDadoSpan(-2.01, -4.88, -2.01, -3.39, inBot, inTop, 1, 0, 0.0);
+  addCeramicDadoSpan(-2.01, -2.31, -2.01, -1.11, inBot, inTop, 1, 0, 0.0);
+  addCeramicDadoSpan(-2.19, -3.39, -2.19, -4.88, inBot, inTop, -1, 0, 0.0);
+  addCeramicDadoSpan(-2.19, -1.29, -2.19, -2.31, inBot, inTop, -1, 0, 0.0);
+
+  freezeStaticMeshes(wallDesignV2CeramicGroup);
 }
 
 function rebuildOpenings() {
@@ -14899,6 +15215,9 @@ window.toggleDesignColorPanel = function(forceState) {
   const btn = document.getElementById('btn-design-color');
   if (!panel) return;
   const nextVisible = (typeof forceState === 'boolean') ? forceState : !panel.classList.contains('visible');
+  if (nextVisible && typeof window.toggleWallDesignPanel === 'function') {
+    window.toggleWallDesignPanel(false);
+  }
   panel.classList.toggle('visible', nextVisible);
   if (btn) btn.classList.toggle('active', nextVisible);
   if (!nextVisible) {
@@ -14913,6 +15232,94 @@ window.toggleDesignColorPanel = function(forceState) {
     }
   }
 };
+
+// ============================================================================
+// WALL DESIGN VERSION ENGINE (VERSION 1: BLUE MASHRABIYA ARCHES | VERSION 2: SIDI BOU CERAMIC DADO)
+// ============================================================================
+function syncWallDesignUI() {
+  const ver = (state.objectVersions && state.objectVersions.wallDesign === 1) ? 1 : 2;
+  const topBtn = document.getElementById('btn-wall-design');
+  if (topBtn) topBtn.textContent = ver === 1 ? t('btnWallDesignV1') : t('btnWallDesignV2');
+  setText('ui-wall-design-title', t('wallDesignTitle'));
+  const b1 = document.getElementById('btn-wall-design-v1');
+  const b2 = document.getElementById('btn-wall-design-v2');
+  if (b1) {
+    b1.textContent = t('wallDesignOpt1');
+    b1.setAttribute('aria-pressed', ver === 1 ? 'true' : 'false');
+  }
+  if (b2) {
+    b2.textContent = t('wallDesignOpt2');
+    b2.setAttribute('aria-pressed', ver === 2 ? 'true' : 'false');
+  }
+}
+window.syncWallDesignUI = syncWallDesignUI;
+
+window.setWallDesignVersion = function(ver) {
+  const nextVer = (ver === 1) ? 1 : 2;
+  if (!state.objectVersions) state.objectVersions = { kitchen: 1, cabinTerrace: 1, wallDesign: 2 };
+  state.objectVersions.wallDesign = nextVer;
+
+  const isV1 = (nextVer === 1);
+  if (typeof northWallArchGroup !== 'undefined' && northWallArchGroup) {
+    northWallArchGroup.visible = isV1;
+  }
+  if (typeof leftTerraceArchGroup !== 'undefined' && leftTerraceArchGroup) {
+    leftTerraceArchGroup.visible = isV1;
+  }
+  if (window.eastWallArchObj) {
+    window.eastWallArchObj.visible = isV1;
+  }
+  if (typeof indoorWalnutBaseboardsGroup !== 'undefined' && indoorWalnutBaseboardsGroup) {
+    indoorWalnutBaseboardsGroup.visible = isV1;
+  }
+  if (typeof wallDesignV2CeramicGroup !== 'undefined' && wallDesignV2CeramicGroup) {
+    wallDesignV2CeramicGroup.visible = !isV1;
+  }
+
+  syncWallDesignUI();
+  requestShadowUpdate();
+};
+
+window.toggleWallDesignPanel = function(forceState) {
+  const panel = document.getElementById('wall-design-panel');
+  const btn = document.getElementById('btn-wall-design');
+  if (!panel) return;
+  const nextVisible = (typeof forceState === 'boolean') ? forceState : !panel.classList.contains('visible');
+  if (nextVisible && typeof window.toggleDesignColorPanel === 'function') {
+    window.toggleDesignColorPanel(false);
+  }
+  panel.classList.toggle('visible', nextVisible);
+  if (btn) btn.setAttribute('aria-expanded', nextVisible ? 'true' : 'false');
+  if (nextVisible) syncWallDesignUI();
+};
+
+// Accessible roving-tabindex fallback for #wall-design-panel when native focusgroup is unsupported
+(function initWallDesignToolbarFallback() {
+  const bar = document.getElementById('wall-design-panel');
+  if (!bar || ('focusGroup' in HTMLElement.prototype)) return;
+  const items = Array.from(bar.querySelectorAll('button'));
+  if (!items.length) return;
+  items.forEach((b, i) => { b.tabIndex = i === 0 ? 0 : -1; });
+  bar.addEventListener('focusin', (e) => {
+    if (items.includes(e.target)) {
+      items.forEach((b) => { b.tabIndex = (b === e.target) ? 0 : -1; });
+    }
+  });
+  bar.addEventListener('keydown', (e) => {
+    const idx = items.indexOf(document.activeElement);
+    if (idx === -1) return;
+    const rtl = getComputedStyle(bar).direction === 'rtl';
+    let next = -1;
+    if (e.key === 'ArrowRight') next = (idx + (rtl ? -1 : 1) + items.length) % items.length;
+    else if (e.key === 'ArrowLeft') next = (idx + (rtl ? 1 : -1) + items.length) % items.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = items.length - 1;
+    if (next !== -1) {
+      e.preventDefault();
+      items[next].focus();
+    }
+  });
+})();
 
 // ============================================================================
 // INTERACTIVE POPOVER COLOR PALETTE CONTROLLER (2D SV SPECTRUM + HUE + 24 SWATCHES)
@@ -18074,6 +18481,7 @@ function updateStaticUIStrings() {
   setText('btn-photoshoot', t('photoshoot'));
   setText('btn-design-color', t('btnDesignColor'));
   if (typeof syncDesignColorUI === 'function') syncDesignColorUI();
+  if (typeof syncWallDesignUI === 'function') syncWallDesignUI();
   setText('btn-deploy-animals', t('btnDeployAnimals'));
   setText('btn-object-catalog', t('btnObjectCatalog'));
   setText('catalog-modal-title', t('catalogTitle'));
@@ -24755,7 +25163,8 @@ async function initApp() {
       if (parsed.objectVersions && typeof parsed.objectVersions === 'object') {
         state.objectVersions = {
           kitchen: parsed.objectVersions.kitchen === 2 ? 2 : 1,
-          cabinTerrace: parsed.objectVersions.cabinTerrace === 2 ? 2 : 1
+          cabinTerrace: parsed.objectVersions.cabinTerrace === 2 ? 2 : 1,
+          wallDesign: parsed.objectVersions.wallDesign === 1 ? 1 : 2
         };
       }
       if (parsed.customPositions) savedPositions = parsed.customPositions;
@@ -24767,9 +25176,13 @@ async function initApp() {
   buildStaticArchitecture();
   rebuildNorthWallArches();
   rebuildFacadeDecor();
+  buildWallDesignV2Ceramic();
   rebuildOpenings();
   applyAllMaterialsAndLights();
   if (typeof applyDesignColorTheme === 'function') applyDesignColorTheme();
+  if (typeof window.setWallDesignVersion === 'function') {
+    window.setWallDesignVersion((state.objectVersions && state.objectVersions.wallDesign === 1) ? 1 : 2);
+  }
   setTimeOfDay(state.timeOfDay || 'sunset');
   updateStaticUIStrings();
 
@@ -24842,7 +25255,35 @@ function applyUrlHashInspection() {
   if (viewMode !== 'orbit') setViewMode('orbit');
   setTimeOfDay('day');
 
-  if (h.startsWith('inspect-wallpots')) {
+  if (h.startsWith('inspect-wallv2') || h.startsWith('inspect-wallv1')) {
+    const isV1 = h.startsWith('inspect-wallv1');
+    if (typeof window.setWallDesignVersion === 'function') window.setWallDesignVersion(isV1 ? 1 : 2);
+    if (h.includes('-panel') && typeof window.toggleWallDesignPanel === 'function') window.toggleWallDesignPanel(true);
+    if (h.includes('-sunset')) setTimeOfDay('sunset');
+    if (h.includes('-indoor')) {
+      state.roofVisible = false;
+      if (roofGroup) roofGroup.visible = false;
+      perspCamera.position.set(1.35, 1.55, 2.35);
+      controls.target.set(4.55, 0.85, -2.10);
+    } else if (h.includes('-left')) {
+      state.roofVisible = true;
+      if (roofGroup) roofGroup.visible = true;
+      perspCamera.position.set(-1.55, 1.38, 9.65);
+      controls.target.set(-2.35, 0.95, 5.12);
+    } else if (h.includes('-closeup')) {
+      state.roofVisible = true;
+      if (roofGroup) roofGroup.visible = true;
+      perspCamera.position.set(4.15, 0.72, 7.60);
+      controls.target.set(5.86, 0.52, 6.75);
+    } else {
+      // Right Terrace wall showing wall pots sitting directly above Sidi Bou glazed ceramic dado!
+      state.roofVisible = true;
+      if (roofGroup) roofGroup.visible = true;
+      perspCamera.position.set(2.35, 1.48, 8.95);
+      controls.target.set(5.45, 1.25, 6.65);
+    }
+    deselectObject();
+  } else if (h.startsWith('inspect-wallpots')) {
     state.roofVisible = true;
     if (roofGroup) roofGroup.visible = true;
     if (h.includes('-sunset')) setTimeOfDay('sunset');
